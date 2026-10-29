@@ -21,7 +21,7 @@
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
-> Status: **0.2.2-alpha** – all planned feature areas are implemented and tested (238 unit tests, real-world
+> Status: **0.2.2-alpha** – all planned feature areas are implemented and tested (244 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Features
@@ -36,7 +36,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 | **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (PNG/JPEG with transparency), **free-space detection** |
 | **Forms** | read/fill/create AcroForm fields (text, check box with styles, radio, combo, list, push button with image, signature) with appearance generation, flattening, merging; XFA data |
 | **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions |
-| **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA** (CAdES detached, signing-certificate-v2, DSS with OCSP/CRL), custom signed attributes, handwritten ink appearances, TSA failover, RFC 3161 time-stamps, document time-stamps, visible signatures, certification (DocMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |
+| **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA** (CAdES detached, signing-certificate-v2, DSS with OCSP/CRL), custom signed attributes, handwritten ink appearances, TSA failover, RFC 3161 time-stamps, document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |
 | **PDF/A** | PDF/A-1b/2b/2u/3b/3u output (XMP, sRGB output intent) and a basic conformance checker |
 | **Accessibility** | tagged PDF and **PDF/UA-1**: automatic tagging by the layout engine (headings, paragraphs, tables, figures, artifacts), manual tagging API, PDF/UA checker |
 | **Attachments / e-invoices** | embedded files with PDF/A-3 associated files, ZUGFeRD 2.x / Factur-X / XRechnung hybrid invoices |

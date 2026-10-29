@@ -43,6 +43,7 @@ Certificates issued with RSASSA-PSS are supported for chain building, LTV and va
 | `FieldName` | existing empty signature field to sign, or name of the new field (default `Signature1`, `Signature2`, ...) |
 | `TimestampClient` | time-stamp authority (B-T level) |
 | `Certification` | certify the document (DocMDP): `NoChanges`, `FormFilling`, `FormFillingAndAnnotations` |
+| `FieldLock` | form fields locked by this signature (FieldMDP): `PdfFieldLock.All()`, `Include(..)`, `Exclude(..)` |
 | `Appearance` | text template (`{name}`, `{date}`, `{reason}`, `{location}`, `{contact}`), image (left, background or image only), font, colors |
 | `Password` | password of an encrypted document |
 | `SignatureSize` | reserved container size (default: estimated automatically) |
@@ -127,6 +128,30 @@ options.SignatureCreator = "MyApp";                        // /Prop_Build /App /
 string? bio = PdfSignatureValidator.Validate(pdf)[0].GetSignatureDictionaryText("Biometrics");
 ```
 
+## Field locks (FieldMDP)
+
+A signature can lock form fields: the lock (/Lock on the signature field) and a FieldMDP reference in the signature
+dictionary are covered by the signature, so a later change of a locked field makes the signature invalid in Adobe
+Acrobat instead of being shown as permitted form filling. Without a lock, approval signatures only protect the
+signed revision, and filling any field afterwards is an allowed change.
+
+```csharp
+// lock the fields of this signer when signing
+var options = new PdfSignatureOptions { FieldName = "Employee", FieldLock = PdfFieldLock.Include("name", "date") };
+byte[] signed = PdfSigner.Sign(pdf, signer, options);
+
+// or let the form author define the lock in advance: whoever signs the field applies it
+form.AddSignatureField(page, "Manager", rect).Lock = PdfFieldLock.All();
+
+// validation: locked fields changed after signing
+var result = PdfSignatureValidator.Validate(signed)[0];
+Console.WriteLine($"{result.FieldLock}: changed {string.Join(", ", result.ModifiedLockedFields)}");
+```
+
+Field names are fully qualified (`"address.street"`); unknown names are rejected when signing. `FieldLock` can be
+combined with `Certification` (both references are written, DocMDP first) and works with deferred signing.
+`PdfFieldLock.All()` and `Exclude(..)` also lock fields that are added later.
+
 ## Time-stamp failover and optional time-stamps
 
 ```csharp
@@ -189,11 +214,12 @@ foreach (var r in PdfSignatureValidator.Validate(File.ReadAllBytes("signed.pdf")
 | `TimestampTime` | verified signature time-stamp or document time-stamp |
 | `IsCertificateTrusted` | chain built against the system store or `TrustedRoots` (when `CheckCertificateChain` is set) |
 | `CertificationLevel` | DocMDP level of a certification signature |
+| `FieldLock`, `ModifiedLockedFields` | FieldMDP lock of the signature and the locked fields whose value was changed or that were removed after signing |
 | `Level` | PAdES level (B-B, B-T, B-LT, B-LTA) derived from time-stamps, DSS and later document time-stamps |
 | `Cms`, `Certificates`, `GetSignedAttribute(oid)` | raw container, embedded certificates, attribute values (e.g. biometric data) |
 
-Whether changes after a signature are *permitted* (DocMDP/FieldMDP analysis) is not evaluated; the
-validator reports that later revisions exist.
+Apart from the values of locked fields (`ModifiedLockedFields`), whether changes after a signature are *permitted*
+(DocMDP analysis, other object changes) is not evaluated; the validator reports that later revisions exist.
 
 ## Standards and verification
 
@@ -208,5 +234,6 @@ validator reports that later revisions exist.
   every certificate of the chain needs revocation data – private CAs must publish a CRL/OCSP or provide it via
   a custom `IRevocationSource`.
 - PAdES B-LT / B-LTA: DSS with certificates, OCSP responses and CRLs, document time-stamps.
-- Not yet supported: FieldMDP lock dictionaries, legacy `adbe.x509.rsa_sha1` creation, evaluation of permitted
-  changes after signing, revocation checking of the stored validation data in the validator.
+- Field locks: EU DSS reads the /SigFieldLock and FieldMDP dictionaries (action and field list) and accepts them.
+- Not yet supported: /P in field locks (PDF 2.0), legacy `adbe.x509.rsa_sha1` creation, full evaluation of permitted
+  changes after signing (DocMDP), revocation checking of the stored validation data in the validator.

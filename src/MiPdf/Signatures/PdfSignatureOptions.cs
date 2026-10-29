@@ -140,6 +140,13 @@ public sealed class PdfSignatureOptions
     /// <summary>Makes this a certification (author) signature with the given DocMDP permissions.</summary>
     public CertificationLevel? Certification { get; set; }
 
+    /// <summary>
+    /// Form fields locked by this signature (FieldMDP), e.g. <c>PdfFieldLock.Include("name", "date")</c>. A later change
+    /// of a locked field invalidates the signature. If null, a lock defined on the signature field
+    /// (<see cref="Forms.PdfSignatureField.Lock"/>) is applied. Can be combined with <see cref="Certification"/>.
+    /// </summary>
+    public PdfFieldLock? FieldLock { get; set; }
+
     /// <summary>Appearance of a visible signature (used when <see cref="Rectangle"/> is set).</summary>
     public PdfSignatureAppearance Appearance { get; set; } = new();
 

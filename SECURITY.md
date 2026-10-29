@@ -35,7 +35,8 @@ Limits apply process-wide (`PdfLimits.Default`) or per request (`using (PdfLimit
   worker with a timeout, and limit parallelism.
 - `PdfDocument` instances are **not thread-safe**; use one instance per thread/request.
 - **Signature validation:** `PdfSignatureValidator` checks integrity, the certificate chain (optional) and time-stamps.
-  It does **not** evaluate whether changes after a signature are permitted (DocMDP/FieldMDP), does not check the
+  Apart from reporting changed values of locked fields (FieldMDP, `ModifiedLockedFields`), it does **not** evaluate
+  whether changes after a signature are permitted (DocMDP), does not check the
   revocation data stored in the document and does not apply EU trusted lists or qualification rules. Treat
   `CoversWholeDocument == false` as "modified after signing" and use EU DSS for legally relevant validation.
 - **LTV for internal CAs:** set `HttpRevocationSource.AllowPrivateNetworks` or `AllowedHosts` deliberately; a

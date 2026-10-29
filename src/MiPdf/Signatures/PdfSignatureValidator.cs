@@ -47,6 +47,15 @@ public sealed class SignatureValidationResult
     /// <summary>DocMDP level of a certification signature, null for approval signatures.</summary>
     public CertificationLevel? CertificationLevel { get; init; }
 
+    /// <summary>Form fields locked by this signature (FieldMDP), null if it locks none.</summary>
+    public PdfFieldLock? FieldLock { get; init; }
+
+    /// <summary>
+    /// Locked fields (<see cref="FieldLock"/>) whose value was changed or that were removed after signing. Validators
+    /// such as Adobe Acrobat treat such a signature as invalid even though <see cref="IsIntegrityValid"/> is true.
+    /// </summary>
+    public IReadOnlyList<string> ModifiedLockedFields { get; internal set; } = Array.Empty<string>();
+
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();
 
     /// <summary>The signature dictionary (/V), e.g. to read application-specific entries.</summary>
@@ -95,9 +104,12 @@ public sealed class SignatureValidationOptions
 public static class PdfSignatureValidator
 {
     public static IReadOnlyList<SignatureValidationResult> Validate(byte[] pdf, SignatureValidationOptions? options = null, string? password = null) =>
-        Validate(PdfDocument.Open(pdf, password), options);
+        Validate(PdfDocument.Open(pdf, password), options, password);
 
-    public static IReadOnlyList<SignatureValidationResult> Validate(PdfDocument document, SignatureValidationOptions? options = null)
+    public static IReadOnlyList<SignatureValidationResult> Validate(PdfDocument document, SignatureValidationOptions? options = null) =>
+        Validate(document, options, null);
+
+    private static IReadOnlyList<SignatureValidationResult> Validate(PdfDocument document, SignatureValidationOptions? options, string? password)
     {
         options ??= new SignatureValidationOptions();
         var results = new List<SignatureValidationResult>();
@@ -108,6 +120,8 @@ public static class PdfSignatureValidator
         {
             if (field.SignatureDictionary is { } sig) results.Add(Verify(field.FullName, sig, file, options));
         }
+        foreach (var result in results.Where(r => r.FieldLock != null && r.IsIntegrityValid && !r.CoversWholeDocument))
+            result.ModifiedLockedFields = FindModifiedLockedFields(form, file, result, password);
         var dss = document.Catalog.GetDictionary(PdfName.Get("DSS"));
         bool validationData = dss?.GetArray(PdfName.Get("OCSPs")) is { Count: > 0 } || dss?.GetArray(PdfName.Get("CRLs")) is { Count: > 0 };
         foreach (var result in results.Where(r => !r.IsDocumentTimestamp))
@@ -129,10 +143,18 @@ public static class PdfSignatureValidator
         var contents = CmsBuilder.TrimDer(sig.GetString(PdfName.Contents)?.Bytes ?? Array.Empty<byte>());
         DateTimeOffset? claimed = PdfDate.Parse(sig.GetText(PdfName.M));
         CertificationLevel? certification = null;
+        PdfFieldLock? fieldLock = null;
         if (sig.GetArray(PdfName.Get("Reference")) is { } refs)
             foreach (var r in refs.Select(o => o.Resolve()).OfType<PdfDictionary>())
-                if (r.GetName(PdfName.Get("TransformMethod"))?.Value == "DocMDP")
-                    certification = (CertificationLevel)(r.GetDictionary(PdfName.Get("TransformParams"))?.GetInt(PdfName.P, 2) ?? 2);
+                switch (r.GetName(PdfName.Get("TransformMethod"))?.Value)
+                {
+                    case "DocMDP":
+                        certification = (CertificationLevel)(r.GetDictionary(PdfName.Get("TransformParams"))?.GetInt(PdfName.P, 2) ?? 2);
+                        break;
+                    case "FieldMDP":
+                        fieldLock = PdfFieldLock.FromDictionary(r.GetDictionary(PdfName.Get("TransformParams")));
+                        break;
+                }
 
         if (br == null || br.Length != 4 || br.Any(v => v < 0) || br[0] != 0 || br[1] > br[2] || br[2] + br[3] > file.Length)
         {
@@ -217,11 +239,38 @@ public static class PdfSignatureValidator
             Reason = sig.GetText(PdfName.Get("Reason")),
             Location = sig.GetText(PdfName.Get("Location")),
             CertificationLevel = certification,
+            FieldLock = fieldLock,
             Errors = errors,
             Cms = contents,
             Certificates = embedded,
             SignatureDictionary = sig,
         };
+    }
+
+    /// <summary>Compares the locked fields of the signed revision with the current document.</summary>
+    private static IReadOnlyList<string> FindModifiedLockedFields(PdfAcroForm current, byte[] file, SignatureValidationResult result, string? password)
+    {
+        PdfAcroForm? signed;
+        try
+        {
+            signed = PdfDocument.Open(file.AsSpan(0, (int)result.SignedRevisionLength).ToArray(), password).GetForm();
+        }
+        catch (PdfException)
+        {
+            return new[] { "(the signed revision cannot be read)" };
+        }
+        var fieldLock = result.FieldLock!;
+        var currentFields = current.Fields.Where(f => f is not PdfSignatureField)
+            .GroupBy(f => f.FullName, StringComparer.Ordinal).ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+        var modified = new List<string>();
+        foreach (var before in signed?.Fields ?? Enumerable.Empty<PdfFormField>())
+        {
+            // signature fields are protected by their own signatures
+            if (before is PdfSignatureField || !fieldLock.Locks(before.FullName)) continue;
+            if (!currentFields.TryGetValue(before.FullName, out var after) || after.Value != before.Value)
+                modified.Add(before.FullName);
+        }
+        return modified;
     }
 
     private static bool IsOnlyTrailingWhitespace(byte[] file, long from)

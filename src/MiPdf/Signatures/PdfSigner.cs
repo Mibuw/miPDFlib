@@ -232,6 +232,20 @@ public static class PdfSigner
                 sig[PdfName.Get(key)] = value.Clone();
             }
         }
+        var references = new PdfArray();
+        if (type == PdfName.Sig && (options.FieldLock ?? field.Lock) is { } fieldLock)
+        {
+            var unknown = fieldLock.Fields.Where(f => form.GetField(f) == null).ToList();
+            if (unknown.Count > 0) throw new PdfException($"Field lock: unknown field(s) {string.Join(", ", unknown)}.");
+            if (options.FieldLock != null) field.Lock = fieldLock;
+            var lockRef = new PdfDictionary(PdfName.Get("SigRef"));
+            lockRef[PdfName.Get("TransformMethod")] = PdfName.Get("FieldMDP");
+            lockRef[PdfName.Get("TransformParams")] = fieldLock.ToDictionary(PdfFieldLock.TransformParams);
+            if (doc.Trailer[PdfName.Root] is PdfReference catalog)
+                lockRef[PdfName.Get("Data")] = catalog; // required for FieldMDP: indirect reference to the catalog
+            references.Add(lockRef);
+        }
+
         var sigRef = doc.AddObject(sig);
         field.Dictionary[PdfName.V] = sigRef;
 
@@ -247,11 +261,12 @@ public static class PdfSigner
             var sigRefDict = new PdfDictionary(PdfName.Get("SigRef"));
             sigRefDict[PdfName.Get("TransformMethod")] = PdfName.Get("DocMDP");
             sigRefDict[PdfName.Get("TransformParams")] = transform;
-            sig[PdfName.Get("Reference")] = new PdfArray(sigRefDict);
+            references.Insert(0, sigRefDict);
             var perms = doc.Catalog.GetDictionary(PdfName.Perms) ?? new PdfDictionary();
             perms[PdfName.Get("DocMDP")] = sigRef;
             doc.Catalog[PdfName.Perms] = perms;
         }
+        if (references.Count > 0) sig[PdfName.Get("Reference")] = references;
 
         var widget = field.Widgets.FirstOrDefault();
         if (widget != null && type == PdfName.Sig && widget.Rect.Width > 0 && widget.Rect.Height > 0)

@@ -364,6 +364,21 @@ public sealed class PdfSignatureField : PdfFormField
     /// <summary>The signature dictionary, or null if not signed.</summary>
     public PdfDictionary? SignatureDictionary => Dictionary.GetDictionary(PdfName.V);
 
+    /// <summary>
+    /// Fields locked when this field is signed (/Lock, FieldMDP), or null. Defining the lock on an unsigned field lets
+    /// the form author decide what a signer locks; <see cref="Signatures.PdfSigner"/> applies it automatically.
+    /// </summary>
+    public Signatures.PdfFieldLock? Lock
+    {
+        get => Signatures.PdfFieldLock.FromDictionary(Dictionary.GetDictionary(PdfName.Get("Lock")));
+        set
+        {
+            if (IsSigned) throw new InvalidOperationException($"Signature field '{FullName}' is already signed.");
+            Dictionary[PdfName.Get("Lock")] = value == null ? null
+                : Form.Document.AddObject(value.ToDictionary(Signatures.PdfFieldLock.SigFieldLock)); // must be indirect
+        }
+    }
+
     public override string? Value
     {
         get => IsSigned ? SignatureDictionary!.GetText(PdfName.Name) ?? "(signed)" : null;

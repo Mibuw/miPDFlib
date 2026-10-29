@@ -114,6 +114,7 @@ Converting Syncfusion's top-left coordinates: `yPdf = page.Height - ySyncfusion 
 | Time-stamp | `new TSAClientBouncyCastle(url)` | `signature.TimeStampServer = new TimeStampServer(uri)` | `TimestampClient = new HttpTimestampClient(url)` |
 | Visible signature | `signer.GetSignatureAppearance().SetPageRect(..)` | `signature.Bounds`, `Appearance.Normal.Graphics` | `Rectangle = new PdfRectangle(..)`, `Appearance = new PdfSignatureAppearance { .. }` |
 | Certify | `signer.SetCertificationLevel(..)` | `signature.Certificated = true` | `Certification = CertificationLevel.FormFilling` |
+| Lock fields (FieldMDP) | `signer.SetFieldLockDict(new PdfSigFieldLock()..)` | – | `FieldLock = PdfFieldLock.Include("name", "date")` |
 | Doc time-stamp | `signer.Timestamp(tsa, name)` | `PdfSignature.AddTimeStamp` | `PdfSigner.AddDocumentTimestamp(pdf, tsa)` |
 | Verify | `SignatureUtil` + `PdfPKCS7.VerifySignatureIntegrityAndAuthenticity()` | `loadedDoc.Form.Fields[..] as PdfLoadedSignatureField` + `ValidateSignature()` | `PdfSignatureValidator.Validate(pdf, options)` |
 

@@ -28,8 +28,9 @@ Last update: 2026-10-29 (release 0.2.2-alpha)
 | 19 Release | ✅ 0.2.2-alpha: first public release on nuget.org (release workflow on tag `v*`), logo, CHANGELOG |
 | 20 Signature algorithms | ✅ done (RSASSA-PSS, ECDSA P-256/P-384/P-521/Brainpool; validated with EU DSS) |
 | 21 PDF 2.0 | ✅ reading/saving/signing (PDF Association pdf20examples all open, resave and sign; preamble before `%PDF-`) |
+| 22 Field locks (FieldMDP) | ✅ done (244 tests; /Lock + FieldMDP reference, combinable with DocMDP and deferred signing, validator reports changed locked fields; EU DSS reads the lock dictionaries) |
 
-Current state: 238 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 244 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -44,7 +45,7 @@ Current state: 238 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 3. Performance/memory for very large files (stream-based reading instead of loading everything into memory).
 4. PDF/A-4, PDF/UA-2 and the PDF 2.0 structure namespaces.
 
-Known gaps: no evaluation of permitted changes after signing (DocMDP/FieldMDP); the tagged structure is not taken
+Known gaps: no full evaluation of permitted changes after signing (DocMDP; for FieldMDP the values of locked fields are compared); the tagged structure is not taken
 over when importing pages; no text shaping (Arabic/Indic scripts, ligatures); hyphenation patterns are not bundled
 (load them from hyph-utf8).
 
