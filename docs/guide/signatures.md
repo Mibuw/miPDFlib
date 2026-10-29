@@ -234,6 +234,7 @@ Apart from the values of locked fields (`ModifiedLockedFields`), whether changes
   every certificate of the chain needs revocation data – private CAs must publish a CRL/OCSP or provide it via
   a custom `IRevocationSource`.
 - PAdES B-LT / B-LTA: DSS with certificates, OCSP responses and CRLs, document time-stamps.
-- Field locks: EU DSS reads the /SigFieldLock and FieldMDP dictionaries (action and field list) and accepts them.
+- Field locks: EU DSS reads the /SigFieldLock and FieldMDP dictionaries (action and field list) and accepts them; Adobe
+  Acrobat keeps the signature valid when an unlocked field is filled and reports it as invalid when a locked field is changed.
 - Not yet supported: /P in field locks (PDF 2.0), legacy `adbe.x509.rsa_sha1` creation, full evaluation of permitted
   changes after signing (DocMDP), revocation checking of the stored validation data in the validator.
