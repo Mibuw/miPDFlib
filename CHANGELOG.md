@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Package tags: removed `itext-alternative`.
+
 ## 0.2.5-alpha
 
 - Separate package readme for nuget.org (`src/MiPdf/NUGET-README.md`): nuget.org shows HTML as text and decoded
