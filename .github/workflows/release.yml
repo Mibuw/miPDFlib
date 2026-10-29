@@ -1,0 +1,41 @@
+name: Release
+
+# Creates a release from a version tag (e.g. v0.2.0-alpha): build, test, pack, publish the NuGet package to
+# GitHub Packages and create a GitHub release with the packages attached.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release -p:Version=$VERSION
+      - run: dotnet test --no-build -c Release
+      - run: dotnet pack src/MiPdf --no-build -c Release -p:Version=$VERSION -o artifacts
+      - name: Publish to GitHub Packages
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          --api-key "${{ secrets.GITHUB_TOKEN }}"
+          --no-symbols --skip-duplicate
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRERELEASE=""
+          case "$VERSION" in *-*) PRERELEASE="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" artifacts/* --title "miPDFlib $VERSION" --generate-notes $PRERELEASE
