@@ -57,6 +57,8 @@ code is yours to contribute. This keeps the licensing of the project clear for a
 
 - Update the guides in `docs/guide` and the XML documentation for public API changes.
 - Add an entry to [CHANGELOG.md](CHANGELOG.md) under "Unreleased".
+- `README.md` is shown on GitHub, `src/MiPdf/NUGET-README.md` on nuget.org (Markdown only, no HTML, absolute links).
+  Keep both in sync when features or links change.
 
 ## License
 

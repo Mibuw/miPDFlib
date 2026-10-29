@@ -8,7 +8,8 @@
     <Version>0.2.4-alpha</Version>
     <Description>Open-source (Apache-2.0) PDF library for .NET: create, read, modify, merge, fill forms, encrypt and digitally sign PDF documents.</Description>
     <PackageTags>pdf;pdf-library;pdf-generation;pdf-signature;digital-signature;pades;eidas;ltv;pdfa;pdf-ua;tagged-pdf;acroform;redaction;text-extraction;zugferd;factur-x;xrechnung;barcode;qrcode;itext-alternative</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- nuget.org renders no HTML, so the package has its own Markdown-only readme (UTF-8 with BOM) -->
+    <PackageReadmeFile>NUGET-README.md</PackageReadmeFile>
     <PackageIcon>miPDFlib_logo.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
@@ -27,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="NUGET-README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\assets\miPDFlib_logo.png" Pack="true" PackagePath="\" />
     <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
     <InternalsVisibleTo Include="MiPdf.Tests" />

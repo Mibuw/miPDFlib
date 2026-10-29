@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- README: absolute links and logo URL, so they also work on the nuget.org package page.
+- Separate package readme for nuget.org (`src/MiPdf/NUGET-README.md`): nuget.org shows HTML as text and decoded
+  the GitHub README incorrectly. The GitHub README uses absolute links and logo URL.
 
 ## 0.2.4-alpha
 
