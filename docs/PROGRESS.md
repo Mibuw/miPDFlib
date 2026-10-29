@@ -39,7 +39,7 @@ Current state: 238 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Roadmap
 
-1. Publishing on nuget.org, contributing guide, issue templates.
+1. First public release on nuget.org (release workflow, contributing guide, CLA and issue templates are ready).
 2. External validation: Adobe Acrobat; signatures from certificates of EU trusted list CAs with EU DSS.
 3. Checking the revocation data embedded in documents in `PdfSignatureValidator`.
 4. Performance/memory for very large files (stream-based reading instead of loading everything into memory).

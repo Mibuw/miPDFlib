@@ -17,7 +17,7 @@
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
 </p>
 
-**On NuGet:** `dotnet add package MiPdf`
+**On NuGet:** `dotnet add package MiPdf --prerelease`
 
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
@@ -124,17 +124,18 @@ Notes:
 
 ## Installation
 
-Releases are published as NuGet package `MiPdf` to GitHub Packages (created by `.github/workflows/release.yml` when a
-tag `v*` is pushed). Add the feed with a GitHub token that has the `read:packages` scope:
+The package [`MiPdf`](https://www.nuget.org/packages/MiPdf/) is published on nuget.org. While the library is in
+alpha, add `--prerelease`:
 
 ```bash
-dotnet nuget add source "https://nuget.pkg.github.com/Mibuw/index.json" --name mibuw     --username <github-user> --password <token-with-read:packages> --store-password-in-clear-text
-dotnet add package MiPdf --version 0.2.1-alpha
+dotnet add package MiPdf --prerelease
 ```
 
-In CI (GitHub Actions of another repository) use a `nuget.config` with the same source and pass a token via
-secrets (`GITHUB_TOKEN` only works for packages of the same repository unless access is granted in the package
-settings).
+Every release is also available on [GitHub Packages](https://github.com/Mibuw/miPDFlib/pkgs/nuget/MiPdf) and as
+a [GitHub release](https://github.com/Mibuw/miPDFlib/releases) with the `.nupkg` and symbol package attached.
+
+> **Alpha:** the feature set is complete and tested, but the public API may still change between 0.x versions
+> (see [CHANGELOG.md](CHANGELOG.md)). There is no guaranteed support.
 
 ## Building
 
@@ -143,6 +144,12 @@ dotnet build
 dotnet test
 dotnet pack src/MiPdf -c Release   # NuGet package incl. symbols (SourceLink)
 ```
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests require
+a one-time [Contributor License Agreement](CLA.md) (accepted by a comment on the pull request). Security problems
+are reported privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

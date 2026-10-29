@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a new feature or an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Use case
+      description: What do you want to achieve? Describe the use case rather than a specific solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: How could it look? A short code sketch helps.
+      render: csharp
+  - type: textarea
+    id: references
+    attributes:
+      label: Standards and references
+      description: Relevant parts of ISO 32000, PDF/A, PAdES, RFCs or other specifications, if known.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround
+      description: How do you solve it today (low-level API, other library)?
