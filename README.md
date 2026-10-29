@@ -9,19 +9,19 @@
 </p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/MiPdf/"><img src="https://img.shields.io/nuget/v/MiPdf.svg" alt="NuGet"></a>
-  <a href="https://www.nuget.org/packages/MiPdf/"><img src="https://img.shields.io/nuget/dt/MiPdf.svg" alt="NuGet downloads"></a>
+  <a href="https://www.nuget.org/packages/miPDFlib/"><img src="https://img.shields.io/nuget/v/miPDFlib.svg" alt="NuGet"></a>
+  <a href="https://www.nuget.org/packages/miPDFlib/"><img src="https://img.shields.io/nuget/dt/miPDFlib.svg" alt="NuGet downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
   <a href="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml"><img src="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
 </p>
 
-**On NuGet:** `dotnet add package MiPdf --prerelease`
+**On NuGet:** `dotnet add package miPDFlib --prerelease`
 
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
-> Status: **0.2.3-alpha** – all planned feature areas are implemented and tested (244 unit tests, real-world
+> Status: **0.2.4-alpha** – all planned feature areas are implemented and tested (244 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Features
@@ -123,12 +123,15 @@ Notes:
 
 ## Installation
 
-The package [`MiPdf`](https://www.nuget.org/packages/MiPdf/) is published on nuget.org. While the library is in
+The package [`miPDFlib`](https://www.nuget.org/packages/miPDFlib/) is published on nuget.org. While the library is in
 alpha, add `--prerelease`:
 
 ```bash
-dotnet add package MiPdf --prerelease
+dotnet add package miPDFlib --prerelease
 ```
+
+The namespace is `MiPdf` (`using MiPdf;`). Versions up to 0.2.3-alpha were published under the package ID `MiPdf`,
+which is deprecated; switch the package reference to `miPDFlib`, no code changes are needed.
 
 Every release is also available as a [GitHub release](https://github.com/Mibuw/miPDFlib/releases) with the
 `.nupkg` and symbol package attached.

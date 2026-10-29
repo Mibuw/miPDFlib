@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-10-29 (release 0.2.3-alpha)
+Last update: 2026-10-29 (release 0.2.4-alpha)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -36,6 +36,8 @@ Current state: 244 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 - **Target frameworks:** net8.0 and net10.0 only, no netstandard2.0 (maintainability).
 - **Documentation language:** English.
+- **Names:** NuGet package ID `miPDFlib` (the project name; up to 0.2.3-alpha `MiPdf`, now deprecated), namespace
+  and assembly `MiPdf` following the .NET naming guidelines.
 - **Office → PDF:** not part of the library; LibreOffice via Gotenberg is recommended (see README).
 
 ## Roadmap

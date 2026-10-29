@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4-alpha
+
+- The NuGet package is now published as `miPDFlib` (previously `MiPdf`, deprecated). Only the package reference
+  changes: namespace and assembly stay `MiPdf`, the API is unchanged.
+
 ## 0.2.3-alpha
 
 - Signatures: field locks (FieldMDP). `PdfSignatureOptions.FieldLock` / `PdfSignatureField.Lock` with

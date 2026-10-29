@@ -55,13 +55,13 @@ jobs:
       # warns because indexing can take more than half an hour.
       - name: Verify the version is live on nuget.org
         run: |
-          url="https://api.nuget.org/v3-flatcontainer/mipdf/index.json"
+          url="https://api.nuget.org/v3-flatcontainer/mipdflib/index.json"
           for attempt in $(seq 1 30); do
             if curl -fsSL "$url" 2>/dev/null | grep -q "\"$VERSION\""; then
-              echo "MiPdf $VERSION is live on nuget.org."
+              echo "miPDFlib $VERSION is live on nuget.org."
               exit 0
             fi
             echo "Attempt $attempt: $VERSION not indexed yet, waiting 30s."
             sleep 30
           done
-          echo "::warning::MiPdf $VERSION has not appeared on nuget.org within 15 minutes; check https://www.nuget.org/account/Packages"
+          echo "::warning::miPDFlib $VERSION has not appeared on nuget.org within 15 minutes; check https://www.nuget.org/account/Packages"
