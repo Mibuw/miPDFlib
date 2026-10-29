@@ -5,7 +5,7 @@
     <RootNamespace>MiPdf</RootNamespace>
     <AssemblyName>MiPdf</AssemblyName>
     <PackageId>MiPdf</PackageId>
-    <Version>0.2.2-alpha</Version>
+    <Version>0.2.3-alpha</Version>
     <Description>Open-source (Apache-2.0) PDF library for .NET: create, read, modify, merge, fill forms, encrypt and digitally sign PDF documents.</Description>
     <PackageTags>pdf;pdf-library;pdf-generation;pdf-signature;digital-signature;pades;eidas;ltv;pdfa;pdf-ua;tagged-pdf;acroform;redaction;text-extraction;zugferd;factur-x;xrechnung;barcode;qrcode;itext-alternative</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

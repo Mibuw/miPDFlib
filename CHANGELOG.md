@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.3-alpha
 
 - Signatures: field locks (FieldMDP). `PdfSignatureOptions.FieldLock` / `PdfSignatureField.Lock` with
   `PdfFieldLock.All()`, `Include(..)`, `Exclude(..)` write /Lock and a FieldMDP signature reference; the validator
