@@ -12,7 +12,6 @@
   <a href="https://www.nuget.org/packages/MiPdf/"><img src="https://img.shields.io/nuget/v/MiPdf.svg" alt="NuGet"></a>
   <a href="https://www.nuget.org/packages/MiPdf/"><img src="https://img.shields.io/nuget/dt/MiPdf.svg" alt="NuGet downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/Mibuw/miPDFlib/pkgs/nuget/MiPdf"><img src="https://img.shields.io/badge/GitHub_Packages-MiPdf-2088FF?logo=github&logoColor=white" alt="GitHub Packages"></a>
   <a href="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml"><img src="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
 </p>
@@ -22,7 +21,7 @@
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
-> Status: **0.2.1-alpha** – all planned feature areas are implemented and tested (238 unit tests, real-world
+> Status: **0.2.2-alpha** – all planned feature areas are implemented and tested (238 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Features
@@ -131,8 +130,8 @@ alpha, add `--prerelease`:
 dotnet add package MiPdf --prerelease
 ```
 
-Every release is also available on [GitHub Packages](https://github.com/Mibuw/miPDFlib/pkgs/nuget/MiPdf) and as
-a [GitHub release](https://github.com/Mibuw/miPDFlib/releases) with the `.nupkg` and symbol package attached.
+Every release is also available as a [GitHub release](https://github.com/Mibuw/miPDFlib/releases) with the
+`.nupkg` and symbol package attached.
 
 > **Alpha:** the feature set is complete and tested, but the public API may still change between 0.x versions
 > (see [CHANGELOG.md](CHANGELOG.md)). There is no guaranteed support.

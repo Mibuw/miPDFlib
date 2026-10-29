@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-10-29 (release 0.2.1-alpha)
+Last update: 2026-10-29 (release 0.2.2-alpha)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -25,7 +25,7 @@ Last update: 2026-10-29 (release 0.2.1-alpha)
 | 16 Redaction (true removal) | ✅ done (text per glyph, image pixels, XObjects recursively, vector graphics, annotations/fields; Redact annotations) |
 | 17 Layout: lists, row spans, rows across pages, kerning, hyphenation | ✅ done (lists tagged L/LI/Lbl/LBody, veraPDF UA passes) |
 | 18 Further features | ✅ done (signature dictionary entries, XFA data, image extraction, free space, push buttons with images, check box styles, PDF/A identification, IgnorePermissions, BMP/GIF) |
-| 19 Release | ✅ 0.2.0-alpha and 0.2.1-alpha published (release workflow on tag `v*`), logo, CHANGELOG |
+| 19 Release | ✅ 0.2.2-alpha: first public release on nuget.org (release workflow on tag `v*`), logo, CHANGELOG |
 | 20 Signature algorithms | ✅ done (RSASSA-PSS, ECDSA P-256/P-384/P-521/Brainpool; validated with EU DSS) |
 | 21 PDF 2.0 | ✅ reading/saving/signing (PDF Association pdf20examples all open, resave and sign; preamble before `%PDF-`) |
 
@@ -39,11 +39,10 @@ Current state: 238 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Roadmap
 
-1. First public release on nuget.org (release workflow, contributing guide, CLA and issue templates are ready).
-2. External validation: Adobe Acrobat; signatures from certificates of EU trusted list CAs with EU DSS.
-3. Checking the revocation data embedded in documents in `PdfSignatureValidator`.
-4. Performance/memory for very large files (stream-based reading instead of loading everything into memory).
-5. PDF/A-4, PDF/UA-2 and the PDF 2.0 structure namespaces.
+1. External validation: Adobe Acrobat; signatures from certificates of EU trusted list CAs with EU DSS.
+2. Checking the revocation data embedded in documents in `PdfSignatureValidator`.
+3. Performance/memory for very large files (stream-based reading instead of loading everything into memory).
+4. PDF/A-4, PDF/UA-2 and the PDF 2.0 structure namespaces.
 
 Known gaps: no evaluation of permitted changes after signing (DocMDP/FieldMDP); the tagged structure is not taken
 over when importing pages; no text shaping (Arabic/Indic scripts, ligatures); hyphenation patterns are not bundled

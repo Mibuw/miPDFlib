@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.2-alpha
 
-- First public release: published on nuget.org (Trusted Publishing) in addition to GitHub Packages.
+- First public release, published on nuget.org (Trusted Publishing).
 - Contributing guide, Contributor License Agreement with CLA bot, issue and pull request templates, Dependabot.
 - `NOTICE` with third-party attributions, included in the package.
 

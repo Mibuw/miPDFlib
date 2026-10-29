@@ -1,8 +1,7 @@
 name: Release
 
 # Creates a release from a version tag (e.g. v0.2.2-alpha): build, test, pack, publish the NuGet package to
-# nuget.org (Trusted Publishing, no stored API key) and GitHub Packages, and create a GitHub release with the
-# packages attached.
+# nuget.org (Trusted Publishing, no stored API key) and create a GitHub release with the packages attached.
 #
 # Setup (once): on nuget.org add a Trusted Publishing policy for repository Mibuw/miPDFlib and workflow file
 # release.yml, and store the nuget.org profile name (not the e-mail address) as repository secret NUGET_USER.
@@ -12,7 +11,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
   id-token: write   # OIDC token for NuGet Trusted Publishing
 
 jobs:
@@ -43,16 +41,6 @@ jobs:
           --source https://api.nuget.org/v3/index.json
           --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
-
-      # The package also stays available on GitHub Packages. This step must not block a release: the repository
-      # needs write access to the existing "MiPdf" package (package settings -> Manage Actions access).
-      - name: Publish to GitHub Packages
-        continue-on-error: true
-        run: >
-          dotnet nuget push "artifacts/*.nupkg"
-          --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          --api-key "${{ secrets.GITHUB_TOKEN }}"
-          --no-symbols --skip-duplicate
 
       - name: GitHub release
         env:
