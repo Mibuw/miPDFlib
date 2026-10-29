@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.5-alpha
 
 - Separate package readme for nuget.org (`src/MiPdf/NUGET-README.md`): nuget.org shows HTML as text and decoded
   the GitHub README incorrectly. The GitHub README uses absolute links and logo URL.

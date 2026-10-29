@@ -21,7 +21,7 @@
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
-> Status: **0.2.4-alpha** – all planned feature areas are implemented and tested (244 unit tests, real-world
+> Status: **0.2.5-alpha** – all planned feature areas are implemented and tested (244 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
 ## Features
