@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- README: absolute links and logo URL, so they also work on the nuget.org package page.
+
 ## 0.2.4-alpha
 
 - The NuGet package is now published as `miPDFlib` (previously `MiPdf`, deprecated). Only the package reference

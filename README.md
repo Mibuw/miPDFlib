@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/miPDFlib_logo.png" width="140" alt="miPDFlib logo">
+  <img src="https://raw.githubusercontent.com/Mibuw/miPDFlib/main/assets/miPDFlib_logo.png" width="140" alt="miPDFlib logo">
 </p>
 
 <h1 align="center">miPDFlib</h1>
@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://www.nuget.org/packages/miPDFlib/"><img src="https://img.shields.io/nuget/v/miPDFlib.svg" alt="NuGet"></a>
   <a href="https://www.nuget.org/packages/miPDFlib/"><img src="https://img.shields.io/nuget/dt/miPDFlib.svg" alt="NuGet downloads"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/Mibuw/miPDFlib/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
   <a href="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml"><img src="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
 </p>
@@ -22,7 +22,7 @@ An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed co
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
 > Status: **0.2.4-alpha** – all planned feature areas are implemented and tested (244 unit tests, real-world
-> corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](docs/PROGRESS.md).
+> corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
 ## Features
 
@@ -40,7 +40,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 | **PDF/A** | PDF/A-1b/2b/2u/3b/3u output (XMP, sRGB output intent) and a basic conformance checker |
 | **Accessibility** | tagged PDF and **PDF/UA-1**: automatic tagging by the layout engine (headings, paragraphs, tables, figures, artifacts), manual tagging API, PDF/UA checker |
 | **Attachments / e-invoices** | embedded files with PDF/A-3 associated files, ZUGFeRD 2.x / Factur-X / XRechnung hybrid invoices |
-| **Hardening** | resource limits against decompression bombs and CPU exhaustion, SSRF-safe revocation fetching, fuzz-tested parser – see [SECURITY.md](SECURITY.md) |
+| **Hardening** | resource limits against decompression bombs and CPU exhaustion, SSRF-safe revocation fetching, fuzz-tested parser – see [SECURITY.md](https://github.com/Mibuw/miPDFlib/blob/main/SECURITY.md) |
 | **Barcodes** | QR Code, EPC/GiroCode, Data Matrix (incl. GS1), Code 128/GS1-128, EAN-13/8, UPC-A, Code 39, ITF – vector output |
 
 The only dependency is `System.Security.Cryptography.Pkcs` (MIT, Microsoft) for CMS signatures.
@@ -76,7 +76,7 @@ byte[] signed = PdfSigner.Sign(File.ReadAllBytes("hello.pdf"), CertificateSigner
     new PdfSignatureOptions { Reason = "Approved", TimestampClient = new HttpTimestampClient("http://timestamp.digicert.com") });
 ```
 
-More examples: [samples/MiPdf.Samples](samples/MiPdf.Samples/Program.cs) (`dotnet run --project samples/MiPdf.Samples`).
+More examples: [samples/MiPdf.Samples](https://github.com/Mibuw/miPDFlib/blob/main/samples/MiPdf.Samples/Program.cs) (`dotnet run --project samples/MiPdf.Samples`).
 
 ## Office documents (Word, Excel, PowerPoint)
 
@@ -107,19 +107,19 @@ Notes:
 
 ## Documentation
 
-- [Creating documents](docs/guide/creating-documents.md) – fonts, canvas, images, flow layout, tables
-- [Opening and manipulating](docs/guide/manipulating-documents.md) – save options, pages, merge/split, stamps, bookmarks, links
-- [Text extraction](docs/guide/text-extraction.md) – text, words, positions, search
-- [Redaction](docs/guide/redaction.md) – removing confidential content
-- [Forms](docs/guide/forms.md) – read, fill, create and flatten form fields
-- [Security](docs/guide/security.md) – passwords, permissions, AES/RC4 encryption
-- [Signatures](docs/guide/signatures.md) – PAdES signing, HSM/external signers, time-stamps, verification
-- [Accessibility / PDF/UA](docs/guide/accessibility.md) – tagged PDF, PDF/UA, checker
-- [Attachments and e-invoices](docs/guide/attachments.md) – embedded files, ZUGFeRD / Factur-X
-- [Barcodes](docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, Code 128, EAN
-- [Migration from iText / Syncfusion](docs/MIGRATION.md)
-- [Architecture](docs/ARCHITECTURE.md) – internal structure for contributors
-- [Project plan](docs/PLAN.md) and [progress](docs/PROGRESS.md)
+- [Creating documents](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/creating-documents.md) – fonts, canvas, images, flow layout, tables
+- [Opening and manipulating](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/manipulating-documents.md) – save options, pages, merge/split, stamps, bookmarks, links
+- [Text extraction](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/text-extraction.md) – text, words, positions, search
+- [Redaction](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/redaction.md) – removing confidential content
+- [Forms](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/forms.md) – read, fill, create and flatten form fields
+- [Security](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/security.md) – passwords, permissions, AES/RC4 encryption
+- [Signatures](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/signatures.md) – PAdES signing, HSM/external signers, time-stamps, verification
+- [Accessibility / PDF/UA](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/accessibility.md) – tagged PDF, PDF/UA, checker
+- [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md) – embedded files, ZUGFeRD / Factur-X
+- [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, Code 128, EAN
+- [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md)
+- [Architecture](https://github.com/Mibuw/miPDFlib/blob/main/docs/ARCHITECTURE.md) – internal structure for contributors
+- [Project plan](https://github.com/Mibuw/miPDFlib/blob/main/docs/PLAN.md) and [progress](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md)
 
 ## Installation
 
@@ -137,7 +137,7 @@ Every release is also available as a [GitHub release](https://github.com/Mibuw/m
 `.nupkg` and symbol package attached.
 
 > **Alpha:** the feature set is complete and tested, but the public API may still change between 0.x versions
-> (see [CHANGELOG.md](CHANGELOG.md)). There is no guaranteed support.
+> (see [CHANGELOG.md](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)). There is no guaranteed support.
 
 ## Building
 
@@ -149,13 +149,13 @@ dotnet pack src/MiPdf -c Release   # NuGet package incl. symbols (SourceLink)
 
 ## Contributing
 
-Bug reports, ideas and pull requests are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests require
-a one-time [Contributor License Agreement](CLA.md) (accepted by a comment on the pull request). Security problems
-are reported privately as described in [SECURITY.md](SECURITY.md).
+Bug reports, ideas and pull requests are welcome – see [CONTRIBUTING.md](https://github.com/Mibuw/miPDFlib/blob/main/CONTRIBUTING.md). Pull requests require
+a one-time [Contributor License Agreement](https://github.com/Mibuw/miPDFlib/blob/main/CLA.md) (accepted by a comment on the pull request). Security problems
+are reported privately as described in [SECURITY.md](https://github.com/Mibuw/miPDFlib/blob/main/SECURITY.md).
 
 ## License
 
-Licensed under the **Apache License, Version 2.0**. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Licensed under the **Apache License, Version 2.0**. See [LICENSE](https://github.com/Mibuw/miPDFlib/blob/main/LICENSE) and [NOTICE](https://github.com/Mibuw/miPDFlib/blob/main/NOTICE).
 
 Copyright 2026 Wolfgang Mitterbucher.
 
