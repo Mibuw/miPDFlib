@@ -1,7 +1,11 @@
 name: Release
 
-# Creates a release from a version tag (e.g. v0.2.0-alpha): build, test, pack, publish the NuGet package to
-# GitHub Packages and create a GitHub release with the packages attached.
+# Creates a release from a version tag (e.g. v0.2.2-alpha): build, test, pack, publish the NuGet package to
+# nuget.org (Trusted Publishing, no stored API key) and GitHub Packages, and create a GitHub release with the
+# packages attached.
+#
+# Setup (once): on nuget.org add a Trusted Publishing policy for repository Mibuw/miPDFlib and workflow file
+# release.yml, and store the nuget.org profile name (not the e-mail address) as repository secret NUGET_USER.
 on:
   push:
     tags: ['v*']
@@ -9,6 +13,7 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write   # OIDC token for NuGet Trusted Publishing
 
 jobs:
   release:
@@ -26,12 +31,29 @@ jobs:
       - run: dotnet build --no-restore -c Release -p:Version=$VERSION
       - run: dotnet test --no-build -c Release
       - run: dotnet pack src/MiPdf --no-build -c Release -p:Version=$VERSION -o artifacts
+
+      - name: NuGet login (OIDC -> temporary API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Publish to nuget.org
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --skip-duplicate
+
+      # The package also stays available on GitHub Packages. This step must not block a release: the repository
+      # needs write access to the existing "MiPdf" package (package settings -> Manage Actions access).
       - name: Publish to GitHub Packages
+        continue-on-error: true
         run: >
           dotnet nuget push "artifacts/*.nupkg"
           --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
           --api-key "${{ secrets.GITHUB_TOKEN }}"
           --no-symbols --skip-duplicate
+
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -39,3 +61,19 @@ jobs:
           PRERELEASE=""
           case "$VERSION" in *-*) PRERELEASE="--prerelease" ;; esac
           gh release create "$GITHUB_REF_NAME" artifacts/* --title "miPDFlib $VERSION" --generate-notes $PRERELEASE
+
+      # --skip-duplicate keeps a re-run from failing, but also turns a rejected push into a green job, and an
+      # accepted package can still fail validation. This reports whether the version became downloadable; it only
+      # warns because indexing can take more than half an hour.
+      - name: Verify the version is live on nuget.org
+        run: |
+          url="https://api.nuget.org/v3-flatcontainer/mipdf/index.json"
+          for attempt in $(seq 1 30); do
+            if curl -fsSL "$url" 2>/dev/null | grep -q "\"$VERSION\""; then
+              echo "MiPdf $VERSION is live on nuget.org."
+              exit 0
+            fi
+            echo "Attempt $attempt: $VERSION not indexed yet, waiting 30s."
+            sleep 30
+          done
+          echo "::warning::MiPdf $VERSION has not appeared on nuget.org within 15 minutes; check https://www.nuget.org/account/Packages"

@@ -1,0 +1,50 @@
+name: Bug report
+description: Something does not work as expected (wrong output, exception, invalid PDF or signature)
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! **Security problems** must not be reported here – please use a private
+        security advisory instead (see SECURITY.md).
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect and what happened instead? Include the exception with stack trace if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Code to reproduce
+      description: A minimal code example.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample file
+      description: |
+        If the problem depends on a specific PDF, attach it here **only if it contains no confidential or personal
+        data**. Otherwise describe the producing software (`/Producer`, e.g. from the document properties).
+  - type: input
+    id: version
+    attributes:
+      label: miPDFlib version
+      placeholder: e.g. 0.2.2-alpha
+    validations:
+      required: true
+  - type: input
+    id: dotnet
+    attributes:
+      label: .NET version and operating system
+      placeholder: e.g. .NET 8.0.11 on Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation results (optional)
+      description: Output of veraPDF, EU DSS, Adobe Acrobat or another validator, if relevant.

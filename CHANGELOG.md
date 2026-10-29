@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- First public release: published on nuget.org (Trusted Publishing) in addition to GitHub Packages.
+- Contributing guide, Contributor License Agreement with CLA bot, issue and pull request templates, Dependabot.
+- `NOTICE` with third-party attributions, included in the package.
+
 ## 0.2.1-alpha
 
 - Signatures: RSASSA-PSS (`PdfSignatureOptions.RsaPadding`, `IExternalSigner.SignHash(hash, alg, padding)`,
