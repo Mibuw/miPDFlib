@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.7-alpha
 
 - Forms: `AddCheckBox` no longer sets a white background (/MK /BG), like `AddTextField`, so a check box does not cover
   the page content below it; the new `background` parameter sets one.
