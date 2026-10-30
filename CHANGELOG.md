@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.6-alpha
 
 - Forms: `AddTextField` and `AddCheckBox` take a `borderWidth` (0 = no border). `PdfWidget.Rotation` (/MK /R),
   `BorderColor`, `BackgroundColor` and `BorderWidth` change an existing widget and rebuild its appearance.
