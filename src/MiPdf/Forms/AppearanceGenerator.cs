@@ -58,7 +58,7 @@ internal static class AppearanceGenerator
 {
     private const double Padding = 2;
 
-    private static PdfColor? ReadColor(PdfDictionary? mk, string key)
+    internal static PdfColor? ReadColor(PdfDictionary? mk, string key)
     {
         if (mk?.GetArray(PdfName.Get(key)) is not { } a) return null;
         return a.Count switch
@@ -94,15 +94,26 @@ internal static class AppearanceGenerator
         return PdfStandardFont.Helvetica;
     }
 
+    /// <summary>The widget rotation (/MK /R) normalized to 0, 90, 180 or 270.</summary>
+    internal static int GetRotation(PdfDictionary widget) => NormalizeRotation(widget.GetDictionary(PdfName.MK)?.GetInt(PdfName.Get("R")) ?? 0);
+
+    internal static int NormalizeRotation(int degrees) => ((degrees / 90 * 90) % 360 + 360) % 360;
+
     /// <summary>Creates the appearance XObject honoring the widget rotation (/MK /R). Returns layout width/height.</summary>
-    private static PdfFormXObject CreateAppearance(PdfFormField field, PdfWidget widget, out double width, out double height)
+    private static PdfFormXObject CreateAppearance(PdfFormField field, PdfWidget widget, out double width, out double height) =>
+        CreateRotated(field.Form.Document, widget.Rect, GetRotation(widget.Dictionary), out width, out height);
+
+    /// <summary>
+    /// Creates an appearance XObject for <paramref name="rect"/> whose content is rotated counterclockwise by
+    /// <paramref name="rotation"/> degrees. Content is drawn upright into width × height (swapped for 90/270).
+    /// </summary>
+    internal static PdfFormXObject CreateRotated(PdfDocument document, PdfRectangle rect, int rotation, out double width, out double height)
     {
-        var rect = widget.Rect;
-        int rotation = ((widget.Dictionary.GetDictionary(PdfName.MK)?.GetInt(PdfName.Get("R")) ?? 0) % 360 + 360) % 360;
+        rotation = NormalizeRotation(rotation);
         bool swap = rotation is 90 or 270;
         width = swap ? rect.Height : rect.Width;
         height = swap ? rect.Width : rect.Height;
-        var xobject = new PdfFormXObject(field.Form.Document, new PdfRectangle(0, 0, width, height));
+        var xobject = new PdfFormXObject(document, new PdfRectangle(0, 0, width, height));
         xobject.Matrix = rotation switch
         {
             90 => new double[] { 0, 1, -1, 0, 0, 0 },
@@ -252,15 +263,18 @@ internal static class AppearanceGenerator
         SetNormalAppearance(widget, xobject);
     }
 
-    /// <summary>Creates "on" and "Off" appearances for a check box or radio button widget.</summary>
+    /// <summary>
+    /// Creates "on" and "Off" appearances for a check box or radio button widget, honoring the widget rotation
+    /// (/MK /R). The appearance state (/AS) is set to "Off".
+    /// </summary>
     public static void CheckBoxStates(PdfAcroForm form, PdfDictionary widget, string onState, char symbol)
     {
         var rect = widget.GetRectangle(PdfName.Rect) ?? new PdfRectangle(0, 0, 12, 12);
-        double w = rect.Width, h = rect.Height;
+        int rotation = GetRotation(widget);
         var font = PdfStandardFont.ZapfDingbats;
         PdfFormXObject Make(bool on)
         {
-            var x = new PdfFormXObject(form.Document, new PdfRectangle(0, 0, w, h));
+            var x = CreateRotated(form.Document, rect, rotation, out double w, out double h);
             using var canvas = x.GetCanvas();
             DrawBackgroundAndBorder(canvas, widget, w, h);
             if (on && DrawSymbol(canvas, symbol, w, h)) return x;
@@ -279,6 +293,22 @@ internal static class AppearanceGenerator
         normal[PdfName.Off] = Make(false).Reference;
         widget[PdfName.AP] = new PdfDictionary { [PdfName.N] = normal };
         widget[PdfName.AS] = PdfName.Off;
+    }
+
+    /// <summary>
+    /// Rebuilds the on/off appearances of all widgets of a check box or radio group from /MK (symbol /CA, colors,
+    /// rotation /R) and /BS, keeping each widget's on-state name and current state (/AS).
+    /// </summary>
+    public static void ButtonStates(PdfFormField field, char defaultSymbol)
+    {
+        foreach (var widget in field.Widgets)
+        {
+            string onState = widget.OnStates.FirstOrDefault() ?? (field as PdfCheckBox)?.OnValue ?? "Yes";
+            string? ca = widget.Dictionary.GetDictionary(PdfName.MK)?.GetText(PdfName.Get("CA"));
+            var state = widget.Dictionary.GetName(PdfName.AS);
+            CheckBoxStates(field.Form, widget.Dictionary, onState, string.IsNullOrEmpty(ca) ? defaultSymbol : ca[0]);
+            if (state != null) widget.Dictionary[PdfName.AS] = state.Value == onState ? state : PdfName.Off;
+        }
     }
 
     /// <summary>

@@ -64,6 +64,23 @@ form.AddPushButton(page, "ok", rect, caption: "OK", border: PdfColor.Black);
 form.AddCheckBox(page, "agree", rect, isChecked: true, style: CheckBoxStyle.Cross);   // Check, Cross, Circle, Square, Diamond
 ```
 
+### Borders, colors and rotation
+
+`AddTextField` and `AddCheckBox` draw a black 1 pt border by default; `borderWidth: 0` creates the field without
+border (no `/MK /BC`, so viewers that rebuild the appearance do not add one either). Border, background and rotation
+of existing widgets can be changed later; the appearance of text, choice, check box and radio button fields is then
+rebuilt (check boxes and radio buttons keep their state):
+
+```csharp
+form.AddTextField(page, "plain", rect, "value", borderWidth: 0);
+var box = form.AddCheckBox(page, "agree", rect, borderWidth: 0);
+box.Widgets[0].BackgroundColor = null;                    // transparent instead of white
+box.Widgets[0].Rotation = 90;                             // /MK /R, counterclockwise: 0, 90, 180, 270
+box.Widgets[0].BorderColor = PdfColor.Rgb(0, 0, 0.6);     // null = no border
+box.Widgets[0].BorderWidth = 2;                           // /BS /W
+box.RegenerateAppearance();                               // after editing /MK or /BS directly
+```
+
 ## Flattening
 
 ```csharp

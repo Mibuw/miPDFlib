@@ -167,6 +167,17 @@ public sealed class PdfAcroForm
         _fields = null;
     }
 
+    private static PdfColor? BorderColor(PdfColor? border, double borderWidth)
+    {
+        if (borderWidth < 0) throw new ArgumentOutOfRangeException(nameof(borderWidth), "The border width must not be negative.");
+        return borderWidth > 0 ? border ?? PdfColor.Black : null; // no /BC, so viewers that rebuild appearances draw no border either
+    }
+
+    private static void SetBorderWidth(PdfDictionary widget, double borderWidth)
+    {
+        if (borderWidth != 1) widget[PdfName.BS] = new PdfDictionary { [PdfName.W] = new PdfNumber(borderWidth) };
+    }
+
     private static PdfDictionary CreateMk(PdfColor? border, PdfColor? background)
     {
         var mk = new PdfDictionary();
@@ -248,24 +259,31 @@ public sealed class PdfAcroForm
         _ => PdfColor.Rgb(components.GetDouble(0), components.GetDouble(1), components.GetDouble(2)),
     };
 
-    /// <summary>Adds a text field. A font size of 0 means auto-size.</summary>
+    /// <summary>
+    /// Adds a text field. A font size of 0 means auto-size. The border is drawn in <paramref name="border"/> (default
+    /// black) with <paramref name="borderWidth"/> points; a width of 0 means no border.
+    /// </summary>
     public PdfTextField AddTextField(PdfPage page, string name, PdfRectangle rect, string? value = null, double fontSize = 0,
-        bool multiline = false, PdfColor? border = null, PdfColor? background = null)
+        bool multiline = false, PdfColor? border = null, PdfColor? background = null, double borderWidth = 1)
     {
         EnsureDefaultFont("Helv", PdfStandardFont.Helvetica);
         var field = NewWidgetField(page, name, rect, "Tx");
         field[PdfName.DA] = new PdfString($"/Helv {PdfNumber.FormatReal(fontSize)} Tf 0 g");
         if (multiline) field.Set(PdfName.Ff, (int)FieldFlags.Multiline);
-        field[PdfName.MK] = CreateMk(border ?? PdfColor.Black, background);
+        field[PdfName.MK] = CreateMk(BorderColor(border, borderWidth), background);
+        SetBorderWidth(field, borderWidth);
         var text = (PdfTextField)GetField(name)!;
         text.Value = value ?? "";
         if (value == null) field.Remove(PdfName.V);
         return text;
     }
 
-    /// <summary>Adds a check box with the on-state "Yes".</summary>
+    /// <summary>
+    /// Adds a check box with the on-state "Yes". The border is drawn in <paramref name="border"/> (default black) with
+    /// <paramref name="borderWidth"/> points; a width of 0 means no border.
+    /// </summary>
     public PdfCheckBox AddCheckBox(PdfPage page, string name, PdfRectangle rect, bool isChecked = false, PdfColor? border = null,
-        CheckBoxStyle style = CheckBoxStyle.Check)
+        CheckBoxStyle style = CheckBoxStyle.Check, double borderWidth = 1)
     {
         EnsureDefaultFont("ZaDb", PdfStandardFont.ZapfDingbats);
         var field = NewWidgetField(page, name, rect, "Btn");
@@ -278,9 +296,10 @@ public sealed class PdfAcroForm
             CheckBoxStyle.Diamond => 'u',
             _ => '4',
         };
-        var mk = CreateMk(border ?? PdfColor.Black, PdfColor.White);
+        var mk = CreateMk(BorderColor(border, borderWidth), PdfColor.White);
         mk[PdfName.Get("CA")] = new PdfString(symbol.ToString());
         field[PdfName.MK] = mk;
+        SetBorderWidth(field, borderWidth);
         AppearanceGenerator.CheckBoxStates(this, field, "Yes", symbol);
         var box = (PdfCheckBox)GetField(name)!;
         box.IsChecked = isChecked;

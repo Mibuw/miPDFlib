@@ -91,6 +91,13 @@ public sealed class PdfSignatureAppearance
     public double TextStripRatio { get; set; } = 0.3;
 
     /// <summary>
+    /// Draw the appearance upright as seen in viewers when the page is rotated (/Rotate), or rotated by the /MK /R of an
+    /// existing signature field (default true). The rectangle stays in unrotated page coordinates; on a page rotated by
+    /// 90 or 270 degrees the visible width is the rectangle's height. false = draw in unrotated page orientation.
+    /// </summary>
+    public bool KeepUpright { get; set; } = true;
+
+    /// <summary>
     /// Custom drawing into the appearance, called after background and image and before the text.
     /// Arguments: canvas, width, height (origin bottom-left, points). Set <see cref="Text"/> to "" for no text,
     /// e.g. to draw handwritten ink with <see cref="InkRenderer"/>.

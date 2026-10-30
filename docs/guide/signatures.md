@@ -173,6 +173,11 @@ options.Appearance = new PdfSignatureAppearance
 options.Appearance = new PdfSignatureAppearance { Image = png, ImagePosition = SignatureImagePosition.Top, Text = "Signed by {name}\n{date}" };
 ```
 
+On rotated pages (`/Rotate`) the appearance is drawn upright as seen in viewers (`KeepUpright`, default true); an
+existing signature field with `/MK /R` is drawn with that rotation. `Rectangle` stays in unrotated page coordinates,
+so on a page rotated by 90 or 270 degrees the visible width of the signature is the rectangle's height. The `Draw`
+callback receives the upright width and height.
+
 ## Long-term validation: PAdES B-LT and B-LTA
 
 ```csharp

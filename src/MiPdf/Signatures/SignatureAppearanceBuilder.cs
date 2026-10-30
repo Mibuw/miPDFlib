@@ -15,9 +15,11 @@ internal static class SignatureAppearanceBuilder
     public static void Apply(PdfDocument doc, PdfWidget widget, PdfSignatureOptions options, X509Certificate2? certificate, DateTimeOffset signingTime)
     {
         var appearance = options.Appearance;
-        var rect = widget.Rect;
-        double w = rect.Width, h = rect.Height;
-        var xobject = new PdfFormXObject(doc, new PdfRectangle(0, 0, w, h));
+        // on rotated pages (/Rotate) the content is rotated with the page, so that it reads upright in viewers
+        int rotation = !appearance.KeepUpright ? 0
+            : widget.Dictionary.GetDictionary(PdfName.MK)?.ContainsKey(PdfName.Get("R")) == true ? AppearanceGenerator.GetRotation(widget.Dictionary)
+            : widget.Page?.Rotation ?? 0;
+        var xobject = AppearanceGenerator.CreateRotated(doc, widget.Rect, rotation, out double w, out double h);
         string text = BuildText(appearance, options, certificate, signingTime);
 
         using (var canvas = xobject.GetCanvas())

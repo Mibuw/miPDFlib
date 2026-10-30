@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Forms: `AddTextField` and `AddCheckBox` take a `borderWidth` (0 = no border). `PdfWidget.Rotation` (/MK /R),
+  `BorderColor`, `BackgroundColor` and `BorderWidth` change an existing widget and rebuild its appearance.
+- Forms: check boxes and radio buttons rebuild their on/off appearances (`RegenerateAppearance`) from /MK, including
+  the rotation /MK /R, and keep their state; their appearances now honor /MK /R.
+- Signatures: the visible appearance is drawn upright on rotated pages (`PdfSignatureAppearance.KeepUpright`, default
+  true) and honors /MK /R of an existing signature field. Code that rotated the appearance itself must drop that.
+
 ## 0.2.5-alpha
 
 - Separate package readme for nuget.org (`src/MiPdf/NUGET-README.md`): nuget.org shows HTML as text and decoded

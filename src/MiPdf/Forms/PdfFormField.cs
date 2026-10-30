@@ -58,6 +58,68 @@ public sealed class PdfWidget
 
     public bool IsHidden => (Dictionary.GetInt(PdfName.F) & 2) != 0;
 
+    /// <summary>The field this widget belongs to.</summary>
+    internal PdfFormField? Field { get; set; }
+
+    /// <summary>
+    /// Counterclockwise rotation of the widget content in degrees (/MK /R): 0, 90, 180 or 270. Setting it regenerates
+    /// the appearance of text, choice, check box and radio button fields.
+    /// </summary>
+    public int Rotation
+    {
+        get => AppearanceGenerator.GetRotation(Dictionary);
+        set
+        {
+            if (value % 90 != 0) throw new ArgumentException("Rotation must be a multiple of 90.", nameof(value));
+            int r = AppearanceGenerator.NormalizeRotation(value);
+            if (r == 0) GetMk(false)?.Remove(PdfName.Get("R"));
+            else GetMk(true)!.Set(PdfName.Get("R"), r);
+            Field?.RegenerateAppearance();
+        }
+    }
+
+    /// <summary>Border color (/MK /BC); null = no border. Setting it regenerates the appearance (see <see cref="Rotation"/>).</summary>
+    public PdfColor? BorderColor
+    {
+        get => AppearanceGenerator.ReadColor(Dictionary.GetDictionary(PdfName.MK), "BC");
+        set => SetMkColor("BC", value);
+    }
+
+    /// <summary>Background color (/MK /BG); null = transparent. Setting it regenerates the appearance (see <see cref="Rotation"/>).</summary>
+    public PdfColor? BackgroundColor
+    {
+        get => AppearanceGenerator.ReadColor(Dictionary.GetDictionary(PdfName.MK), "BG");
+        set => SetMkColor("BG", value);
+    }
+
+    /// <summary>Border width in points (/BS /W, default 1); 0 = no border. Setting it regenerates the appearance (see <see cref="Rotation"/>).</summary>
+    public double BorderWidth
+    {
+        get => Dictionary.GetDictionary(PdfName.BS)?.GetDouble(PdfName.W, 1) ?? 1;
+        set
+        {
+            if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "The border width must not be negative.");
+            var bs = Dictionary.GetDictionary(PdfName.BS);
+            if (bs == null) Dictionary[PdfName.BS] = bs = new PdfDictionary();
+            bs.Set(PdfName.W, value);
+            Field?.RegenerateAppearance();
+        }
+    }
+
+    private PdfDictionary? GetMk(bool create)
+    {
+        var mk = Dictionary.GetDictionary(PdfName.MK);
+        if (mk == null && create) Dictionary[PdfName.MK] = mk = new PdfDictionary();
+        return mk;
+    }
+
+    private void SetMkColor(string key, PdfColor? color)
+    {
+        if (color is { } c) GetMk(true)![PdfName.Get(key)] = PdfArray.FromNumbers(c.Components);
+        else GetMk(false)?.Remove(PdfName.Get(key));
+        Field?.RegenerateAppearance();
+    }
+
     /// <summary>Images in the widget's appearance (e.g. a signature image), with page coordinates.</summary>
     public IReadOnlyList<Images.PdfExtractedImage> ExtractImages() => Images.PdfImageExtractor.Extract(Dictionary);
 }
@@ -81,6 +143,7 @@ public abstract class PdfFormField
         Dictionary = dictionary;
         FullName = fullName;
         Widgets = widgets;
+        foreach (var widget in widgets) widget.Field = this;
     }
 
     public PdfAcroForm Form { get; }
@@ -241,6 +304,9 @@ public sealed class PdfCheckBox : PdfFormField
                 w.Dictionary[PdfName.AS] = PdfName.Get(w.OnStates.Contains(state) || (w.OnStates.Count == 0 && state != "Off") ? state : "Off");
         }
     }
+
+    /// <summary>Rebuilds the on/off appearances from /MK (symbol, colors, rotation) and the border width.</summary>
+    public override void RegenerateAppearance() => AppearanceGenerator.ButtonStates(this, '4');
 }
 
 /// <summary>A group of radio buttons; the value is the export name of the selected button.</summary>
@@ -263,6 +329,9 @@ public sealed class PdfRadioButtonGroup : PdfFormField
             foreach (var w in Widgets) w.Dictionary[PdfName.AS] = PdfName.Get(w.OnStates.Contains(state) ? state : "Off");
         }
     }
+
+    /// <summary>Rebuilds the on/off appearances from /MK (symbol, colors, rotation) and the border width.</summary>
+    public override void RegenerateAppearance() => AppearanceGenerator.ButtonStates(this, 'l');
 }
 
 /// <summary>A push button (no value).</summary>
