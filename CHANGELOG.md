@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.8-alpha
 
 - Forms: radio groups, combo boxes and list boxes no longer set a white background (/MK /BG) either; `AddRadioGroup`,
   `AddComboBox` and `AddListBox` take `border`, `background` and `borderWidth` like the other field types. An invalid

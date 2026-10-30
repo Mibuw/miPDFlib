@@ -5,7 +5,7 @@
     <RootNamespace>MiPdf</RootNamespace>
     <AssemblyName>MiPdf</AssemblyName>
     <PackageId>miPDFlib</PackageId>
-    <Version>0.2.7-alpha</Version>
+    <Version>0.2.8-alpha</Version>
     <Description>Open-source (Apache-2.0) PDF library for .NET: create, read, modify, merge, fill forms, encrypt and digitally sign PDF documents.</Description>
     <PackageTags>pdf;pdf-library;pdf-generation;pdf-signature;digital-signature;pades;eidas;ltv;pdfa;pdf-ua;tagged-pdf;acroform;redaction;text-extraction;zugferd;factur-x;xrechnung;barcode;qrcode;itext-alternative</PackageTags>
     <!-- nuget.org renders no HTML, so the package has its own Markdown-only readme (UTF-8 with BOM) -->

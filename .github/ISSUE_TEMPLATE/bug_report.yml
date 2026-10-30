@@ -33,7 +33,7 @@ body:
     id: version
     attributes:
       label: miPDFlib version
-      placeholder: e.g. 0.2.7-alpha
+      placeholder: e.g. 0.2.8-alpha
     validations:
       required: true
   - type: input

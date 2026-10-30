@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-10-30 (release 0.2.7-alpha)
+Last update: 2026-10-30 (release 0.2.8-alpha)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
