@@ -66,8 +66,10 @@ form.AddCheckBox(page, "agree", rect, isChecked: true, style: CheckBoxStyle.Cros
 
 ### Borders, colors and rotation
 
-`AddTextField` and `AddCheckBox` draw a black 1 pt border by default; `borderWidth: 0` creates the field without
-border (no `/MK /BC`, so viewers that rebuild the appearance do not add one either). Border, background and rotation
+All `Add...` methods for text fields, check boxes, radio groups, combo and list boxes draw a black 1 pt border and no
+background by default, so fields do not cover the page content below them. `border`, `background` and `borderWidth`
+change that; `borderWidth: 0` creates the field without border (no `/MK /BC`, so viewers that rebuild the appearance
+do not add one either). Border, background and rotation
 of existing widgets can be changed later; the appearance of text, choice, check box and radio button fields is then
 rebuilt (check boxes and radio buttons keep their state):
 

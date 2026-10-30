@@ -266,11 +266,12 @@ public sealed class PdfAcroForm
     public PdfTextField AddTextField(PdfPage page, string name, PdfRectangle rect, string? value = null, double fontSize = 0,
         bool multiline = false, PdfColor? border = null, PdfColor? background = null, double borderWidth = 1)
     {
+        var borderColor = BorderColor(border, borderWidth); // validates before anything is added
         EnsureDefaultFont("Helv", PdfStandardFont.Helvetica);
         var field = NewWidgetField(page, name, rect, "Tx");
         field[PdfName.DA] = new PdfString($"/Helv {PdfNumber.FormatReal(fontSize)} Tf 0 g");
         if (multiline) field.Set(PdfName.Ff, (int)FieldFlags.Multiline);
-        field[PdfName.MK] = CreateMk(BorderColor(border, borderWidth), background);
+        field[PdfName.MK] = CreateMk(borderColor, background);
         SetBorderWidth(field, borderWidth);
         var text = (PdfTextField)GetField(name)!;
         text.Value = value ?? "";
@@ -286,6 +287,7 @@ public sealed class PdfAcroForm
     public PdfCheckBox AddCheckBox(PdfPage page, string name, PdfRectangle rect, bool isChecked = false, PdfColor? border = null,
         CheckBoxStyle style = CheckBoxStyle.Check, double borderWidth = 1, PdfColor? background = null)
     {
+        var borderColor = BorderColor(border, borderWidth);
         EnsureDefaultFont("ZaDb", PdfStandardFont.ZapfDingbats);
         var field = NewWidgetField(page, name, rect, "Btn");
         field[PdfName.DA] = new PdfString("/ZaDb 0 Tf 0 g");
@@ -297,7 +299,7 @@ public sealed class PdfAcroForm
             CheckBoxStyle.Diamond => 'u',
             _ => '4',
         };
-        var mk = CreateMk(BorderColor(border, borderWidth), background);
+        var mk = CreateMk(borderColor, background);
         mk[PdfName.Get("CA")] = new PdfString(symbol.ToString());
         field[PdfName.MK] = mk;
         SetBorderWidth(field, borderWidth);
@@ -312,9 +314,14 @@ public sealed class PdfAcroForm
     /// <param name="name">Field name.</param>
     /// <param name="options">Export value and rectangle of every button.</param>
     /// <param name="selected">Initially selected export value.</param>
-    public PdfRadioButtonGroup AddRadioGroup(PdfPage page, string name, IEnumerable<(string Value, PdfRectangle Rect)> options, string? selected = null)
+    /// <param name="border">Border color (default black).</param>
+    /// <param name="background">Background color (default none, so the page content below stays visible).</param>
+    /// <param name="borderWidth">Border width in points; 0 = no border.</param>
+    public PdfRadioButtonGroup AddRadioGroup(PdfPage page, string name, IEnumerable<(string Value, PdfRectangle Rect)> options, string? selected = null,
+        PdfColor? border = null, PdfColor? background = null, double borderWidth = 1)
     {
         if (GetField(name) != null) throw new ArgumentException($"A field named '{name}' already exists.", nameof(name));
+        var borderColor = BorderColor(border, borderWidth);
         EnsureDefaultFont("ZaDb", PdfStandardFont.ZapfDingbats);
         var group = new PdfDictionary();
         group[PdfName.FT] = PdfName.Get("Btn");
@@ -331,9 +338,10 @@ public sealed class PdfAcroForm
             widget[PdfName.Rect] = PdfArray.FromRectangle(rect);
             widget[PdfName.Parent] = groupRef;
             widget.Set(PdfName.F, 4);
-            var mk = CreateMk(PdfColor.Black, PdfColor.White);
+            var mk = CreateMk(borderColor, background);
             mk[PdfName.Get("CA")] = new PdfString("l");
             widget[PdfName.MK] = mk;
+            SetBorderWidth(widget, borderWidth);
             AppearanceGenerator.CheckBoxStates(this, widget, value, 'l');
             kids.Add(page.AddAnnotation(widget).Reference!);
         }
@@ -343,22 +351,33 @@ public sealed class PdfAcroForm
         return radio;
     }
 
-    /// <summary>Adds a combo box (drop-down list).</summary>
-    public PdfChoiceField AddComboBox(PdfPage page, string name, PdfRectangle rect, IEnumerable<string> options, string? selected = null, bool editable = false) =>
-        AddChoice(page, name, rect, options, selected, FieldFlags.Combo | (editable ? FieldFlags.Edit : 0));
+    /// <summary>
+    /// Adds a combo box (drop-down list) with a border in <paramref name="border"/> (default black, width 0 = no border)
+    /// and no background unless <paramref name="background"/> is set.
+    /// </summary>
+    public PdfChoiceField AddComboBox(PdfPage page, string name, PdfRectangle rect, IEnumerable<string> options, string? selected = null, bool editable = false,
+        PdfColor? border = null, PdfColor? background = null, double borderWidth = 1) =>
+        AddChoice(page, name, rect, options, selected, FieldFlags.Combo | (editable ? FieldFlags.Edit : 0), border, background, borderWidth);
 
-    /// <summary>Adds a list box.</summary>
-    public PdfChoiceField AddListBox(PdfPage page, string name, PdfRectangle rect, IEnumerable<string> options, string? selected = null, bool multiSelect = false) =>
-        AddChoice(page, name, rect, options, selected, multiSelect ? FieldFlags.MultiSelect : 0);
+    /// <summary>
+    /// Adds a list box with a border in <paramref name="border"/> (default black, width 0 = no border) and no
+    /// background unless <paramref name="background"/> is set.
+    /// </summary>
+    public PdfChoiceField AddListBox(PdfPage page, string name, PdfRectangle rect, IEnumerable<string> options, string? selected = null, bool multiSelect = false,
+        PdfColor? border = null, PdfColor? background = null, double borderWidth = 1) =>
+        AddChoice(page, name, rect, options, selected, multiSelect ? FieldFlags.MultiSelect : 0, border, background, borderWidth);
 
-    private PdfChoiceField AddChoice(PdfPage page, string name, PdfRectangle rect, IEnumerable<string> options, string? selected, FieldFlags flags)
+    private PdfChoiceField AddChoice(PdfPage page, string name, PdfRectangle rect, IEnumerable<string> options, string? selected, FieldFlags flags,
+        PdfColor? border, PdfColor? background, double borderWidth)
     {
+        var borderColor = BorderColor(border, borderWidth);
         EnsureDefaultFont("Helv", PdfStandardFont.Helvetica);
         var field = NewWidgetField(page, name, rect, "Ch");
         field[PdfName.DA] = new PdfString("/Helv 0 Tf 0 g");
         field.Set(PdfName.Ff, (int)flags);
         field[PdfName.Opt] = new PdfArray(options.Select(o => (PdfObject)new PdfString(o)));
-        field[PdfName.MK] = CreateMk(PdfColor.Black, PdfColor.White);
+        field[PdfName.MK] = CreateMk(borderColor, background);
+        SetBorderWidth(field, borderWidth);
         var choice = (PdfChoiceField)GetField(name)!;
         if (selected != null) choice.Value = selected;
         else choice.RegenerateAppearance();

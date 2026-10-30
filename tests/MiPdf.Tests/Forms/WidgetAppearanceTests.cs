@@ -61,6 +61,19 @@ public class WidgetAppearanceTests
         Assert.Empty(Tokens(Normal(plain.Widgets[0], "Off"))); // nothing drawn: the page content below stays visible
         Assert.NotNull(white.Widgets[0].BackgroundColor);
         Assert.Contains("f", Tokens(Normal(white.Widgets[0], "Off")));
+
+        var radio = form.AddRadioGroup(page, "size", new[] { ("S", new PdfRectangle(100, 560, 114, 574)) }, borderWidth: 0);
+        var combo = form.AddComboBox(page, "country", new PdfRectangle(100, 520, 250, 538), new[] { "AT", "DE" });
+        var list = form.AddListBox(page, "langs", new PdfRectangle(100, 440, 250, 500), new[] { "de", "en" }, background: PdfColor.White);
+        Assert.Null(radio.Widgets[0].BackgroundColor);
+        Assert.Empty(Tokens(Normal(radio.Widgets[0], "Off")));
+        Assert.Null(combo.Widgets[0].BackgroundColor);
+        Assert.NotNull(combo.Widgets[0].BorderColor);
+        Assert.NotNull(list.Widgets[0].BackgroundColor);
+
+        // an invalid border width is rejected before anything is added
+        Assert.Throws<ArgumentOutOfRangeException>(() => form.AddComboBox(page, "bad", new PdfRectangle(100, 400, 250, 418), new[] { "x" }, borderWidth: -1));
+        Assert.Null(form.GetField("bad"));
     }
 
     [Fact]

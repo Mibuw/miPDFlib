@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Forms: radio groups, combo boxes and list boxes no longer set a white background (/MK /BG) either; `AddRadioGroup`,
+  `AddComboBox` and `AddListBox` take `border`, `background` and `borderWidth` like the other field types. An invalid
+  border width is rejected before the field is added.
+
 ## 0.2.7-alpha
 
 - Forms: `AddCheckBox` no longer sets a white background (/MK /BG), like `AddTextField`, so a check box does not cover
