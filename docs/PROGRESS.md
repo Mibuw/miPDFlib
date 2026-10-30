@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-10-30 (release 0.2.8-alpha)
+Last update: 2026-10-30 (release 0.3.0)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -25,7 +25,7 @@ Last update: 2026-10-30 (release 0.2.8-alpha)
 | 16 Redaction (true removal) | ✅ done (text per glyph, image pixels, XObjects recursively, vector graphics, annotations/fields; Redact annotations) |
 | 17 Layout: lists, row spans, rows across pages, kerning, hyphenation | ✅ done (lists tagged L/LI/Lbl/LBody, veraPDF UA passes) |
 | 18 Further features | ✅ done (signature dictionary entries, XFA data, image extraction, free space, push buttons with images, check box styles, PDF/A identification, IgnorePermissions, BMP/GIF) |
-| 19 Release | ✅ 0.2.2-alpha: first public release on nuget.org (release workflow on tag `v*`), logo, CHANGELOG |
+| 19 Release | ✅ 0.2.2-alpha: first public release on nuget.org (release workflow on tag `v*`), logo, CHANGELOG; 0.3.0: first stable (non-prerelease) release |
 | 20 Signature algorithms | ✅ done (RSASSA-PSS, ECDSA P-256/P-384/P-521/Brainpool; validated with EU DSS) |
 | 21 PDF 2.0 | ✅ reading/saving/signing (PDF Association pdf20examples all open, resave and sign; preamble before `%PDF-`) |
 | 22 Field locks (FieldMDP) | ✅ done (244 tests; /Lock + FieldMDP reference, combinable with DocMDP and deferred signing, validator reports changed locked fields; EU DSS reads the lock dictionaries; Acrobat flags a changed locked field as invalid) |

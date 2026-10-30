@@ -10,14 +10,14 @@ An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10: pure managed code,
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
 ```bash
-dotnet add package miPDFlib --prerelease
+dotnet add package miPDFlib
 ```
 
 The namespace is `MiPdf` (`using MiPdf;`). Versions up to 0.2.3-alpha were published under the package ID `MiPdf`,
 which is deprecated; switch the package reference to `miPDFlib`, no code changes are needed.
 
-> **Alpha:** all planned feature areas are implemented and tested, but the public API may still change between 0.x
-> versions (see the [changelog](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)).
+> **Versioning:** all planned feature areas are implemented and tested. Releases follow Semantic Versioning; until 1.0
+> the public API may still change between minor versions (see the [changelog](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)).
 
 ## Features
 

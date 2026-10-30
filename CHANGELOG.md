@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- First stable (non-prerelease) release: installs without `--prerelease`. Same code as 0.2.8-alpha. Releases follow
+  Semantic Versioning; until 1.0 the public API may still change between minor versions.
+
 ## 0.2.8-alpha
 
 - Forms: radio groups, combo boxes and list boxes no longer set a white background (/MK /BG) either; `AddRadioGroup`,

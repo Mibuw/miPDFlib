@@ -1,6 +1,6 @@
 name: Release
 
-# Creates a release from a version tag (e.g. v0.2.2-alpha): build, test, pack, publish the NuGet package to
+# Creates a release from a version tag (e.g. v0.3.0; v0.4.0-beta.1 becomes a pre-release): build, test, pack, publish the NuGet package to
 # nuget.org (Trusted Publishing, no stored API key) and create a GitHub release with the packages attached.
 #
 # Setup (once): on nuget.org add a Trusted Publishing policy for repository Mibuw/miPDFlib and workflow file

@@ -16,12 +16,12 @@
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
 </p>
 
-**On NuGet:** `dotnet add package miPDFlib --prerelease`
+**On NuGet:** `dotnet add package miPDFlib`
 
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
-> Status: **0.2.8-alpha** – all planned feature areas are implemented and tested (254 unit tests, real-world
+> Status: **0.3.0** – first stable release: all planned feature areas are implemented and tested (254 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
 ## Features
@@ -123,11 +123,10 @@ Notes:
 
 ## Installation
 
-The package [`miPDFlib`](https://www.nuget.org/packages/miPDFlib/) is published on nuget.org. While the library is in
-alpha, add `--prerelease`:
+The package [`miPDFlib`](https://www.nuget.org/packages/miPDFlib/) is published on nuget.org:
 
 ```bash
-dotnet add package miPDFlib --prerelease
+dotnet add package miPDFlib
 ```
 
 The namespace is `MiPdf` (`using MiPdf;`). Versions up to 0.2.3-alpha were published under the package ID `MiPdf`,
@@ -136,8 +135,9 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 Every release is also available as a [GitHub release](https://github.com/Mibuw/miPDFlib/releases) with the
 `.nupkg` and symbol package attached.
 
-> **Alpha:** the feature set is complete and tested, but the public API may still change between 0.x versions
-> (see [CHANGELOG.md](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)). There is no guaranteed support.
+> **Versioning:** releases follow [Semantic Versioning](https://semver.org). Until 1.0 the public API may still change
+> between minor versions (0.3 → 0.4); such changes are listed in
+> [CHANGELOG.md](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md). There is no guaranteed support.
 
 ## Building
 

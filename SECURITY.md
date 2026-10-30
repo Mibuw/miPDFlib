@@ -5,6 +5,11 @@
 Please report security problems privately via a GitHub security advisory of this repository
 (*Security → Report a vulnerability*) instead of a public issue.
 
+## Supported versions
+
+Security fixes are released for the latest version on nuget.org. Until 1.0 there are no maintenance branches for
+older minor versions.
+
 ## Threat model
 
 miPDFlib is designed to process **untrusted PDF files** (uploads, e-mail attachments) in server applications.
