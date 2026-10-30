@@ -74,7 +74,7 @@ rebuilt (check boxes and radio buttons keep their state):
 ```csharp
 form.AddTextField(page, "plain", rect, "value", borderWidth: 0);
 var box = form.AddCheckBox(page, "agree", rect, borderWidth: 0);
-box.Widgets[0].BackgroundColor = null;                    // transparent instead of white
+box.Widgets[0].BackgroundColor = PdfColor.White;         // null = transparent (default)
 box.Widgets[0].Rotation = 90;                             // /MK /R, counterclockwise: 0, 90, 180, 270
 box.Widgets[0].BorderColor = PdfColor.Rgb(0, 0, 0.6);     // null = no border
 box.Widgets[0].BorderWidth = 2;                           // /BS /W

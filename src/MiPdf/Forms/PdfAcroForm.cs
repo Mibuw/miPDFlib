@@ -280,10 +280,11 @@ public sealed class PdfAcroForm
 
     /// <summary>
     /// Adds a check box with the on-state "Yes". The border is drawn in <paramref name="border"/> (default black) with
-    /// <paramref name="borderWidth"/> points; a width of 0 means no border.
+    /// <paramref name="borderWidth"/> points; a width of 0 means no border. Like text fields, the check box has no
+    /// background unless <paramref name="background"/> is set, so it does not cover the page content below it.
     /// </summary>
     public PdfCheckBox AddCheckBox(PdfPage page, string name, PdfRectangle rect, bool isChecked = false, PdfColor? border = null,
-        CheckBoxStyle style = CheckBoxStyle.Check, double borderWidth = 1)
+        CheckBoxStyle style = CheckBoxStyle.Check, double borderWidth = 1, PdfColor? background = null)
     {
         EnsureDefaultFont("ZaDb", PdfStandardFont.ZapfDingbats);
         var field = NewWidgetField(page, name, rect, "Btn");
@@ -296,7 +297,7 @@ public sealed class PdfAcroForm
             CheckBoxStyle.Diamond => 'u',
             _ => '4',
         };
-        var mk = CreateMk(BorderColor(border, borderWidth), PdfColor.White);
+        var mk = CreateMk(BorderColor(border, borderWidth), background);
         mk[PdfName.Get("CA")] = new PdfString(symbol.ToString());
         field[PdfName.MK] = mk;
         SetBorderWidth(field, borderWidth);

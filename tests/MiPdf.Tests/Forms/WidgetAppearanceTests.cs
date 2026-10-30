@@ -49,6 +49,21 @@ public class WidgetAppearanceTests
     }
 
     [Fact]
+    public void CheckBoxHasNoBackgroundByDefault()
+    {
+        var doc = PdfDocument.Create();
+        var page = doc.AddPage();
+        var form = doc.GetOrCreateForm();
+        var plain = form.AddCheckBox(page, "plain", new PdfRectangle(100, 600, 114, 614), borderWidth: 0);
+        var white = form.AddCheckBox(page, "white", new PdfRectangle(130, 600, 144, 614), background: PdfColor.White);
+
+        Assert.Null(plain.Widgets[0].BackgroundColor);
+        Assert.Empty(Tokens(Normal(plain.Widgets[0], "Off"))); // nothing drawn: the page content below stays visible
+        Assert.NotNull(white.Widgets[0].BackgroundColor);
+        Assert.Contains("f", Tokens(Normal(white.Widgets[0], "Off")));
+    }
+
+    [Fact]
     public void CheckBoxAppearanceFollowsRotation()
     {
         var doc = PdfDocument.Create();
