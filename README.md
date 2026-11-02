@@ -145,6 +145,8 @@ Notes:
 
 ## Articles
 
+- [ZUGFeRD in .NET: creating, validating and signing e-invoices](https://www.mitterbucher.com/en/articles/zugferd-e-invoice-dotnet/)
+  ([German](https://www.mitterbucher.com/artikel/zugferd-e-rechnung-dotnet/)) – deadlines, profiles, PDF/A-3 structure and validation
 - [miPDFlib or aiPDFlib? A PDF library built from specifications – with AI](https://www.mitterbucher.com/en/articles/mipdflib-aipdflib/)
   ([German](https://www.mitterbucher.com/artikel/mipdflib-kipdflib/)) – how the library was planned, built and tested
 - [iText or Syncfusion PDF? A practical comparison for forms and digital signatures in .NET](https://www.mitterbucher.com/en/articles/itext-vs-syncfusion-pdf/)

@@ -38,7 +38,7 @@ embeds only the glyphs it actually uses. `.ttc` collections: `FromFile(path, col
 CFF-based OpenType fonts (`.otf`) are embedded completely. Fonts whose license forbids embedding are
 rejected unless `ignoreLicenseRestrictions: true` is passed.
 
-Not supported yet: complex script shaping (Arabic, Indic), ligatures, kerning, right-to-left text.
+Not supported yet: complex script shaping (Arabic, Indic), ligatures, right-to-left text.
 
 ## Canvas (`page.GetCanvas()`)
 

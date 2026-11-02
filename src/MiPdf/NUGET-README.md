@@ -100,7 +100,8 @@ Sample ASP.NET Core web API with Dockerfile: [samples/MiPdf.WebApi](https://gith
 - [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md): embedded files, ZUGFeRD / Factur-X
 - [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md): QR, EPC payment codes, Data Matrix, Code 128, EAN
 - [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md) and [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
-- Articles: [miPDFlib or aiPDFlib?](https://www.mitterbucher.com/en/articles/mipdflib-aipdflib/) (how it was built) and
+- Articles: [ZUGFeRD in .NET](https://www.mitterbucher.com/en/articles/zugferd-e-invoice-dotnet/) (e-invoices),
+  [miPDFlib or aiPDFlib?](https://www.mitterbucher.com/en/articles/mipdflib-aipdflib/) (how it was built) and
   [iText or Syncfusion PDF?](https://www.mitterbucher.com/en/articles/itext-vs-syncfusion-pdf/) (now including miPDFlib)
 - [Office documents to PDF](https://github.com/Mibuw/miPDFlib#office-documents-word-excel-powerpoint): recommended conversion with LibreOffice via Gotenberg
 
