@@ -11,11 +11,16 @@ contribution – a PDF library gets robust through the unusual files of its user
   occurs with a confidential document, try to reproduce it with a document you create yourself, or describe the
   producing software (`/Producer`) and the error.
 - **Security problems** are reported privately, never in a public issue – see [SECURITY.md](SECURITY.md).
-- Questions about using the library are welcome as issues as well.
+- Questions about using the library and feature ideas are best asked in
+  [Discussions](https://github.com/Mibuw/miPDFlib/discussions) (*Q&A* and *Ideas*).
 
 There is no guaranteed response time; the project is maintained alongside other work.
 
 ## Pull requests
+
+Looking for a place to start? Issues labelled
+[good first issue](https://github.com/Mibuw/miPDFlib/labels/good%20first%20issue) are small and well described;
+[help wanted](https://github.com/Mibuw/miPDFlib/labels/help%20wanted) marks larger features.
 
 1. For larger changes, open an issue first so that the approach can be agreed on before you invest time.
 2. Fork the repository and create a branch from `main`.

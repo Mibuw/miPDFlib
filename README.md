@@ -179,7 +179,10 @@ dotnet pack src/MiPdf -c Release   # NuGet package incl. symbols (SourceLink)
 
 ## Contributing
 
-Bug reports, ideas and pull requests are welcome – see [CONTRIBUTING.md](https://github.com/Mibuw/miPDFlib/blob/main/CONTRIBUTING.md). Pull requests require
+Questions and ideas are welcome in [Discussions](https://github.com/Mibuw/miPDFlib/discussions), bug reports as
+[issues](https://github.com/Mibuw/miPDFlib/issues). Issues labelled
+[good first issue](https://github.com/Mibuw/miPDFlib/labels/good%20first%20issue) are a good start for a first pull
+request – see [CONTRIBUTING.md](https://github.com/Mibuw/miPDFlib/blob/main/CONTRIBUTING.md). Pull requests require
 a one-time [Contributor License Agreement](https://github.com/Mibuw/miPDFlib/blob/main/CLA.md) (accepted by a comment on the pull request). Security problems
 are reported privately as described in [SECURITY.md](https://github.com/Mibuw/miPDFlib/blob/main/SECURITY.md).
 

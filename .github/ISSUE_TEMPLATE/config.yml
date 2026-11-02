@@ -3,6 +3,9 @@ contact_links:
   - name: Report a security vulnerability
     url: https://github.com/Mibuw/miPDFlib/security/advisories/new
     about: Please report security problems privately, not as a public issue.
+  - name: Questions and ideas
+    url: https://github.com/Mibuw/miPDFlib/discussions
+    about: Ask how to do something or suggest a feature in Discussions.
   - name: Documentation
     url: https://github.com/Mibuw/miPDFlib#documentation
     about: Guides for creating, editing, signing and validating PDFs.
