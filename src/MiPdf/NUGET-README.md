@@ -97,6 +97,13 @@ byte[] signed = PdfSigner.Sign(File.ReadAllBytes("hello.pdf"), CertificateSigner
   [iText or Syncfusion PDF?](https://www.mitterbucher.com/en/articles/itext-vs-syncfusion-pdf/) (now including miPDFlib)
 - [Office documents to PDF](https://github.com/Mibuw/miPDFlib#office-documents-word-excel-powerpoint): recommended conversion with LibreOffice via Gotenberg
 
+## Used by
+
+- [miPDFsign Community](https://github.com/Mibuw/miPDFsign-Community) - open-source (Apache-2.0) signature app for
+  Windows tablets: handwritten signatures with biometric data as PAdES B to LTA
+- miPDFsign and miPDFsign Cloud - commercial signing app and service by the author
+  ([mitterbucher.com](https://www.mitterbucher.com))
+
 ## License
 
 Licensed under the **Apache License, Version 2.0**. See [LICENSE](https://github.com/Mibuw/miPDFlib/blob/main/LICENSE)

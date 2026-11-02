@@ -130,6 +130,13 @@ Notes:
 - [Architecture](https://github.com/Mibuw/miPDFlib/blob/main/docs/ARCHITECTURE.md) – internal structure for contributors
 - [Project plan](https://github.com/Mibuw/miPDFlib/blob/main/docs/PLAN.md) and [progress](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md)
 
+## Used by
+
+- [miPDFsign Community](https://github.com/Mibuw/miPDFsign-Community) – open-source (Apache-2.0) signature app for
+  Windows tablets: handwritten signatures with biometric data as PAdES B to LTA
+- miPDFsign and miPDFsign Cloud – commercial signing app and service by the author
+  ([mitterbucher.com](https://www.mitterbucher.com))
+
 ## Articles
 
 - [miPDFlib or aiPDFlib? A PDF library built from specifications – with AI](https://www.mitterbucher.com/en/articles/mipdflib-aipdflib/)

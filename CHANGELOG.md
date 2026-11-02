@@ -4,6 +4,7 @@
 
 - Docs: comparison with iText and Syncfusion PDF (`docs/COMPARISON.md`), "Why miPDFlib?" and article links in both
   readmes, more descriptive package description.
+- Docs: "Used by" section in both readmes.
 
 ## 0.3.0
 
