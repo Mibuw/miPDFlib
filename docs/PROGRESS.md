@@ -32,8 +32,10 @@ Last update: 2026-11-02 (after 0.4.0: stored revocation data in the validator)
 | 23 Widget borders and rotation | ✅ done (253 tests; fields without border, widget rotation/colors with rebuilt appearances incl. check boxes and radio buttons, signature appearance upright on rotated pages) |
 | 24 E-invoice checks | ✅ done (273 tests; `FacturX.CheckConsistency` compares the embedded XML with the visible text, `Attach` rejects a profile that contradicts the guideline ID, `FacturX.DetectProfile`) |
 | 25 Stored revocation data | ✅ done (281 tests; validator evaluates DSS and adbe-revocationInfoArchival OCSP/CRL with signature checks of the evidence and delegated responders; tested with real DigiCert OCSP responses and CRLs) |
+| 26 Form data exchange | ✅ done (286 tests; FDF and XFDF export/import with hierarchical names, multiple selections, unknown-field and error reporting; XFDF without DTD processing) |
+| 27 API reference | ✅ DocFX site on GitHub Pages (https://mibuw.github.io/miPDFlib/), rebuilt on every push to main |
 
-Current state: 281 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 286 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 

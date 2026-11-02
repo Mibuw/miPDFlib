@@ -9,7 +9,7 @@ namespace MiPdf.Forms;
 /// The interactive form (AcroForm) of a document: read, fill, create and flatten fields.
 /// Obtain it with <see cref="PdfDocument.GetForm"/> or <see cref="PdfDocument.GetOrCreateForm"/>.
 /// </summary>
-public sealed class PdfAcroForm
+public sealed partial class PdfAcroForm
 {
     private List<PdfFormField>? _fields;
 

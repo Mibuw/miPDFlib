@@ -43,7 +43,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 | **Manipulation** | merge, split, import/reorder/rotate/delete pages, page templates (letterheads), watermarks, bookmarks, links, **annotations** (highlight/underline/strike-out, free text, stamps, ink, shapes, file attachments, flattening) |
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
 | **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (PNG/JPEG with transparency), **free-space detection** |
-| **Forms** | read/fill/create AcroForm fields (text, check box with styles, radio, combo, list, push button with image, signature) with appearance generation, flattening, merging; XFA data |
+| **Forms** | read/fill/create AcroForm fields (text, check box with styles, radio, combo, list, push button with image, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
 | **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions |
 | **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA** (CAdES detached, signing-certificate-v2, DSS with OCSP/CRL), custom signed attributes, handwritten ink appearances, TSA failover, RFC 3161 time-stamps, document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |
 | **PDF/A** | PDF/A-1b/2b/2u/3b/3u output (XMP, sRGB output intent) and a basic conformance checker |

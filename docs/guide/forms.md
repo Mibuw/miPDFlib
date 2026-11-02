@@ -106,7 +106,31 @@ no longer contains an interactive form if all fields were flattened.
 When documents are merged (`ImportPages`, `Merge`), the fields of the imported pages are added to the
 target form together with the default resources. Fields with identical names are not renamed.
 
-Not supported: XFA forms (only their AcroForm part), JavaScript actions/calculations, FDF/XFDF import.
+Not supported: XFA forms (only their AcroForm part), JavaScript actions/calculations.
+
+## Exchanging form data (FDF / XFDF)
+
+Field values can be exported and imported ("merged" into a form) in the two exchange formats Acrobat and most
+form tools understand: XFDF (XML, ISO 19444-1) and FDF (ISO 32000-1, 12.7.8).
+
+```csharp
+var form = PdfDocument.Open("antrag-ausgefuellt.pdf").GetForm()!;
+string xfdf = form.ExportXfdf("antrag.pdf");          // or: byte[] fdf = form.ExportFdf("antrag.pdf");
+
+using var empty = PdfDocument.Open("antrag.pdf");
+var result = empty.GetForm()!.ImportXfdf(xfdf);       // or: ImportFdf(fdfBytes)
+Console.WriteLine($"{result.FieldsSet} set, unknown: {string.Join(", ", result.UnknownFields)}");
+foreach (var error in result.Errors) Console.WriteLine(error);   // e.g. "country: 'Narnia' is not an option of 'country'."
+empty.Save("antrag-neu.pdf");
+```
+
+- Text fields, check boxes and radio groups (state name, "Off" when unchecked), combo and list boxes (several
+  values for a multiple selection). Push buttons, signature fields and empty fields are not exported.
+- Hierarchical names ("address.street") are written as nested fields; on import both nested and flat names work.
+- On import, appearances are regenerated. For a check box, "Yes", "On", "1" or "true" checks the box even if its
+  on-state has another name. Unknown fields and invalid values are reported, not thrown.
+- XFDF is parsed without DTD processing, so data from untrusted sources can be imported. Annotations, embedded
+  files and JavaScript in FDF/XFDF are ignored.
 
 ## XFA data
 

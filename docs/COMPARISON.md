@@ -33,7 +33,7 @@ miPDFlib is young; its strengths are the licence, signatures without BouncyCastl
 | Read fields | `GetAllFormFields()` | typed classes such as `PdfLoadedTextBoxField` | `form.Fields`, typed via `GetField<PdfTextField>("name")` |
 | Create fields | builder classes, e.g. `TextFormFieldBuilder` | a class per field type, e.g. `PdfTextBoxField` | `form.AddTextField(..)`, `AddCheckBox(..)`, `AddSignatureField(..)` |
 | Flatten | via the AcroForm object | `Flatten = true` / `FlattenFields()` | `form.Flatten()` |
-| Data exchange | field API | additionally FDF import/export | `form.GetValues()`, XFA data; no FDF |
+| Data exchange | field API | additionally FDF import/export | `form.GetValues()`, FDF and XFDF import/export, XFA data |
 
 ## Digital signatures
 
