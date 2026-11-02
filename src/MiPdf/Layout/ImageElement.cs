@@ -6,6 +6,10 @@ namespace MiPdf.Layout;
 /// <summary>An image in the layout flow. Scaled to the available width if necessary, keeping its aspect ratio.</summary>
 public sealed class ImageElement : LayoutElement
 {
+    /// <summary>
+    /// Creates an image element. If only one of <paramref name="width"/> and <paramref name="height"/> (points) is given,
+    /// the other follows from the aspect ratio; if neither is given, the pixel size at 96 dpi is used.
+    /// </summary>
     public ImageElement(PdfImage image, double? width = null, double? height = null)
     {
         Image = image;
@@ -13,13 +17,16 @@ public sealed class ImageElement : LayoutElement
         Height = height;
     }
 
+    /// <summary>The image to draw.</summary>
     public PdfImage Image { get; }
 
     /// <summary>Display width in points; default: pixel size at 96 dpi.</summary>
     public double? Width { get; set; }
 
+    /// <summary>Display height in points; default: derived from the width and the aspect ratio, or pixel size at 96 dpi.</summary>
     public double? Height { get; set; }
 
+    /// <summary>Horizontal position within the available width (default <see cref="TextAlignment.Left"/>; Justify is treated as Left).</summary>
     public TextAlignment Alignment { get; set; } = TextAlignment.Left;
 
     /// <summary>Alternative text describing the image (tagged PDF / PDF/UA requires it for figures).</summary>

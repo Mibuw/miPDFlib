@@ -3,8 +3,10 @@ namespace MiPdf;
 /// <summary>Base exception for errors raised by miPDFlib.</summary>
 public class PdfException : Exception
 {
+    /// <summary>Creates an exception with the given message.</summary>
     public PdfException(string message) : base(message) { }
 
+    /// <summary>Creates an exception with the given message and the exception that caused it.</summary>
     public PdfException(string message, Exception inner) : base(message, inner) { }
 
     /// <summary>
@@ -20,14 +22,19 @@ public class PdfException : Exception
 /// <summary>Raised when a PDF file cannot be parsed.</summary>
 public class PdfParseException : PdfException
 {
+    /// <summary>Creates a parse exception; a non-negative <paramref name="position"/> is appended to the message.</summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="position">The byte offset in the file where the error occurred, or -1 if unknown.</param>
     public PdfParseException(string message, long position = -1)
         : base(position >= 0 ? $"{message} (at offset {position})" : message) => Position = position;
 
+    /// <summary>The byte offset in the file where the error occurred, or -1 if unknown.</summary>
     public long Position { get; }
 }
 
 /// <summary>Raised when an encrypted document is opened without a valid password.</summary>
 public class PdfPasswordException : PdfException
 {
+    /// <summary>Creates an exception with the given message.</summary>
     public PdfPasswordException(string message) : base(message) { }
 }

@@ -15,6 +15,7 @@ public static class PdfUAChecker
 {
     private static readonly HashSet<string> PaintingOperators = new() { "Tj", "TJ", "'", "\"", "Do", "sh", "BI", "f", "F", "f*", "B", "B*", "b", "b*", "S", "s" };
 
+    /// <summary>Checks <paramref name="document"/> and returns a human-readable description of each issue found (empty if none).</summary>
     public static IReadOnlyList<string> Check(PdfDocument document)
     {
         var issues = new List<string>();

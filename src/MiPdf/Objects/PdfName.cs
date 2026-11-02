@@ -6,16 +6,25 @@ namespace MiPdf.Objects;
 /// A PDF name object (e.g. <c>/Type</c>). Instances are interned, so reference comparison is valid,
 /// but <see cref="Equals(object)"/> also compares by value. The value excludes the leading slash.
 /// </summary>
+/// <remarks>
+/// Frequently used names are available as static fields named like the PDF name they represent,
+/// e.g. <see cref="Type"/> for <c>/Type</c> (exception: <see cref="IdentityH"/> is <c>/Identity-H</c>).
+/// Other names are obtained with <see cref="Get(string)"/>.
+/// </remarks>
 public sealed partial class PdfName : PdfObject, IEquatable<PdfName>
 {
     private static readonly ConcurrentDictionary<string, PdfName> Cache = new(StringComparer.Ordinal);
 
     private PdfName(string value) => Value = value;
 
+    /// <summary>The name without the leading slash (e.g. <c>Type</c> for <c>/Type</c>).</summary>
     public string Value { get; }
 
+    /// <inheritdoc/>
     public override PdfObjectType ObjectType => PdfObjectType.Name;
 
+    /// <summary>Returns the interned name for <paramref name="value"/>; a leading slash is removed.</summary>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
     public static PdfName Get(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -23,24 +32,35 @@ public sealed partial class PdfName : PdfObject, IEquatable<PdfName>
         return Cache.GetOrAdd(value, static v => new PdfName(v));
     }
 
+    /// <summary>Converts a string to the interned name; same as <see cref="Get(string)"/>.</summary>
     public static implicit operator PdfName(string value) => Get(value);
 
+    /// <summary>Returns this instance (names are immutable).</summary>
     public override PdfObject Clone() => this;
 
+    /// <summary>True if <paramref name="other"/> has the same value (ordinal comparison).</summary>
     public bool Equals(PdfName? other) => other is not null && (ReferenceEquals(this, other) || other.Value == Value);
 
+    /// <summary>True if <paramref name="obj"/> is a <see cref="PdfName"/> with the same value.</summary>
     public override bool Equals(object? obj) => obj is PdfName n && Equals(n);
 
+    /// <inheritdoc/>
     public override int GetHashCode() => Value.GetHashCode(StringComparison.Ordinal);
 
+    /// <summary>Compares two names by value; two null operands are equal.</summary>
     public static bool operator ==(PdfName? a, PdfName? b) => a is null ? b is null : a.Equals(b);
 
+    /// <summary>Compares two names by value; see <see cref="operator ==(PdfName, PdfName)"/>.</summary>
     public static bool operator !=(PdfName? a, PdfName? b) => !(a == b);
 }
 
 // Frequently used names.
 public sealed partial class PdfName
 {
+    // Well-known PDF names. Each constant is named like the PDF name it represents (PdfName.Type is /Type,
+    // PdfName.FlateDecode is /FlateDecode); the only exception is IdentityH, which is /Identity-H.
+    // The constants are self-describing, so they carry no individual XML comments.
+#pragma warning disable CS1591
     public static readonly PdfName AA = Get("AA");
     public static readonly PdfName AcroForm = Get("AcroForm");
     public static readonly PdfName ActualText = Get("ActualText");
@@ -197,4 +217,5 @@ public sealed partial class PdfName
     public static readonly PdfName XObject = Get("XObject");
     public static readonly PdfName XRef = Get("XRef");
     public static readonly PdfName XRefStm = Get("XRefStm");
+#pragma warning restore CS1591
 }

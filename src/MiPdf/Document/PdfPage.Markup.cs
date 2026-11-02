@@ -8,19 +8,28 @@ namespace MiPdf;
 /// <summary>Text markup annotation types.</summary>
 public enum TextMarkupType
 {
+    /// <summary>Highlight (/Highlight), a colored area drawn with the Multiply blend mode, so the text stays readable.</summary>
     Highlight,
+    /// <summary>Underline (/Underline).</summary>
     Underline,
+    /// <summary>Strikeout (/StrikeOut).</summary>
     StrikeOut,
+    /// <summary>Jagged underline (/Squiggly).</summary>
     Squiggly,
 }
 
 /// <summary>Line ending styles of line annotations.</summary>
 public enum LineEnding
 {
+    /// <summary>No line ending (/None).</summary>
     None,
+    /// <summary>Two short lines forming an open arrowhead (/OpenArrow).</summary>
     OpenArrow,
+    /// <summary>A filled triangular arrowhead (/ClosedArrow).</summary>
     ClosedArrow,
+    /// <summary>A filled circle (/Circle).</summary>
     Circle,
+    /// <summary>A filled square (/Square).</summary>
     Square,
 }
 

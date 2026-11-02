@@ -12,7 +12,6 @@
     <PackageReadmeFile>NUGET-README.md</PackageReadmeFile>
     <PackageIcon>miPDFlib_logo.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <!-- NuGet / SourceLink (built into the .NET 8+ SDK) -->
     <PackageProjectUrl>https://github.com/Mibuw/miPDFlib</PackageProjectUrl>

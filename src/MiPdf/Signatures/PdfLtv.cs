@@ -55,10 +55,13 @@ public sealed class LtvResult
     /// <summary>The document with the added validation data (unchanged input if nothing could be added).</summary>
     public byte[] Pdf { get; }
 
+    /// <summary>Number of certificates newly added to the /DSS (entries already present are not counted).</summary>
     public int CertificatesAdded { get; }
 
+    /// <summary>Number of OCSP responses newly added to the /DSS (entries already present are not counted).</summary>
     public int OcspResponsesAdded { get; }
 
+    /// <summary>Number of CRLs newly added to the /DSS (entries already present are not counted).</summary>
     public int CrlsAdded { get; }
 
     /// <summary>True if revocation data was found for every certificate that needs it (all except roots and OCSP responders with no-check).</summary>

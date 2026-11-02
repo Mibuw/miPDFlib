@@ -8,10 +8,15 @@ namespace MiPdf.Invoicing;
 /// <summary>Factur-X / ZUGFeRD 2.x profiles (conformance levels of the embedded CII invoice).</summary>
 public enum FacturXProfile
 {
+    /// <summary>MINIMUM: only the document header data (not a valid invoice under EN 16931).</summary>
     Minimum,
+    /// <summary>BASIC WL: header and totals without invoice lines (not a valid invoice under EN 16931).</summary>
     BasicWL,
+    /// <summary>BASIC: a subset of EN 16931 including invoice lines.</summary>
     Basic,
+    /// <summary>EN 16931 (COMFORT): the complete core invoice model of the European standard.</summary>
     EN16931,
+    /// <summary>EXTENDED: EN 16931 plus additional data for more complex business processes.</summary>
     Extended,
 
     /// <summary>XRechnung (CII syntax) embedded as ZUGFeRD; file name "xrechnung.xml".</summary>

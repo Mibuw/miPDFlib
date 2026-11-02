@@ -33,6 +33,7 @@ public sealed class PdfFieldLock
         Fields = fields;
     }
 
+    /// <summary>Whether all fields, only the listed <see cref="Fields"/> or all except them are locked.</summary>
     public FieldLockAction Action { get; }
 
     /// <summary>The listed fields (empty for <see cref="FieldLockAction.All"/>).</summary>
@@ -55,6 +56,7 @@ public sealed class PdfFieldLock
         _ => true,
     };
 
+    /// <summary>Returns "All", or the action followed by the field names, e.g. "Include: name, date".</summary>
     public override string ToString() => Action == FieldLockAction.All ? "All" : $"{Action}: {string.Join(", ", Fields)}";
 
     private static string[] Validate(string[] fields)

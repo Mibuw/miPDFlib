@@ -19,8 +19,10 @@ public sealed class RedactionOptions
     /// <summary>Optional text drawn into each box (e.g. "REDACTED").</summary>
     public string? OverlayText { get; init; }
 
+    /// <summary>Font of the <see cref="OverlayText"/> (default Helvetica); the size is fitted to each box.</summary>
     public PdfFont OverlayFont { get; init; } = PdfStandardFont.Helvetica;
 
+    /// <summary>Color of the <see cref="OverlayText"/> (default white).</summary>
     public PdfColor OverlayTextColor { get; init; } = PdfColor.White;
 
     /// <summary>Remove annotations and form fields that intersect a redacted area (default true).</summary>
@@ -36,6 +38,7 @@ public sealed class RedactionOptions
 /// <summary>What a redaction removed.</summary>
 public sealed class RedactionResult
 {
+    /// <summary>Number of text glyphs removed.</summary>
     public int GlyphsRemoved { get; internal set; }
 
     /// <summary>Images removed completely (inside an area, or not decodable for partial redaction, e.g. JPEG).</summary>
@@ -44,10 +47,13 @@ public sealed class RedactionResult
     /// <summary>Images whose pixels inside the areas were blacked out.</summary>
     public int ImagesModified { get; internal set; }
 
+    /// <summary>Number of filled or stroked paths removed (see <see cref="RedactionOptions.RemoveVectorGraphics"/>).</summary>
     public int PathsRemoved { get; internal set; }
 
+    /// <summary>Number of annotations and form fields removed (a form field counts once, whatever its number of widgets).</summary>
     public int AnnotationsRemoved { get; internal set; }
 
+    /// <summary>Messages about content that could not be redacted as intended, e.g. images that had to be removed completely.</summary>
     public List<string> Warnings { get; } = new();
 
     internal void Add(RedactionResult other)
@@ -60,6 +66,7 @@ public sealed class RedactionResult
         Warnings.AddRange(other.Warnings);
     }
 
+    /// <summary>Returns the counters as a single line, for logging.</summary>
     public override string ToString() =>
         $"glyphs={GlyphsRemoved}, images removed={ImagesRemoved}, images modified={ImagesModified}, paths={PathsRemoved}, annotations={AnnotationsRemoved}";
 }

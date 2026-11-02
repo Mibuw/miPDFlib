@@ -41,6 +41,11 @@ public sealed class HttpRevocationSource : IRevocationSource
     private HttpClient? _configured;
     private readonly ConcurrentDictionary<string, (DateTime Expires, byte[] Data)> _cache = new();
 
+    /// <summary>Creates a revocation source.</summary>
+    /// <param name="httpClient">
+    /// Optional HttpClient (proxies, timeouts, ...). It is used as is, without the address checks of
+    /// <see cref="AllowPrivateNetworks"/> and <see cref="AllowedHosts"/>. Default: an internal client with a 30-second timeout.
+    /// </param>
     public HttpRevocationSource(HttpClient? httpClient = null) => _custom = httpClient;
 
     /// <summary>Allow connections to private, loopback and link-local addresses (default false).</summary>
@@ -62,6 +67,11 @@ public sealed class HttpRevocationSource : IRevocationSource
     /// <summary>How long downloaded CRLs and issuer certificates are cached (OCSP responses are not cached). Default 15 minutes.</summary>
     public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(15);
 
+    /// <summary>
+    /// Downloads the issuer certificate(s) from the HTTP caIssuers URLs of the certificate's AIA extension (at most
+    /// three URLs, stopping at the first that yields a certificate); an empty list if there are none.
+    /// </summary>
+    /// <exception cref="PdfException">A server returned an HTTP error or a response that is too large.</exception>
     public IReadOnlyList<X509Certificate2> GetIssuers(X509Certificate2 certificate)
     {
         var result = new List<X509Certificate2>();
@@ -75,6 +85,11 @@ public sealed class HttpRevocationSource : IRevocationSource
         return result;
     }
 
+    /// <summary>
+    /// Sends an OCSP request (HTTP POST) to the first HTTP OCSP URL of the certificate's AIA extension and returns
+    /// the DER-encoded response; null if the certificate names no OCSP responder.
+    /// </summary>
+    /// <exception cref="PdfException">The responder returned an HTTP error, a response that is too large or a non-successful OCSP status.</exception>
     public byte[]? GetOcspResponse(X509Certificate2 certificate, X509Certificate2 issuer)
     {
         foreach (var url in RevocationInfo.GetOcspUrls(certificate).Take(3))
@@ -92,6 +107,11 @@ public sealed class HttpRevocationSource : IRevocationSource
         return null;
     }
 
+    /// <summary>
+    /// Downloads the CRL from the first HTTP CRL distribution point of the certificate (PEM is converted to DER);
+    /// an empty list if there is none.
+    /// </summary>
+    /// <exception cref="PdfException">The server returned an HTTP error or the CRL exceeds <see cref="MaxCrlSize"/>.</exception>
     public IReadOnlyList<byte[]> GetCrls(X509Certificate2 certificate)
     {
         foreach (var url in RevocationInfo.GetCrlUrls(certificate).Take(3))

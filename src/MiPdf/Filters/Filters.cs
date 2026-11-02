@@ -6,6 +6,7 @@ namespace MiPdf.Filters;
 /// <summary>FlateDecode (zlib/deflate).</summary>
 public static class FlateFilter
 {
+    /// <summary>Compresses <paramref name="data"/> into a zlib stream (2-byte header, deflate data, Adler-32 checksum).</summary>
     public static byte[] Encode(byte[] data, CompressionLevel level = CompressionLevel.Optimal)
     {
         using var output = new MemoryStream(data.Length / 2 + 64);
@@ -61,6 +62,14 @@ public static class FlateFilter
 /// <summary>PNG and TIFF predictors for Flate/LZW (ISO 32000-2, 7.4.4.4).</summary>
 public static class Predictor
 {
+    /// <summary>
+    /// Reverses the predictor declared in the decode parameters (<c>/Predictor</c>, <c>/Colors</c>,
+    /// <c>/BitsPerComponent</c>, <c>/Columns</c>). Returns <paramref name="data"/> unchanged if there is no
+    /// predictor (<c>/Predictor</c> 1 or absent) or the parameters are inconsistent; the TIFF predictor (2)
+    /// is only applied for 8 bits per component.
+    /// </summary>
+    /// <param name="data">The data after Flate or LZW decompression.</param>
+    /// <param name="parms">The <c>/DecodeParms</c> dictionary of the filter, or <c>null</c>.</param>
     public static byte[] Apply(byte[] data, PdfDictionary? parms)
     {
         if (parms is null) return data;
@@ -132,6 +141,12 @@ public static class Predictor
 /// <summary>LZWDecode.</summary>
 public static class LzwFilter
 {
+    /// <summary>
+    /// Decodes LZW-compressed data. Stops at the end-of-data code or at the first invalid code and returns
+    /// what was decoded so far. No predictor is applied (see <see cref="Predictor.Apply"/>).
+    /// </summary>
+    /// <param name="data">The encoded data.</param>
+    /// <param name="earlyChange">The <c>/EarlyChange</c> value of the decode parameters (default 1).</param>
     public static byte[] Decode(byte[] data, int earlyChange = 1)
     {
         var output = new MemoryStream(data.Length * 3);
@@ -186,6 +201,10 @@ public static class Ascii85Filter
 {
     private static readonly byte[] ZeroGroup = new byte[4];
 
+    /// <summary>
+    /// Decodes ASCII base-85 data. An optional leading <c>&lt;~</c> is skipped, decoding stops at <c>~</c>,
+    /// and white space and invalid characters are ignored.
+    /// </summary>
     public static byte[] Decode(byte[] data)
     {
         var output = new MemoryStream(data.Length * 4 / 5 + 4);
@@ -231,6 +250,10 @@ public static class Ascii85Filter
 /// <summary>ASCIIHexDecode.</summary>
 public static class AsciiHexFilter
 {
+    /// <summary>
+    /// Decodes hexadecimal data up to the <c>&gt;</c> end marker, ignoring white space and invalid characters.
+    /// A trailing odd digit is treated as if followed by 0.
+    /// </summary>
     public static byte[] Decode(byte[] data)
     {
         var output = new MemoryStream(data.Length / 2 + 1);
@@ -251,6 +274,7 @@ public static class AsciiHexFilter
         return output.ToArray();
     }
 
+    /// <summary>Encodes <paramref name="data"/> as upper-case hexadecimal ASCII followed by the <c>&gt;</c> end marker.</summary>
     public static byte[] Encode(byte[] data)
     {
         var hex = Convert.ToHexString(data);
@@ -269,6 +293,7 @@ public static class AsciiHexFilter
 /// <summary>RunLengthDecode.</summary>
 public static class RunLengthFilter
 {
+    /// <summary>Decodes run-length encoded data up to the end-of-data byte (128) or the end of the input.</summary>
     public static byte[] Decode(byte[] data)
     {
         var output = new MemoryStream(data.Length * 2);

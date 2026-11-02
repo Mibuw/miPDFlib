@@ -36,11 +36,13 @@ public sealed class ListItem
 {
     private readonly List<LayoutElement> _content = new();
 
+    /// <summary>The block elements of the item in the order they were added.</summary>
     public IReadOnlyList<LayoutElement> Content => _content;
 
     /// <summary>Overrides the generated label (e.g. "★" or "§ 3").</summary>
     public string? Label { get; set; }
 
+    /// <summary>Adds a block element to the item; returns the item.</summary>
     public ListItem Add(LayoutElement element)
     {
         _content.Add(element);
@@ -64,10 +66,13 @@ public sealed class ListElement : LayoutElement
 {
     private readonly List<ListItem> _items = new();
 
+    /// <summary>Creates an empty list with the given label style (default <see cref="ListStyle.Bullet"/>).</summary>
     public ListElement(ListStyle style = ListStyle.Bullet) => Style = style;
 
+    /// <summary>The items in the order they were added.</summary>
     public IReadOnlyList<ListItem> Items => _items;
 
+    /// <summary>Label style of the items.</summary>
     public ListStyle Style { get; set; }
 
     /// <summary>Number of the first item for numbered styles (default 1).</summary>
@@ -79,8 +84,10 @@ public sealed class ListElement : LayoutElement
     /// <summary>Font of the labels and of items added as text.</summary>
     public PdfFont Font { get; set; } = PdfStandardFont.Helvetica;
 
+    /// <summary>Font size in points of the labels and of items added as text (default 10).</summary>
     public double FontSize { get; set; } = 10;
 
+    /// <summary>Color of the labels and of items added as text (default black).</summary>
     public PdfColor Color { get; set; } = PdfColor.Black;
 
     /// <summary>Width reserved for the labels in points (default 18).</summary>

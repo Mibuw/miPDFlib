@@ -13,13 +13,16 @@ public sealed class PdfAnnotation
         Reference = reference;
     }
 
+    /// <summary>The annotation dictionary.</summary>
     public PdfDictionary Dictionary { get; }
 
+    /// <summary>The indirect reference of the annotation dictionary, or null if it is a direct object.</summary>
     public PdfReference? Reference { get; }
 
     /// <summary>Annotation type, e.g. "Link", "Text", "Widget", "FreeText".</summary>
     public string Subtype => Dictionary.GetName(PdfName.Subtype)?.Value ?? "";
 
+    /// <summary>The annotation rectangle (/Rect) in default user space units (points); an empty rectangle if missing.</summary>
     public PdfRectangle Rect
     {
         get => Dictionary.GetRectangle(PdfName.Rect) ?? default;

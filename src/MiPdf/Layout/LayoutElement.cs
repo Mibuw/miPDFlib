@@ -5,14 +5,19 @@ namespace MiPdf.Layout;
 /// <summary>Spacing around a box (points).</summary>
 public readonly record struct Thickness(double Left, double Top, double Right, double Bottom)
 {
+    /// <summary>Creates a uniform thickness on all four sides.</summary>
     public Thickness(double all) : this(all, all, all, all) { }
 
+    /// <summary>Creates a thickness with <paramref name="horizontal"/> for left and right and <paramref name="vertical"/> for top and bottom.</summary>
     public Thickness(double horizontal, double vertical) : this(horizontal, vertical, horizontal, vertical) { }
 
+    /// <summary>Sum of <see cref="Left"/> and <see cref="Right"/>.</summary>
     public double Horizontal => Left + Right;
 
+    /// <summary>Sum of <see cref="Top"/> and <see cref="Bottom"/>.</summary>
     public double Vertical => Top + Bottom;
 
+    /// <summary>Converts a number to a uniform thickness on all four sides.</summary>
     public static implicit operator Thickness(double all) => new(all);
 }
 
@@ -58,6 +63,7 @@ internal abstract class LayoutBox
 /// <summary>Vertical empty space.</summary>
 public sealed class Spacer : LayoutElement
 {
+    /// <summary>Creates a spacer of <paramref name="height"/> points (stored as <see cref="LayoutElement.SpacingBefore"/>).</summary>
     public Spacer(double height) => SpacingBefore = height;
 
     internal override LayoutBox Prepare(double width) => new Box(SpacingBefore + SpacingAfter);
@@ -83,6 +89,9 @@ public sealed class PageBreak : LayoutElement
 /// <summary>A horizontal rule.</summary>
 public sealed class HorizontalLine : LayoutElement
 {
+    /// <summary>Creates a rule across the available width with 4 points spacing above and below.</summary>
+    /// <param name="lineWidth">Line width in points.</param>
+    /// <param name="color">Line color (default black).</param>
     public HorizontalLine(double lineWidth = 0.5, PdfColor? color = null)
     {
         LineWidth = lineWidth;
@@ -90,8 +99,10 @@ public sealed class HorizontalLine : LayoutElement
         SpacingBefore = SpacingAfter = 4;
     }
 
+    /// <summary>Line width in points.</summary>
     public double LineWidth { get; set; }
 
+    /// <summary>Line color.</summary>
     public PdfColor Color { get; set; }
 
     internal override LayoutBox Prepare(double width) => new Box(this, width);

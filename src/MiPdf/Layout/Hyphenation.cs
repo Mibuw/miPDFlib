@@ -67,8 +67,10 @@ public sealed class PatternHyphenator : IHyphenator
         }
     }
 
+    /// <summary>Minimum number of characters before a break.</summary>
     public int LeftMin { get; }
 
+    /// <summary>Minimum number of characters after a break.</summary>
     public int RightMin { get; }
 
     /// <summary>Loads a TeX pattern file (<c>\patterns{...}</c> and optional <c>\hyphenation{...}</c>).</summary>
@@ -92,6 +94,10 @@ public sealed class PatternHyphenator : IHyphenator
         return text[start..end].Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
     }
 
+    /// <summary>
+    /// Returns the indexes <c>i</c> where a hyphen may be inserted before <c>word[i]</c>, honoring <see cref="LeftMin"/>
+    /// and <see cref="RightMin"/>. Exception words return their explicit hyphen positions. Matching is case-insensitive.
+    /// </summary>
     public IReadOnlyList<int> GetBreakPoints(string word)
     {
         if (word.Length < LeftMin + RightMin) return Array.Empty<int>();

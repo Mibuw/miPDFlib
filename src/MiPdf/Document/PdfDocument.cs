@@ -58,8 +58,13 @@ public sealed partial class PdfDocument : IDisposable
         return doc;
     }
 
+    /// <summary>Opens a document from a file; the whole file is read into memory. See <see cref="Open(byte[], string)"/>.</summary>
     public static PdfDocument Open(string path, string? password = null) => Open(File.ReadAllBytes(path), password);
 
+    /// <summary>
+    /// Opens a document from a stream, which is read from its current position to the end into memory.
+    /// The stream is not closed. See <see cref="Open(byte[], string)"/>.
+    /// </summary>
     public static PdfDocument Open(Stream stream, string? password = null)
     {
         using var ms = new MemoryStream();
@@ -108,6 +113,7 @@ public sealed partial class PdfDocument : IDisposable
     /// <summary>The pages of the document in order.</summary>
     public IReadOnlyList<PdfPage> Pages => EnsurePages();
 
+    /// <summary>The number of pages.</summary>
     public int PageCount => EnsurePages().Count;
 
     /// <summary>Returns the page at the 1-based <paramref name="pageNumber"/>.</summary>
@@ -286,6 +292,7 @@ public sealed partial class PdfDocument : IDisposable
     /// <summary>Hooks for features that need to finalize objects before writing (forms, signatures, ...).</summary>
     partial void OnBeforeSave(PdfSaveOptions options);
 
+    /// <summary>Releases the document. All data is held in memory, so this currently does nothing.</summary>
     public void Dispose()
     {
         // all data is held in memory; nothing to release yet. Kept for API stability (future file-backed reading).

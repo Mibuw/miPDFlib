@@ -16,6 +16,7 @@ public sealed partial class PdfPage : IResourceContainer
         Reference = reference;
     }
 
+    /// <summary>The document the page belongs to.</summary>
     public PdfDocument Document { get; }
 
     /// <summary>The page dictionary.</summary>
@@ -63,18 +64,21 @@ public sealed partial class PdfPage : IResourceContainer
         set => Dictionary[PdfName.CropBox] = PdfArray.FromRectangle(value);
     }
 
+    /// <summary>The trim box (intended size of the finished page), or null if not set. Not inherited; <c>null</c> removes the entry.</summary>
     public PdfRectangle? TrimBox
     {
         get => Dictionary.GetRectangle(PdfName.TrimBox);
         set => Dictionary[PdfName.TrimBox] = value is { } r ? PdfArray.FromRectangle(r) : null;
     }
 
+    /// <summary>The bleed box (clipping region for production output), or null if not set. Not inherited; <c>null</c> removes the entry.</summary>
     public PdfRectangle? BleedBox
     {
         get => Dictionary.GetRectangle(PdfName.BleedBox);
         set => Dictionary[PdfName.BleedBox] = value is { } r ? PdfArray.FromRectangle(r) : null;
     }
 
+    /// <summary>The art box (extent of the meaningful content), or null if not set. Not inherited; <c>null</c> removes the entry.</summary>
     public PdfRectangle? ArtBox
     {
         get => Dictionary.GetRectangle(PdfName.ArtBox);

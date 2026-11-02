@@ -252,6 +252,13 @@ public sealed class Code39 : LinearBarcode
 
     private Code39(string text, bool[] modules, string humanReadable) : base(text, modules, 10, humanReadable) { }
 
+    /// <summary>
+    /// Encodes <paramref name="text"/> between the start/stop characters (*). The human-readable text includes the check
+    /// character, if added.
+    /// </summary>
+    /// <param name="text">Text consisting only of characters of the Code 39 alphabet (lower-case letters are not allowed).</param>
+    /// <param name="addCheckCharacter">Appends a modulo 43 check character.</param>
+    /// <exception cref="ArgumentException"><paramref name="text"/> contains a character that Code 39 cannot encode.</exception>
     public static Code39 Create(string text, bool addCheckCharacter = false)
     {
         ArgumentNullException.ThrowIfNull(text);

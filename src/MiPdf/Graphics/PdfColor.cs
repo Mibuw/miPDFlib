@@ -5,8 +5,11 @@ namespace MiPdf.Graphics;
 /// <summary>Device color space of a <see cref="PdfColor"/>.</summary>
 public enum PdfColorSpace
 {
+    /// <summary>DeviceGray: one component (0 = black, 1 = white).</summary>
     Gray,
+    /// <summary>DeviceRGB: three components (red, green, blue).</summary>
     Rgb,
+    /// <summary>DeviceCMYK: four components (cyan, magenta, yellow, black).</summary>
     Cmyk,
 }
 
@@ -22,19 +25,28 @@ public readonly record struct PdfColor
         C4 = Math.Clamp(c4, 0, 1);
     }
 
+    /// <summary>The device color space the components refer to.</summary>
     public PdfColorSpace ColorSpace { get; }
 
+    /// <summary>First component: gray level, red or cyan, depending on <see cref="ColorSpace"/>.</summary>
     public double C1 { get; }
+    /// <summary>Second component: green or magenta (0 for gray).</summary>
     public double C2 { get; }
+    /// <summary>Third component: blue or yellow (0 for gray).</summary>
     public double C3 { get; }
+    /// <summary>Fourth component: black for CMYK (0 otherwise).</summary>
     public double C4 { get; }
 
+    /// <summary>Creates a gray color (0 = black, 1 = white); the value is clamped to 0..1.</summary>
     public static PdfColor Gray(double gray) => new(PdfColorSpace.Gray, gray);
 
+    /// <summary>Creates an RGB color from components in the range 0..1 (clamped).</summary>
     public static PdfColor Rgb(double r, double g, double b) => new(PdfColorSpace.Rgb, r, g, b);
 
+    /// <summary>Creates an RGB color from 8-bit components (0..255).</summary>
     public static PdfColor FromRgb(byte r, byte g, byte b) => new(PdfColorSpace.Rgb, r / 255.0, g / 255.0, b / 255.0);
 
+    /// <summary>Creates a CMYK color from components in the range 0..1 (clamped).</summary>
     public static PdfColor Cmyk(double c, double m, double y, double k) => new(PdfColorSpace.Cmyk, c, m, y, k);
 
     /// <summary>Parses "#RGB", "#RRGGBB" (the '#' is optional).</summary>
@@ -47,14 +59,23 @@ public readonly record struct PdfColor
         return FromRgb((byte)(v >> 16), (byte)(v >> 8), (byte)v);
     }
 
+    /// <summary>Black (gray 0).</summary>
     public static readonly PdfColor Black = Gray(0);
+    /// <summary>White (gray 1).</summary>
     public static readonly PdfColor White = Gray(1);
+    /// <summary>Light gray (gray 0.83).</summary>
     public static readonly PdfColor LightGray = Gray(0.83);
+    /// <summary>Dark gray (gray 0.4).</summary>
     public static readonly PdfColor DarkGray = Gray(0.4);
+    /// <summary>Red (RGB 1, 0, 0).</summary>
     public static readonly PdfColor Red = Rgb(1, 0, 0);
+    /// <summary>Green (RGB 0, 0.5, 0).</summary>
     public static readonly PdfColor Green = Rgb(0, 0.5, 0);
+    /// <summary>Blue (RGB 0, 0, 1).</summary>
     public static readonly PdfColor Blue = Rgb(0, 0, 1);
+    /// <summary>Yellow (RGB 1, 1, 0).</summary>
     public static readonly PdfColor Yellow = Rgb(1, 1, 0);
+    /// <summary>Orange (RGB 1, 0.65, 0).</summary>
     public static readonly PdfColor Orange = Rgb(1, 0.65, 0);
 
     internal double[] Components => ColorSpace switch

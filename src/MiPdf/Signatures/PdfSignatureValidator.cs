@@ -9,11 +9,13 @@ namespace MiPdf.Signatures;
 /// <summary>Result of verifying one signature.</summary>
 public sealed class SignatureValidationResult
 {
+    /// <summary>Fully qualified name of the signature field.</summary>
     public required string FieldName { get; init; }
 
     /// <summary>"ETSI.CAdES.detached", "adbe.pkcs7.detached", "ETSI.RFC3161", ...</summary>
     public required string SubFilter { get; init; }
 
+    /// <summary>True for a document time-stamp (/SubFilter ETSI.RFC3161) rather than a signature.</summary>
     public bool IsDocumentTimestamp => SubFilter == "ETSI.RFC3161";
 
     /// <summary>The signed bytes are unchanged and the cryptographic signature is valid.</summary>
@@ -25,8 +27,10 @@ public sealed class SignatureValidationResult
     /// <summary>Number of bytes covered (= length of the signed revision).</summary>
     public long SignedRevisionLength { get; init; }
 
+    /// <summary>The certificate of the signer (for document time-stamps: of the time-stamping authority); null if it could not be determined.</summary>
     public X509Certificate2? SignerCertificate { get; init; }
 
+    /// <summary>The /Name of the signature dictionary, otherwise the common name of the <see cref="SignerCertificate"/>.</summary>
     public string? SignerName { get; init; }
 
     /// <summary>Claimed signing time (/M or CMS signing-time).</summary>
@@ -35,13 +39,16 @@ public sealed class SignatureValidationResult
     /// <summary>Time from a verified signature or document time-stamp.</summary>
     public DateTimeOffset? TimestampTime { get; init; }
 
+    /// <summary>True if a verified time-stamp is present (<see cref="TimestampTime"/> is set).</summary>
     public bool HasTimestamp => TimestampTime.HasValue;
 
     /// <summary>Result of building the certificate chain (null if not checked).</summary>
     public bool? IsCertificateTrusted { get; init; }
 
+    /// <summary>The /Reason entry of the signature dictionary, or null.</summary>
     public string? Reason { get; init; }
 
+    /// <summary>The /Location entry of the signature dictionary, or null.</summary>
     public string? Location { get; init; }
 
     /// <summary>DocMDP level of a certification signature, null for approval signatures.</summary>
@@ -56,6 +63,7 @@ public sealed class SignatureValidationResult
     /// </summary>
     public IReadOnlyList<string> ModifiedLockedFields { get; internal set; } = Array.Empty<string>();
 
+    /// <summary>Problems found during verification (invalid byte range, digest mismatch, invalid time-stamp, untrusted chain, ...).</summary>
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();
 
     /// <summary>The signature dictionary (/V), e.g. to read application-specific entries.</summary>
@@ -95,6 +103,7 @@ public sealed class SignatureValidationResult
     /// <summary>Returns the DER value of an unsigned CMS attribute, or null.</summary>
     public byte[]? GetUnsignedAttribute(string oid) => Cms == null || IsDocumentTimestamp ? null : CmsUtil.GetUnsignedAttribute(Cms, oid);
 
+    /// <summary>Returns a one-line summary (field, validity, signer, coverage, time-stamp and errors), for logging.</summary>
     public override string ToString() =>
         $"{FieldName}: {(IsIntegrityValid ? "valid" : "INVALID")}, signer={SignerName}, whole document={CoversWholeDocument}" +
         (HasTimestamp ? $", timestamp={TimestampTime:O}" : "") + (Errors.Count > 0 ? " – " + string.Join("; ", Errors) : "");
@@ -116,9 +125,20 @@ public sealed class SignatureValidationOptions
 /// <summary>Verifies the digital signatures of a document.</summary>
 public static class PdfSignatureValidator
 {
+    /// <summary>
+    /// Verifies all signatures and document time-stamps of a PDF file. Returns one result per signed signature field
+    /// (unsigned fields are skipped); the list is empty if the document has no signatures.
+    /// </summary>
+    /// <param name="pdf">The complete PDF file.</param>
+    /// <param name="options">Validation options (default: no certificate chain check).</param>
+    /// <param name="password">Password for encrypted documents.</param>
     public static IReadOnlyList<SignatureValidationResult> Validate(byte[] pdf, SignatureValidationOptions? options = null, string? password = null) =>
         Validate(PdfDocument.Open(pdf, password), options, password);
 
+    /// <summary>
+    /// Verifies all signatures and document time-stamps of an opened document against the file it was opened from
+    /// (unsaved changes are not considered). Returns one result per signed signature field.
+    /// </summary>
     public static IReadOnlyList<SignatureValidationResult> Validate(PdfDocument document, SignatureValidationOptions? options = null) =>
         Validate(document, options, null);
 

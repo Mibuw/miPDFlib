@@ -4,8 +4,8 @@ using MiPdf.Objects;
 namespace MiPdf.Images;
 
 /// <summary>
-/// A raster image that can be drawn on pages. Supported formats: JPEG (embedded unchanged) and PNG
-/// (all color types and bit depths, transparency becomes a soft mask). Images are independent of documents;
+/// A raster image that can be drawn on pages. Supported formats: JPEG (embedded unchanged), PNG
+/// (all color types and bit depths, transparency becomes a soft mask), BMP and GIF (decoded). Images are independent of documents;
 /// each document embeds an image only once, however often it is drawn.
 /// </summary>
 public sealed class PdfImage
@@ -28,8 +28,10 @@ public sealed class PdfImage
     /// <summary>Width / height.</summary>
     public double AspectRatio => Height == 0 ? 1 : (double)Width / Height;
 
+    /// <summary>Loads a JPEG, PNG, BMP or GIF file (see <see cref="FromBytes"/>).</summary>
     public static PdfImage FromFile(string path) => FromBytes(File.ReadAllBytes(path));
 
+    /// <summary>Reads JPEG, PNG, BMP or GIF data from a stream to its end (see <see cref="FromBytes"/>); the stream is not closed.</summary>
     public static PdfImage FromStream(Stream stream)
     {
         using var ms = new MemoryStream();

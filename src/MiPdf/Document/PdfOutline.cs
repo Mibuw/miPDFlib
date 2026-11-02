@@ -23,12 +23,16 @@ public sealed class PdfOutline
         Reference = reference;
     }
 
+    /// <summary>The outline item dictionary (or the outline root dictionary).</summary>
     public PdfDictionary Dictionary { get; }
 
+    /// <summary>The indirect reference of the dictionary.</summary>
     public PdfReference Reference { get; }
 
+    /// <summary>True for the outline root (the dictionary has no /Parent entry).</summary>
     public bool IsRoot => !Dictionary.ContainsKey(PdfName.Parent);
 
+    /// <summary>The text shown for the bookmark (/Title); empty if missing.</summary>
     public string Title
     {
         get => Dictionary.GetText(PdfName.Title) ?? "";
@@ -48,6 +52,10 @@ public sealed class PdfOutline
         }
     }
 
+    /// <summary>
+    /// Text color (/C), or null for the default (black). Only RGB is stored; a non-RGB color is stored as gray
+    /// from its first component. <c>null</c> removes the entry.
+    /// </summary>
     public PdfColor? Color
     {
         get => Dictionary.GetArray(PdfName.C) is { Count: 3 } c ? PdfColor.Rgb(c.GetDouble(0), c.GetDouble(1), c.GetDouble(2)) : null;
@@ -62,12 +70,14 @@ public sealed class PdfOutline
         }
     }
 
+    /// <summary>Whether the title is shown in bold (bit 2 of /F).</summary>
     public bool Bold
     {
         get => (Dictionary.GetInt(PdfName.F) & 2) != 0;
         set => Dictionary.Set(PdfName.F, value ? Dictionary.GetInt(PdfName.F) | 2 : Dictionary.GetInt(PdfName.F) & ~2);
     }
 
+    /// <summary>Whether the title is shown in italic (bit 1 of /F).</summary>
     public bool Italic
     {
         get => (Dictionary.GetInt(PdfName.F) & 1) != 0;

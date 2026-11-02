@@ -8,22 +8,39 @@ namespace MiPdf.Forms;
 [Flags]
 public enum FieldFlags
 {
+    /// <summary>No flags set.</summary>
     None = 0,
+    /// <summary>The user may not change the value (all field types).</summary>
     ReadOnly = 1 << 0,
+    /// <summary>The field must have a value when the form is submitted (all field types).</summary>
     Required = 1 << 1,
+    /// <summary>The field is not exported when the form is submitted (all field types).</summary>
     NoExport = 1 << 2,
+    /// <summary>Text field: the text may span multiple lines.</summary>
     Multiline = 1 << 12,
+    /// <summary>Text field: the entered text is masked (e.g. with asterisks).</summary>
     Password = 1 << 13,
+    /// <summary>Radio buttons: exactly one button must be selected at all times.</summary>
     NoToggleToOff = 1 << 14,
+    /// <summary>Button field: radio buttons instead of a check box.</summary>
     Radio = 1 << 15,
+    /// <summary>Button field: a push button without a permanent value.</summary>
     PushButton = 1 << 16,
+    /// <summary>Choice field: a combo box (drop-down list) instead of a list box.</summary>
     Combo = 1 << 17,
+    /// <summary>Combo box: the user may enter a value that is not in the option list.</summary>
     Edit = 1 << 18,
+    /// <summary>Choice field: the options should be sorted alphabetically (a hint for form authoring tools).</summary>
     Sort = 1 << 19,
+    /// <summary>Text field: the value is the path of a file whose contents are submitted.</summary>
     FileSelect = 1 << 20,
+    /// <summary>Choice field: more than one option may be selected.</summary>
     MultiSelect = 1 << 21,
+    /// <summary>Text or combo box field: the text is not spell-checked.</summary>
     DoNotSpellCheck = 1 << 22,
+    /// <summary>Text field: no scrolling; text that does not fit is not accepted.</summary>
     DoNotScroll = 1 << 23,
+    /// <summary>Text field: the box is divided into /MaxLen equally spaced character cells.</summary>
     Comb = 1 << 24,
 }
 
@@ -36,11 +53,13 @@ public sealed class PdfWidget
         Page = page;
     }
 
+    /// <summary>The widget annotation dictionary (may be merged with the field dictionary).</summary>
     public PdfDictionary Dictionary { get; }
 
     /// <summary>The page the widget is placed on (null if it is not referenced by any page).</summary>
     public PdfPage? Page { get; internal set; }
 
+    /// <summary>The widget rectangle (/Rect) in page coordinates; an empty rectangle if missing.</summary>
     public PdfRectangle Rect
     {
         get => Dictionary.GetRectangle(PdfName.Rect) ?? default;
@@ -56,6 +75,7 @@ public sealed class PdfWidget
             ? n.Keys.Select(k => k.Value).Where(k => k != "Off").ToList()
             : Array.Empty<string>();
 
+    /// <summary>True if the annotation flag Hidden (/F bit 2) is set.</summary>
     public bool IsHidden => (Dictionary.GetInt(PdfName.F) & 2) != 0;
 
     /// <summary>The field this widget belongs to.</summary>
@@ -127,10 +147,15 @@ public sealed class PdfWidget
 /// <summary>Symbol shown in a checked check box.</summary>
 public enum CheckBoxStyle
 {
+    /// <summary>A check mark (ZapfDingbats '4').</summary>
     Check,
+    /// <summary>A cross (ZapfDingbats '8').</summary>
     Cross,
+    /// <summary>A filled circle (ZapfDingbats 'l').</summary>
     Circle,
+    /// <summary>A filled square (ZapfDingbats 'n').</summary>
     Square,
+    /// <summary>A filled diamond (ZapfDingbats 'u').</summary>
     Diamond,
 }
 
@@ -146,6 +171,7 @@ public abstract class PdfFormField
         foreach (var widget in widgets) widget.Field = this;
     }
 
+    /// <summary>The form the field belongs to.</summary>
     public PdfAcroForm Form { get; }
 
     /// <summary>The terminal field dictionary.</summary>
@@ -154,8 +180,10 @@ public abstract class PdfFormField
     /// <summary>Fully qualified name, e.g. "address.street".</summary>
     public string FullName { get; }
 
+    /// <summary>The field's own name (/T) without the names of its parents; "" if not set.</summary>
     public string PartialName => Dictionary.GetText(PdfName.T) ?? "";
 
+    /// <summary>The widget annotations (visible instances) of the field.</summary>
     public IReadOnlyList<PdfWidget> Widgets { get; }
 
     /// <summary>Description shown as tooltip and read by screen readers (/TU, required by PDF/UA).</summary>
@@ -168,18 +196,21 @@ public abstract class PdfFormField
     /// <summary>"Tx", "Btn", "Ch" or "Sig".</summary>
     public string FieldType => GetInheritable(PdfName.FT) is PdfName n ? n.Value : "";
 
+    /// <summary>The field flags (/Ff, inherited from parent fields if not set); setting writes them to this field.</summary>
     public FieldFlags Flags
     {
         get => (FieldFlags)((GetInheritable(PdfName.Ff) as PdfNumber)?.IntValue ?? 0);
         set => Dictionary.Set(PdfName.Ff, (int)value);
     }
 
+    /// <summary>Gets or sets the <see cref="FieldFlags.ReadOnly"/> flag.</summary>
     public bool ReadOnly
     {
         get => Flags.HasFlag(FieldFlags.ReadOnly);
         set => Flags = value ? Flags | FieldFlags.ReadOnly : Flags & ~FieldFlags.ReadOnly;
     }
 
+    /// <summary>Gets or sets the <see cref="FieldFlags.Required"/> flag.</summary>
     public bool Required
     {
         get => Flags.HasFlag(FieldFlags.Required);
@@ -227,6 +258,7 @@ public abstract class PdfFormField
     /// <summary>Regenerates the appearance streams of all widgets from the current value.</summary>
     public virtual void RegenerateAppearance() { }
 
+    /// <summary>Returns the field type, full name and value, for debugging.</summary>
     public override string ToString() => $"{GetType().Name} '{FullName}' = {Value}";
 }
 
@@ -235,10 +267,13 @@ public sealed class PdfTextField : PdfFormField
 {
     internal PdfTextField(PdfAcroForm form, PdfDictionary d, string name, List<PdfWidget> w) : base(form, d, name, w) { }
 
+    /// <summary>True if the <see cref="FieldFlags.Multiline"/> flag is set.</summary>
     public bool Multiline => Flags.HasFlag(FieldFlags.Multiline);
 
+    /// <summary>True if the <see cref="FieldFlags.Password"/> flag is set.</summary>
     public bool Password => Flags.HasFlag(FieldFlags.Password);
 
+    /// <summary>True if the <see cref="FieldFlags.Comb"/> flag is set.</summary>
     public bool Comb => Flags.HasFlag(FieldFlags.Comb);
 
     /// <summary>Maximum length (/MaxLen), 0 if unlimited.</summary>
@@ -260,6 +295,10 @@ public sealed class PdfTextField : PdfFormField
         set => Dictionary.Set(PdfName.Q, value switch { TextAlignment.Center => 1, TextAlignment.Right => 2, _ => 0 });
     }
 
+    /// <summary>
+    /// The text value (/V). Setting it truncates the text to <see cref="MaxLength"/> (if set), stores it
+    /// (null removes the value) and regenerates the appearance.
+    /// </summary>
     public override string? Value
     {
         get => base.Value;
@@ -271,6 +310,7 @@ public sealed class PdfTextField : PdfFormField
         }
     }
 
+    /// <summary>Rebuilds the appearance streams of all widgets from the current value, font, alignment and /MK settings.</summary>
     public override void RegenerateAppearance()
     {
         foreach (var widget in Widgets) AppearanceGenerator.TextField(this, widget);
@@ -285,12 +325,18 @@ public sealed class PdfCheckBox : PdfFormField
     /// <summary>The name of the "checked" state (usually "Yes" or "On").</summary>
     public string OnValue => Widgets.SelectMany(w => w.OnStates).FirstOrDefault() ?? "Yes";
 
+    /// <summary>Gets or sets whether the box is checked (sets the value to <see cref="OnValue"/> or "Off").</summary>
     public bool IsChecked
     {
         get => Value is { } v && v != "Off" && v.Length > 0;
         set => Value = value ? OnValue : "Off";
     }
 
+    /// <summary>
+    /// The state name: an "on" state such as <see cref="OnValue"/>, or "Off" (null or "" also means "Off").
+    /// Setting it updates /V and the /AS of all widgets.
+    /// </summary>
+    /// <exception cref="ArgumentException">The value is not one of the widgets' "on" states.</exception>
     public override string? Value
     {
         get => base.Value;
@@ -317,6 +363,11 @@ public sealed class PdfRadioButtonGroup : PdfFormField
     /// <summary>The export values of the buttons.</summary>
     public IReadOnlyList<string> Options => Widgets.SelectMany(w => w.OnStates).Distinct().ToList();
 
+    /// <summary>
+    /// The export name of the selected button, or "Off" if none is selected. Setting it (null or "" = "Off")
+    /// updates /V and the /AS of all widgets.
+    /// </summary>
+    /// <exception cref="ArgumentException">The value is not one of the <see cref="Options"/>.</exception>
     public override string? Value
     {
         get => base.Value;
@@ -357,10 +408,13 @@ public sealed class PdfChoiceField : PdfFormField
 {
     internal PdfChoiceField(PdfAcroForm form, PdfDictionary d, string name, List<PdfWidget> w) : base(form, d, name, w) { }
 
+    /// <summary>True for a combo box (<see cref="FieldFlags.Combo"/>), false for a list box.</summary>
     public bool IsComboBox => Flags.HasFlag(FieldFlags.Combo);
 
+    /// <summary>True if values outside the option list are allowed (<see cref="FieldFlags.Edit"/>).</summary>
     public bool IsEditable => Flags.HasFlag(FieldFlags.Edit);
 
+    /// <summary>True if several options may be selected (<see cref="FieldFlags.MultiSelect"/>).</summary>
     public bool IsMultiSelect => Flags.HasFlag(FieldFlags.MultiSelect);
 
     /// <summary>The options as (export value, display text) pairs.</summary>
@@ -388,6 +442,10 @@ public sealed class PdfChoiceField : PdfFormField
         _ => Array.Empty<string>(),
     };
 
+    /// <summary>
+    /// The selected value; several selected values are returned comma-separated. Setting it selects a single option
+    /// (export value or display text, see <see cref="SetSelection"/>); null clears the selection.
+    /// </summary>
     public override string? Value
     {
         get => base.Value;
@@ -417,6 +475,7 @@ public sealed class PdfChoiceField : PdfFormField
         RegenerateAppearance();
     }
 
+    /// <summary>Rebuilds the appearance streams of all widgets from the current selection, font and /MK settings.</summary>
     public override void RegenerateAppearance()
     {
         foreach (var widget in Widgets) AppearanceGenerator.ChoiceField(this, widget);
@@ -428,6 +487,7 @@ public sealed class PdfSignatureField : PdfFormField
 {
     internal PdfSignatureField(PdfAcroForm form, PdfDictionary d, string name, List<PdfWidget> w) : base(form, d, name, w) { }
 
+    /// <summary>True if the field has a signature dictionary (/V).</summary>
     public bool IsSigned => Dictionary.GetDictionary(PdfName.V) != null;
 
     /// <summary>The signature dictionary, or null if not signed.</summary>
@@ -448,6 +508,10 @@ public sealed class PdfSignatureField : PdfFormField
         }
     }
 
+    /// <summary>
+    /// The signer name (/Name of the signature dictionary), "(signed)" if signed without a name, or null if unsigned.
+    /// Read-only: setting throws <see cref="NotSupportedException"/>; use <see cref="Signatures.PdfSigner"/> to sign.
+    /// </summary>
     public override string? Value
     {
         get => IsSigned ? SignatureDictionary!.GetText(PdfName.Name) ?? "(signed)" : null;

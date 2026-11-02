@@ -29,10 +29,13 @@ public sealed class HttpTimestampClient : ITimestampClient
         _http = httpClient ?? SharedClient;
     }
 
+    /// <summary>URL of the time-stamp authority.</summary>
     public string Url { get; }
 
+    /// <summary>User for HTTP basic authentication; null = no authentication.</summary>
     public string? UserName { get; }
 
+    /// <summary>Password for HTTP basic authentication (only used if <see cref="UserName"/> is set).</summary>
     public string? Password { get; }
 
     /// <summary>Maximum accepted response size in bytes (default 1 MB).</summary>
@@ -41,6 +44,12 @@ public sealed class HttpTimestampClient : ITimestampClient
     /// <summary>Optional TSA policy OID.</summary>
     public string? PolicyOid { get; set; }
 
+    /// <summary>
+    /// Sends an RFC 3161 time-stamp request with a random nonce (HTTP POST) and returns the DER-encoded token
+    /// after checking that the response matches the request.
+    /// </summary>
+    /// <exception cref="PdfException">The TSA returned an HTTP error or a response larger than <see cref="MaxResponseSize"/>.</exception>
+    /// <exception cref="CryptographicException">The response is invalid or does not match the request.</exception>
     public byte[] GetTimestampToken(byte[] hash, HashAlgorithmName hashAlgorithm)
     {
         var nonce = RandomNumberGenerator.GetBytes(8);
@@ -80,8 +89,12 @@ public sealed class FailoverTimestampClient : ITimestampClient
 {
     private readonly IReadOnlyList<ITimestampClient> _clients;
 
+    /// <summary>Creates a failover client that tries the given clients in this order.</summary>
+    /// <exception cref="ArgumentException">No client was given.</exception>
     public FailoverTimestampClient(params ITimestampClient[] clients) : this((IEnumerable<ITimestampClient>)clients) { }
 
+    /// <summary>Creates a failover client that tries the given clients in this order.</summary>
+    /// <exception cref="ArgumentException">No client was given.</exception>
     public FailoverTimestampClient(IEnumerable<ITimestampClient> clients)
     {
         _clients = clients.ToList();
@@ -95,6 +108,11 @@ public sealed class FailoverTimestampClient : ITimestampClient
     /// <summary>Errors of the failed attempts of the last call (empty if the first TSA succeeded).</summary>
     public IReadOnlyList<string> LastErrors { get; private set; } = Array.Empty<string>();
 
+    /// <summary>
+    /// Returns the token of the first client that succeeds; network, HTTP and cryptographic errors of a client are
+    /// recorded in <see cref="LastErrors"/> and the next client is tried.
+    /// </summary>
+    /// <exception cref="PdfException">No client returned a token.</exception>
     public byte[] GetTimestampToken(byte[] hash, HashAlgorithmName hashAlgorithm)
     {
         var errors = new List<string>();

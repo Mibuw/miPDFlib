@@ -70,10 +70,16 @@ public class MatrixBarcode : Barcode
     /// <summary>True if the module at (row, column) is dark. Row 0 is the top row.</summary>
     public bool this[int row, int column] => _modules[row, column];
 
+    /// <summary>Total width in modules: <see cref="Columns"/> plus the quiet zone on both sides.</summary>
     public override int TotalWidthModules => Columns + 2 * QuietZone;
 
+    /// <summary>Total height in modules: <see cref="Rows"/> plus the quiet zone on both sides.</summary>
     public override int TotalHeightModules => Rows + 2 * QuietZone;
 
+    /// <summary>
+    /// Draws the code with square modules, as large as fits into the rectangle with the bottom-left corner
+    /// (<paramref name="x"/>, <paramref name="y"/>), centered in it. The quiet zone is part of the drawn size.
+    /// </summary>
     public override void Draw(PdfCanvas canvas, double x, double y, double width, double height)
     {
         double module = Math.Min(width / TotalWidthModules, height / TotalHeightModules);
@@ -133,8 +139,10 @@ public class LinearBarcode : Barcode
     /// <summary>Bars (true) and spaces (false), one entry per module.</summary>
     public IReadOnlyList<bool> Modules => _modules;
 
+    /// <summary>Total width in modules: the number of <see cref="Modules"/> plus the quiet zone on both sides.</summary>
     public override int TotalWidthModules => _modules.Length + 2 * QuietZone;
 
+    /// <summary>Always 0: linear barcodes have no height in modules.</summary>
     public override int TotalHeightModules => 0;
 
     /// <summary>The text printed below the bars.</summary>
@@ -143,11 +151,17 @@ public class LinearBarcode : Barcode
     /// <summary>Print the human-readable text below the bars (default true).</summary>
     public bool ShowText { get; set; } = true;
 
+    /// <summary>Font of the human-readable text (default Helvetica).</summary>
     public PdfFont Font { get; set; } = PdfStandardFont.Helvetica;
 
     /// <summary>Font size of the human-readable text; default: proportional to the module width.</summary>
     public double? FontSize { get; set; }
 
+    /// <summary>
+    /// Draws the bars stretched to the rectangle with the bottom-left corner (<paramref name="x"/>, <paramref name="y"/>);
+    /// the module width is <paramref name="width"/> / <see cref="TotalWidthModules"/>. If <see cref="ShowText"/> is set,
+    /// the human-readable text is drawn at the bottom of the rectangle, below the bars.
+    /// </summary>
     public override void Draw(PdfCanvas canvas, double x, double y, double width, double height)
     {
         double module = width / TotalWidthModules;

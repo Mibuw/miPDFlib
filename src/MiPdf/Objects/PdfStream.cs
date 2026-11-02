@@ -11,6 +11,7 @@ public sealed class PdfStream : PdfDictionary
 {
     private byte[] _raw = Array.Empty<byte>();
 
+    /// <summary>Creates an empty stream without data.</summary>
     public PdfStream() { }
 
     /// <summary>Creates a stream from decoded data, optionally Flate-compressing it.</summary>
@@ -22,6 +23,7 @@ public sealed class PdfStream : PdfDictionary
         _raw = raw;
     }
 
+    /// <inheritdoc/>
     public override PdfObjectType ObjectType => PdfObjectType.Stream;
 
     /// <summary>The encoded stream data.</summary>
@@ -61,6 +63,7 @@ public sealed class PdfStream : PdfDictionary
     /// <summary>Returns the filter names in order of application.</summary>
     public IReadOnlyList<PdfName> GetFilters() => StreamFilters.GetFilterNames(this);
 
+    /// <summary>Creates a deep copy of the dictionary entries and a copy of the encoded data.</summary>
     public override PdfObject Clone()
     {
         var copy = new PdfStream();

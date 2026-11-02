@@ -16,12 +16,19 @@ public sealed class BarcodeElement : LayoutElement
         Height = height;
     }
 
+    /// <summary>The barcode to draw.</summary>
     public Barcode Barcode { get; }
 
+    /// <summary>
+    /// Width in points including the quiet zone (null: 2D codes 72 pt, linear codes 1 pt per module).
+    /// Reduced to the available width if larger.
+    /// </summary>
     public double? Width { get; set; }
 
+    /// <summary>Height in points (null: 2D codes keep their aspect ratio, linear codes 40 pt).</summary>
     public double? Height { get; set; }
 
+    /// <summary>Horizontal position within the available width (default <see cref="TextAlignment.Left"/>; Justify is treated as Left).</summary>
     public TextAlignment Alignment { get; set; } = TextAlignment.Left;
 
     /// <summary>Alternative text for accessibility (tagged PDF / PDF/UA); defaults to the encoded text.</summary>

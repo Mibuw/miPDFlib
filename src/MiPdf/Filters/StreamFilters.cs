@@ -11,6 +11,10 @@ public static class StreamFilters
         "DCTDecode", "DCT", "JPXDecode", "JBIG2Decode", "CCITTFaxDecode", "CCF",
     };
 
+    /// <summary>
+    /// Returns the filter names of the <c>/Filter</c> entry of a stream dictionary in the order they are applied
+    /// for decoding (a single name or an array); empty if there is no filter.
+    /// </summary>
     public static IReadOnlyList<PdfName> GetFilterNames(PdfDictionary dict)
     {
         return dict.Get(PdfName.Filter) switch
@@ -55,6 +59,14 @@ public static class StreamFilters
         return data;
     }
 
+    /// <summary>
+    /// Decodes <paramref name="data"/> with a single non-image filter (full or abbreviated name), including the
+    /// predictor for Flate and LZW. <c>/Crypt</c> returns the data unchanged, as decryption is done by the security handler.
+    /// </summary>
+    /// <param name="data">The encoded data.</param>
+    /// <param name="filter">The filter name, e.g. <c>/FlateDecode</c> or <c>/Fl</c>.</param>
+    /// <param name="parms">The decode parameters of this filter, or <c>null</c>.</param>
+    /// <exception cref="PdfException">The filter is not supported (this includes the image filters).</exception>
     public static byte[] DecodeOne(byte[] data, PdfName filter, PdfDictionary? parms)
     {
         switch (filter.Value)

@@ -14,13 +14,16 @@ public sealed class PageContext
         ContentArea = contentArea;
     }
 
+    /// <summary>The page being drawn on.</summary>
     public PdfPage Page { get; }
 
+    /// <summary>The canvas to draw the header, footer or background with.</summary>
     public PdfCanvas Canvas { get; }
 
     /// <summary>1-based page number within the pages created by the layout document.</summary>
     public int PageNumber { get; }
 
+    /// <summary>Number of pages created by the layout document; 0 in <see cref="LayoutDocument.PageStarted"/>, where it is not yet known.</summary>
     public int TotalPages { get; }
 
     /// <summary>The area inside the margins.</summary>
@@ -52,6 +55,10 @@ public sealed class LayoutDocument : IDisposable
     private PdfCanvas? _canvas;
     private bool _closed;
 
+    /// <summary>Creates a layout document that adds its pages to <paramref name="document"/>.</summary>
+    /// <param name="document">The document to add pages to.</param>
+    /// <param name="pageSize">Size of new pages (default A4).</param>
+    /// <param name="margins">Page margins in points (default 56.7 pt = 2 cm on every side).</param>
     public LayoutDocument(PdfDocument document, PdfRectangle? pageSize = null, Thickness? margins = null)
     {
         Document = document;
@@ -59,10 +66,13 @@ public sealed class LayoutDocument : IDisposable
         Margins = margins ?? new Thickness(56.7); // 2 cm
     }
 
+    /// <summary>The document the pages are added to.</summary>
     public PdfDocument Document { get; }
 
+    /// <summary>Size of pages created from now on.</summary>
     public PdfRectangle PageSize { get; set; }
 
+    /// <summary>Page margins in points.</summary>
     public Thickness Margins { get; set; }
 
     /// <summary>Called for every page when the layout is closed (draw headers here).</summary>
@@ -102,6 +112,7 @@ public sealed class LayoutDocument : IDisposable
     /// <summary>Remaining height on the current page.</summary>
     public double RemainingHeight => CurrentPage == null ? 0 : CurrentY - ContentArea.Bottom;
 
+    /// <summary>The area inside the margins, computed from <see cref="PageSize"/> and <see cref="Margins"/>.</summary>
     public PdfRectangle ContentArea => new(PageSize.Left + Margins.Left, PageSize.Bottom + Margins.Bottom,
         PageSize.Right - Margins.Right, PageSize.Top - Margins.Top);
 
@@ -141,6 +152,7 @@ public sealed class LayoutDocument : IDisposable
         return this;
     }
 
+    /// <summary>Adds <paramref name="text"/> as a <see cref="Paragraph"/> with the default formatting.</summary>
     public LayoutDocument Add(string text) => Add(new Paragraph(text));
 
     /// <summary>Moves the cursor down by <paramref name="height"/> points.</summary>
@@ -201,5 +213,6 @@ public sealed class LayoutDocument : IDisposable
         canvas.StructureParent = parent;
     }
 
+    /// <summary>Calls <see cref="Close"/>.</summary>
     public void Dispose() => Close();
 }

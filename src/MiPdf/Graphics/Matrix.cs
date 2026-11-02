@@ -3,12 +3,16 @@ namespace MiPdf.Graphics;
 /// <summary>An affine transformation matrix [a b c d e f] as used by PDF (row vector convention).</summary>
 public readonly record struct Matrix(double A, double B, double C, double D, double E, double F)
 {
+    /// <summary>The identity matrix [1 0 0 1 0 0].</summary>
     public static readonly Matrix Identity = new(1, 0, 0, 1, 0, 0);
 
+    /// <summary>Returns a translation by (<paramref name="x"/>, <paramref name="y"/>).</summary>
     public static Matrix Translate(double x, double y) => new(1, 0, 0, 1, x, y);
 
+    /// <summary>Returns a scaling by <paramref name="sx"/> horizontally and <paramref name="sy"/> vertically.</summary>
     public static Matrix Scale(double sx, double sy) => new(sx, 0, 0, sy, 0, 0);
 
+    /// <summary>Returns a rotation about the origin by <paramref name="degrees"/> (counterclockwise in PDF's y-up space).</summary>
     public static Matrix Rotate(double degrees)
     {
         double r = degrees * Math.PI / 180, cos = Math.Cos(r), sin = Math.Sin(r);
@@ -24,5 +28,6 @@ public readonly record struct Matrix(double A, double B, double C, double D, dou
         E * other.A + F * other.C + other.E,
         E * other.B + F * other.D + other.F);
 
+    /// <summary>Applies this matrix to the point (<paramref name="x"/>, <paramref name="y"/>).</summary>
     public (double X, double Y) Transform(double x, double y) => (A * x + C * y + E, B * x + D * y + F);
 }

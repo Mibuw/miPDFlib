@@ -9,7 +9,10 @@ namespace MiPdf.Fonts;
 /// font (Type0, Identity-H). TrueType outlines are subset to the used glyphs; CFF-based OpenType fonts
 /// are embedded completely. A ToUnicode map is always written so text remains extractable/searchable.
 /// </summary>
-/// <remarks>Complex script shaping (Arabic, Indic), ligatures and kerning are not applied.</remarks>
+/// <remarks>
+/// Pair kerning (kern table) is applied by the layout engine (<see cref="Layout.Paragraph"/>). Complex script shaping
+/// (Arabic, Indic) and ligatures are not applied.
+/// </remarks>
 public sealed class PdfTrueTypeFont : PdfFont
 {
     private readonly TrueTypeFont _ttf;
@@ -28,9 +31,18 @@ public sealed class PdfTrueTypeFont : PdfFont
     public static PdfTrueTypeFont FromFile(string path, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) =>
         FromBytes(File.ReadAllBytes(path), collectionIndex, ignoreLicenseRestrictions);
 
+    /// <summary>Loads a TrueType/OpenType font or TrueType collection from its file content.</summary>
+    /// <param name="data">Content of a .ttf, .otf or .ttc file.</param>
+    /// <param name="collectionIndex">Index of the font inside a TrueType collection (.ttc).</param>
+    /// <param name="ignoreLicenseRestrictions">Embed even if the font's license flags forbid it.</param>
+    /// <exception cref="PdfException">The font's license does not permit embedding and <paramref name="ignoreLicenseRestrictions"/> is false.</exception>
     public static PdfTrueTypeFont FromBytes(byte[] data, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) =>
         new(new TrueTypeFont(data, collectionIndex), ignoreLicenseRestrictions);
 
+    /// <summary>Loads a TrueType/OpenType font or TrueType collection from a stream (read to the end, not closed).</summary>
+    /// <param name="stream">Stream with the content of a .ttf, .otf or .ttc file.</param>
+    /// <param name="collectionIndex">Index of the font inside a TrueType collection (.ttc).</param>
+    /// <param name="ignoreLicenseRestrictions">Embed even if the font's license flags forbid it.</param>
     public static PdfTrueTypeFont FromStream(Stream stream, int collectionIndex = 0, bool ignoreLicenseRestrictions = false)
     {
         using var ms = new MemoryStream();
@@ -38,38 +50,52 @@ public sealed class PdfTrueTypeFont : PdfFont
         return FromBytes(ms.ToArray(), collectionIndex, ignoreLicenseRestrictions);
     }
 
+    /// <inheritdoc/>
     public override string Name => _ttf.PostScriptName;
 
+    /// <summary>The font family name from the font's name table, e.g. "Arial".</summary>
     public string FamilyName => _ttf.FamilyName;
 
+    /// <summary>True if the font is flagged bold (macStyle) or its weight class is 600 or higher.</summary>
     public bool IsBold => (_ttf.MacStyle & 1) != 0 || _ttf.WeightClass >= 600;
 
+    /// <summary>True if the font is flagged italic (macStyle) or has a non-zero italic angle.</summary>
     public bool IsItalic => (_ttf.MacStyle & 2) != 0 || _ttf.ItalicAngle != 0;
 
+    /// <inheritdoc/>
     public override double Ascent => _ttf.ToPdfUnits(_ttf.Ascender);
 
+    /// <inheritdoc/>
     public override double Descent => _ttf.ToPdfUnits(_ttf.Descender);
 
+    /// <inheritdoc/>
     public override double CapHeight => _ttf.ToPdfUnits(_ttf.CapHeight);
 
+    /// <inheritdoc/>
     public override double LineGap => _ttf.ToPdfUnits(_ttf.LineGap);
 
+    /// <summary>Position of the underline relative to the baseline in 1/1000 em (negative = below), from the font's post table.</summary>
     public override double UnderlinePosition => _ttf.ToPdfUnits(_ttf.UnderlinePosition);
 
+    /// <summary>Thickness of the underline in 1/1000 em, from the font's post table.</summary>
     public override double UnderlineThickness => _ttf.ToPdfUnits(_ttf.UnderlineThickness);
 
     internal TrueTypeFont Program => _ttf;
 
+    /// <summary>Advance width of a character in 1/1000 em; characters without a glyph return the width of the .notdef glyph.</summary>
     public override double GetCharWidth(int codePoint) => _ttf.ToPdfUnits(_ttf.GetAdvanceWidth(_ttf.GetGlyphId(codePoint)));
 
+    /// <summary>True if the font's character map maps the character to a glyph other than .notdef.</summary>
     public override bool CanDisplay(int codePoint) => _ttf.GetGlyphId(codePoint) != 0;
 
     private TrueType.KerningTable? _kerning;
 
     private TrueType.KerningTable Kerning => _kerning ??= TrueType.KerningTable.Load(_ttf);
 
+    /// <summary>True if the font contains pair kerning data (loaded on first access).</summary>
     public override bool HasKerning => !Kerning.IsEmpty;
 
+    /// <inheritdoc/>
     public override double GetKerning(int left, int right)
     {
         var table = Kerning;

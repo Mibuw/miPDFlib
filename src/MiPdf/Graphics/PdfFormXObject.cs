@@ -5,6 +5,7 @@ namespace MiPdf.Graphics;
 /// <summary>Something that owns a resource dictionary: a page or a form XObject.</summary>
 public interface IResourceContainer
 {
+    /// <summary>The document the container belongs to.</summary>
     PdfDocument Document { get; }
 
     /// <summary>Registers a resource and returns the name under which it can be used in content.</summary>
@@ -37,20 +38,26 @@ public sealed class PdfFormXObject : IResourceContainer
         Reference = document.GetReference(stream) ?? document.AddObject(stream);
     }
 
+    /// <summary>The document that owns this XObject.</summary>
     public PdfDocument Document { get; }
 
+    /// <summary>The underlying XObject stream (dictionary and content).</summary>
     public PdfStream Stream { get; }
 
+    /// <summary>The indirect reference of <see cref="Stream"/> in <see cref="Document"/>.</summary>
     public PdfReference Reference { get; }
 
+    /// <summary>The bounding box (/BBox) in form space; an empty rectangle if missing.</summary>
     public PdfRectangle BBox
     {
         get => Stream.GetRectangle(PdfName.BBox) ?? default;
         set => Stream[PdfName.BBox] = PdfArray.FromRectangle(value);
     }
 
+    /// <summary>Width of <see cref="BBox"/> in points.</summary>
     public double Width => BBox.Width;
 
+    /// <summary>Height of <see cref="BBox"/> in points.</summary>
     public double Height => BBox.Height;
 
     /// <summary>Optional transformation matrix [a b c d e f].</summary>
@@ -60,6 +67,7 @@ public sealed class PdfFormXObject : IResourceContainer
         set => Stream[PdfName.Get("Matrix")] = value != null ? PdfArray.FromNumbers(value) : null;
     }
 
+    /// <summary>The resource dictionary of the XObject; created if missing.</summary>
     public PdfDictionary Resources
     {
         get
@@ -78,6 +86,11 @@ public sealed class PdfFormXObject : IResourceContainer
 
     internal byte[] GetContent() => Stream.RawBytes.Length == 0 ? Array.Empty<byte>() : Stream.GetBytes();
 
+    /// <summary>
+    /// Registers <paramref name="resource"/> in the <paramref name="category"/> sub-dictionary of <see cref="Resources"/>
+    /// (e.g. /Font, /XObject) under a new name <paramref name="prefix"/>1, 2, ... and returns that name.
+    /// A reference that is already registered returns its existing name.
+    /// </summary>
     public PdfName AddResource(PdfName category, PdfObject resource, string prefix) =>
         ResourceHelper.Add(Resources, category, resource, prefix);
 }

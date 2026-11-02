@@ -19,8 +19,10 @@ public sealed partial class PdfAcroForm
         Dictionary = dictionary;
     }
 
+    /// <summary>The document the form belongs to.</summary>
     public PdfDocument Document { get; }
 
+    /// <summary>The AcroForm dictionary (/AcroForm in the document catalog).</summary>
     public PdfDictionary Dictionary { get; }
 
     /// <summary>
@@ -46,6 +48,7 @@ public sealed partial class PdfAcroForm
     /// <summary>Returns the field with the given fully qualified name, or null.</summary>
     public PdfFormField? GetField(string fullName) => Fields.FirstOrDefault(f => f.FullName == fullName);
 
+    /// <summary>Returns the field with the given fully qualified name if it is of type <typeparamref name="T"/>, otherwise null.</summary>
     public T? GetField<T>(string fullName) where T : PdfFormField => GetField(fullName) as T;
 
     /// <summary>Sets the value of a field by name (text, check box state, radio option, choice).</summary>

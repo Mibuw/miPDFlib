@@ -30,8 +30,10 @@ public sealed class PdfExtractedImage
     /// <summary>Position on the page (default user space).</summary>
     public PdfRectangle Bounds { get; }
 
+    /// <summary>Width of the image in pixels (the <c>/Width</c> entry; 0 if missing).</summary>
     public int Width => Stream.GetInt(PdfName.Get("Width"));
 
+    /// <summary>Height of the image in pixels (the <c>/Height</c> entry; 0 if missing).</summary>
     public int Height => Stream.GetInt(PdfName.Get("Height"));
 
     /// <summary>True for JPEG images (DCTDecode); <see cref="GetEncodedData"/> returns a complete JPEG file.</summary>
@@ -85,6 +87,7 @@ public sealed class PdfExtractedImage
         return ToPng();
     }
 
+    /// <summary>Returns the resource name (or "inline"), the pixel size and the bounds, for debugging.</summary>
     public override string ToString() => $"{Name ?? "inline"} {Width}x{Height} at {Bounds}";
 }
 

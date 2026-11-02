@@ -14,6 +14,14 @@ public static class FreeSpaceFinder
     /// <summary>Maximum number of candidate rectangles kept during the search (protects against very complex pages).</summary>
     private const int MaxCandidates = 2000;
 
+    /// <summary>
+    /// Maximal free rectangles of at least <paramref name="minWidth"/> x <paramref name="minHeight"/> points within the
+    /// crop box of <paramref name="page"/>, largest first.
+    /// </summary>
+    /// <param name="page">The page to analyze.</param>
+    /// <param name="minWidth">Minimum width of a free rectangle in points.</param>
+    /// <param name="minHeight">Minimum height of a free rectangle in points.</param>
+    /// <param name="includeAnnotations">Treat the rectangles of annotations as occupied (popup and hidden annotations are ignored).</param>
     public static IReadOnlyList<PdfRectangle> Find(PdfPage page, double minWidth, double minHeight, bool includeAnnotations = true)
     {
         var occupied = new List<PdfRectangle>();

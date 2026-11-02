@@ -69,19 +69,25 @@ public sealed class PdfSignatureAppearance
     /// </summary>
     public string? Text { get; set; }
 
+    /// <summary>Optional image, e.g. a logo or a scanned handwritten signature (placed according to <see cref="ImagePosition"/>).</summary>
     public PdfImage? Image { get; set; }
 
+    /// <summary>Where the <see cref="Image"/> is placed (default <see cref="SignatureImagePosition.Left"/>).</summary>
     public SignatureImagePosition ImagePosition { get; set; } = SignatureImagePosition.Left;
 
+    /// <summary>Font of the text (default Helvetica; use an embedded font for PDF/A or non-Latin text).</summary>
     public PdfFont Font { get; set; } = PdfStandardFont.Helvetica;
 
     /// <summary>Font size; 0 = fit the text into the rectangle.</summary>
     public double FontSize { get; set; }
 
+    /// <summary>Color of the text (default black).</summary>
     public PdfColor TextColor { get; set; } = PdfColor.Black;
 
+    /// <summary>Fill color of the whole appearance; null (default) = transparent.</summary>
     public PdfColor? Background { get; set; }
 
+    /// <summary>Color of a 1-point border around the appearance; null (default) = no border.</summary>
     public PdfColor? Border { get; set; }
 
     /// <summary>Format for {date}.</summary>
@@ -117,10 +123,13 @@ public sealed class PdfSignatureOptions
     /// <summary>Position of a new signature field; null or empty = invisible signature.</summary>
     public PdfRectangle? Rectangle { get; set; }
 
+    /// <summary>Reason for signing (/Reason), e.g. "Approval"; also available as {reason} in the appearance text.</summary>
     public string? Reason { get; set; }
 
+    /// <summary>Location of signing (/Location), e.g. a city; also available as {location} in the appearance text.</summary>
     public string? Location { get; set; }
 
+    /// <summary>Contact information of the signer (/ContactInfo); also available as {contact} in the appearance text.</summary>
     public string? ContactInfo { get; set; }
 
     /// <summary>Signer name shown in viewers (/Name); default: common name of the certificate.</summary>
@@ -129,8 +138,10 @@ public sealed class PdfSignatureOptions
     /// <summary>Claimed signing time (/M). Default: now.</summary>
     public DateTimeOffset? SigningTime { get; set; }
 
+    /// <summary>Format of the signature container (default <see cref="PdfSignatureFormat.PAdES"/>).</summary>
     public PdfSignatureFormat Format { get; set; } = PdfSignatureFormat.PAdES;
 
+    /// <summary>Hash algorithm for the document digest and the signature (default SHA-256).</summary>
     public HashAlgorithmName DigestAlgorithm { get; set; } = HashAlgorithmName.SHA256;
 
     /// <summary>

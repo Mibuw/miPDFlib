@@ -7,6 +7,8 @@
 - Samples: ZUGFeRD / Factur-X invoice (`08-zugferd-invoice.pdf`); CI validates it with Mustang (PDF/A-3, EN 16931
   rules) and the KoSIT validator on every push.
 - Docs: API reference and guides on GitHub Pages (https://mibuw.github.io/miPDFlib/), generated with DocFX.
+- Docs: every public type and member has an XML documentation comment (IntelliSense and API reference); the
+  compiler warning for missing comments is enabled again.
 - Signatures: `PdfSignatureValidator` evaluates the stored revocation data – OCSP responses and CRLs from the
   Document Security Store and from the `adbe-revocationInfoArchival` attribute – and reports the revocation status
   at the time of signing for every certificate of the chain (`Revocation`, `RevocationDetails`; also for the

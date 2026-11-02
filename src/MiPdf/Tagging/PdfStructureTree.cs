@@ -5,39 +5,73 @@ namespace MiPdf.Tagging;
 /// <summary>Standard structure types (ISO 32000-1, 14.8.4) for <see cref="PdfStructureElement.AddChild"/>.</summary>
 public static class StructureType
 {
+    /// <summary>"Document": the complete document (root element of the structure).</summary>
     public const string Document = "Document";
+    /// <summary>"Part": a large division of a document, e.g. a chapter group.</summary>
     public const string Part = "Part";
+    /// <summary>"Sect": a section, a general container element.</summary>
     public const string Sect = "Sect";
+    /// <summary>"Div": a generic block-level grouping element.</summary>
     public const string Div = "Div";
+    /// <summary>"P": a paragraph.</summary>
     public const string Paragraph = "P";
+    /// <summary>"H1": heading level 1.</summary>
     public const string H1 = "H1";
+    /// <summary>"H2": heading level 2.</summary>
     public const string H2 = "H2";
+    /// <summary>"H3": heading level 3.</summary>
     public const string H3 = "H3";
+    /// <summary>"H4": heading level 4.</summary>
     public const string H4 = "H4";
+    /// <summary>"H5": heading level 5.</summary>
     public const string H5 = "H5";
+    /// <summary>"H6": heading level 6.</summary>
     public const string H6 = "H6";
+    /// <summary>"L": a list; its children are <see cref="ListItem"/> elements.</summary>
     public const string List = "L";
+    /// <summary>"LI": a list item, containing a <see cref="Label"/> and a <see cref="ListBody"/>.</summary>
     public const string ListItem = "LI";
+    /// <summary>"Lbl": the label of a list item (bullet or number).</summary>
     public const string Label = "Lbl";
+    /// <summary>"LBody": the body (content) of a list item.</summary>
     public const string ListBody = "LBody";
+    /// <summary>"Table": a table.</summary>
     public const string Table = "Table";
+    /// <summary>"THead": the header row group of a table.</summary>
     public const string TableHead = "THead";
+    /// <summary>"TBody": the body row group of a table.</summary>
     public const string TableBody = "TBody";
+    /// <summary>"TFoot": the footer row group of a table.</summary>
     public const string TableFoot = "TFoot";
+    /// <summary>"TR": a table row.</summary>
     public const string TableRow = "TR";
+    /// <summary>"TH": a table header cell.</summary>
     public const string TableHeaderCell = "TH";
+    /// <summary>"TD": a table data cell.</summary>
     public const string TableDataCell = "TD";
+    /// <summary>"Span": a generic inline element.</summary>
     public const string Span = "Span";
+    /// <summary>"Link": a hyperlink; associate the link annotation with <see cref="PdfStructureElement.AddAnnotation"/>.</summary>
     public const string Link = "Link";
+    /// <summary>"Annot": an annotation that is not a link or a widget.</summary>
     public const string Annotation = "Annot";
+    /// <summary>"Figure": an image or graphic; PDF/UA requires <see cref="PdfStructureElement.AlternateText"/>.</summary>
     public const string Figure = "Figure";
+    /// <summary>"Formula": a mathematical formula.</summary>
     public const string Formula = "Formula";
+    /// <summary>"Form": a form field (widget annotation).</summary>
     public const string Form = "Form";
+    /// <summary>"Note": a footnote or endnote.</summary>
     public const string Note = "Note";
+    /// <summary>"Caption": a caption of a figure or table.</summary>
     public const string Caption = "Caption";
+    /// <summary>"Quote": an inline quotation.</summary>
     public const string Quote = "Quote";
+    /// <summary>"BlockQuote": a block-level quotation.</summary>
     public const string BlockQuote = "BlockQuote";
+    /// <summary>"TOC": a table of contents.</summary>
     public const string TableOfContents = "TOC";
+    /// <summary>"TOCI": an item of a table of contents.</summary>
     public const string TableOfContentsItem = "TOCI";
 
     internal static readonly HashSet<string> All = new()
@@ -86,8 +120,10 @@ public sealed class PdfStructureElement
         Reference = reference;
     }
 
+    /// <summary>The underlying structure element dictionary (/Type /StructElem).</summary>
     public PdfDictionary Dictionary { get; }
 
+    /// <summary>The indirect reference of the structure element dictionary.</summary>
     public PdfReference Reference { get; }
 
     /// <summary>The structure type (/S), e.g. "P", "H1", "Table".</summary>

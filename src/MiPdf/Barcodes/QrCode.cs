@@ -21,6 +21,7 @@ public enum QrErrorCorrection
 /// <summary>Options for <see cref="QrCode.Create(string, QrCodeOptions)"/>.</summary>
 public sealed class QrCodeOptions
 {
+    /// <summary>Error correction level (default <see cref="QrErrorCorrection.M"/>).</summary>
     public QrErrorCorrection ErrorCorrection { get; set; } = QrErrorCorrection.M;
 
     /// <summary>Smallest version (1-40) to use; larger versions are chosen automatically when the data does not fit.</summary>
@@ -79,14 +80,22 @@ public sealed class QrCode : MatrixBarcode
     /// <summary>The symbol version (1-40); the size is 17 + 4 * version modules.</summary>
     public int Version { get; }
 
+    /// <summary>The error correction level used.</summary>
     public QrErrorCorrection ErrorCorrection { get; }
 
     /// <summary>The mask pattern used (0-7).</summary>
     public int Mask { get; }
 
+    /// <summary>Creates a QR Code of the smallest version that holds <paramref name="text"/> at the given error correction level.</summary>
+    /// <exception cref="ArgumentException"><paramref name="text"/> is too long for a QR Code.</exception>
     public static QrCode Create(string text, QrErrorCorrection errorCorrection = QrErrorCorrection.M) =>
         Create(text, new QrCodeOptions { ErrorCorrection = errorCorrection });
 
+    /// <summary>
+    /// Creates a QR Code of the smallest version between <see cref="QrCodeOptions.MinVersion"/> and
+    /// <see cref="QrCodeOptions.MaxVersion"/> that holds <paramref name="text"/>. The quiet zone is 4 modules.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="text"/> does not fit into the allowed versions.</exception>
     public static QrCode Create(string text, QrCodeOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);

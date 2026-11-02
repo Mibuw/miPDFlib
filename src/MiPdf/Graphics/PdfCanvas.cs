@@ -5,37 +5,62 @@ using MiPdf.Objects;
 
 namespace MiPdf.Graphics;
 
+/// <summary>Shape of the ends of open stroked lines (PDF line cap style, operator J).</summary>
 public enum LineCap
 {
+    /// <summary>The stroke is squared off at the endpoint.</summary>
     Butt = 0,
+    /// <summary>A semicircle with the line width as diameter is drawn around the endpoint.</summary>
     Round = 1,
+    /// <summary>The stroke extends half the line width beyond the endpoint and is squared off.</summary>
     Square = 2,
 }
 
+/// <summary>Shape of the corners of stroked paths (PDF line join style, operator j).</summary>
 public enum LineJoin
 {
+    /// <summary>Sharp corners, beveled when the miter limit is exceeded.</summary>
     Miter = 0,
+    /// <summary>Rounded corners.</summary>
     Round = 1,
+    /// <summary>Corners cut off flat.</summary>
     Bevel = 2,
 }
 
+/// <summary>Horizontal alignment of text.</summary>
 public enum TextAlignment
 {
+    /// <summary>Aligned to the left edge.</summary>
     Left,
+    /// <summary>Centered.</summary>
     Center,
+    /// <summary>Aligned to the right edge.</summary>
     Right,
+    /// <summary>
+    /// Justified to both edges (except the last line of a paragraph) by the layout engine;
+    /// single-line methods such as <see cref="PdfCanvas.DrawText"/> treat it like <see cref="Left"/>.
+    /// </summary>
     Justify,
 }
 
+/// <summary>How glyphs are painted (PDF text rendering mode, operator Tr).</summary>
 public enum TextRenderingMode
 {
+    /// <summary>Fill the glyph outlines (normal text).</summary>
     Fill = 0,
+    /// <summary>Stroke the glyph outlines.</summary>
     Stroke = 1,
+    /// <summary>Fill, then stroke the glyph outlines.</summary>
     FillStroke = 2,
+    /// <summary>Neither fill nor stroke: invisible but extractable text (e.g. an OCR layer).</summary>
     Invisible = 3,
+    /// <summary>Fill and add the glyphs to the clipping path.</summary>
     FillClip = 4,
+    /// <summary>Stroke and add the glyphs to the clipping path.</summary>
     StrokeClip = 5,
+    /// <summary>Fill, stroke and add the glyphs to the clipping path.</summary>
     FillStrokeClip = 6,
+    /// <summary>Only add the glyphs to the clipping path.</summary>
     Clip = 7,
 }
 
@@ -80,6 +105,7 @@ public sealed class PdfCanvas : IDisposable
     /// <summary>The page or XObject this canvas draws into.</summary>
     public IResourceContainer Target { get; }
 
+    /// <summary>The document of <see cref="Target"/>.</summary>
     public PdfDocument Document => Target.Document;
 
     // ------------------------------------------------------------------ low level
@@ -101,8 +127,10 @@ public sealed class PdfCanvas : IDisposable
 
     // ------------------------------------------------------------------ graphics state
 
+    /// <summary>Saves the current graphics state (q). Pair every call with <see cref="RestoreState"/>.</summary>
     public PdfCanvas SaveState() => WriteRaw("q");
 
+    /// <summary>Restores the graphics state saved by the matching <see cref="SaveState"/> (Q). The current font must be set again afterwards.</summary>
     public PdfCanvas RestoreState()
     {
         _currentFont = null;
@@ -113,8 +141,10 @@ public sealed class PdfCanvas : IDisposable
     /// <summary>Concatenates a transformation matrix (cm).</summary>
     public PdfCanvas Transform(double a, double b, double c, double d, double e, double f) => Op("cm", a, b, c, d, e, f);
 
+    /// <summary>Moves the origin of the coordinate system by (<paramref name="x"/>, <paramref name="y"/>) points (cm).</summary>
     public PdfCanvas Translate(double x, double y) => Transform(1, 0, 0, 1, x, y);
 
+    /// <summary>Scales the coordinate system by <paramref name="sx"/> horizontally and <paramref name="sy"/> vertically (cm).</summary>
     public PdfCanvas Scale(double sx, double sy) => Transform(sx, 0, 0, sy, 0, 0);
 
     /// <summary>Rotates counter-clockwise by <paramref name="degrees"/> around (<paramref name="cx"/>, <paramref name="cy"/>).</summary>
@@ -127,17 +157,25 @@ public sealed class PdfCanvas : IDisposable
         return this;
     }
 
+    /// <summary>Sets the line width in points for stroking (w).</summary>
     public PdfCanvas SetLineWidth(double width) => Op("w", width);
 
+    /// <summary>Sets the line cap style (J).</summary>
     public PdfCanvas SetLineCap(LineCap cap) => Op("J", (int)cap);
 
+    /// <summary>Sets the line join style (j).</summary>
     public PdfCanvas SetLineJoin(LineJoin join) => Op("j", (int)join);
 
+    /// <summary>Sets the miter limit (M): the maximum ratio of miter length to line width before a miter join is beveled.</summary>
     public PdfCanvas SetMiterLimit(double limit) => Op("M", limit);
 
     /// <summary>Sets a dash pattern, e.g. <c>SetDashPattern(3, 2)</c> for 3 on / 2 off.</summary>
     public PdfCanvas SetDashPattern(params double[] pattern) => SetDashPattern(pattern, 0);
 
+    /// <summary>
+    /// Sets a dash pattern (d): alternating dash and gap lengths in points; <paramref name="phase"/> is the distance
+    /// into the pattern at which the dashing starts.
+    /// </summary>
     public PdfCanvas SetDashPattern(double[] pattern, double phase)
     {
         _content.Append('[').Append(string.Join(' ', pattern.Select(PdfNumber.FormatReal))).Append("] ")
@@ -145,10 +183,13 @@ public sealed class PdfCanvas : IDisposable
         return this;
     }
 
+    /// <summary>Resets the dash pattern to a solid line.</summary>
     public PdfCanvas SetSolidLine() => WriteRaw("[] 0 d");
 
+    /// <summary>Sets the color for filling paths and text (g, rg or k).</summary>
     public PdfCanvas SetFillColor(PdfColor color) => Op(color.GetOperator(false), color.Components);
 
+    /// <summary>Sets the color for stroking paths (G, RG or K).</summary>
     public PdfCanvas SetStrokeColor(PdfColor color) => Op(color.GetOperator(true), color.Components);
 
     /// <summary>Sets constant opacity (0 = transparent, 1 = opaque) for fill and stroke operations.</summary>
@@ -169,18 +210,31 @@ public sealed class PdfCanvas : IDisposable
 
     // ------------------------------------------------------------------ paths
 
+    /// <summary>Begins a new subpath at (<paramref name="x"/>, <paramref name="y"/>) (m).</summary>
     public PdfCanvas MoveTo(double x, double y) => Op("m", x, y);
 
+    /// <summary>Appends a straight line from the current point to (<paramref name="x"/>, <paramref name="y"/>) (l).</summary>
     public PdfCanvas LineTo(double x, double y) => Op("l", x, y);
 
+    /// <summary>
+    /// Appends a cubic Bezier curve from the current point to (<paramref name="x3"/>, <paramref name="y3"/>)
+    /// with the control points (<paramref name="x1"/>, <paramref name="y1"/>) and (<paramref name="x2"/>, <paramref name="y2"/>) (c).
+    /// </summary>
     public PdfCanvas CurveTo(double x1, double y1, double x2, double y2, double x3, double y3) => Op("c", x1, y1, x2, y2, x3, y3);
 
+    /// <summary>Closes the current subpath with a straight line to its start point (h).</summary>
     public PdfCanvas ClosePath() => WriteRaw("h");
 
+    /// <summary>Appends a rectangle with lower-left corner (<paramref name="x"/>, <paramref name="y"/>) to the path (re).</summary>
     public PdfCanvas Rectangle(double x, double y, double width, double height) => Op("re", x, y, width, height);
 
+    /// <summary>Appends the rectangle <paramref name="r"/> to the path (re).</summary>
     public PdfCanvas Rectangle(PdfRectangle r) => Rectangle(r.Left, r.Bottom, r.Width, r.Height);
 
+    /// <summary>
+    /// Appends a closed rectangle with rounded corners to the path. The <paramref name="radius"/> is limited to half the
+    /// smaller side; a radius of 0 or less gives a plain rectangle.
+    /// </summary>
     public PdfCanvas RoundedRectangle(double x, double y, double width, double height, double radius)
     {
         radius = Math.Min(radius, Math.Min(width, height) / 2);
@@ -212,22 +266,31 @@ public sealed class PdfCanvas : IDisposable
         return ClosePath();
     }
 
+    /// <summary>Appends a closed circle around (<paramref name="centerX"/>, <paramref name="centerY"/>) to the path.</summary>
     public PdfCanvas Circle(double centerX, double centerY, double radius) =>
         Ellipse(centerX - radius, centerY - radius, 2 * radius, 2 * radius);
 
+    /// <summary>Strokes the current path with the stroke color and ends it (S).</summary>
     public PdfCanvas Stroke() => WriteRaw("S");
 
+    /// <summary>Fills the current path with the fill color and ends it (f, or f* with the even-odd rule).</summary>
     public PdfCanvas Fill(bool evenOdd = false) => WriteRaw(evenOdd ? "f*" : "f");
 
+    /// <summary>Fills, then strokes the current path and ends it (B, or B* with the even-odd rule).</summary>
     public PdfCanvas FillAndStroke(bool evenOdd = false) => WriteRaw(evenOdd ? "B*" : "B");
 
     /// <summary>Intersects the clipping path with the current path and ends the path.</summary>
     public PdfCanvas Clip(bool evenOdd = false) => WriteRaw(evenOdd ? "W* n" : "W n");
 
+    /// <summary>Ends the current path without painting it (n).</summary>
     public PdfCanvas EndPath() => WriteRaw("n");
 
     // ------------------------------------------------------------------ convenience shapes
 
+    /// <summary>
+    /// Draws a straight line from (<paramref name="x1"/>, <paramref name="y1"/>) to (<paramref name="x2"/>, <paramref name="y2"/>)
+    /// with the given color (default: the current stroke color) and width in points. The graphics state is restored afterwards.
+    /// </summary>
     public PdfCanvas DrawLine(double x1, double y1, double x2, double y2, PdfColor? color = null, double lineWidth = 1)
     {
         SaveState();
@@ -252,8 +315,10 @@ public sealed class PdfCanvas : IDisposable
 
     // ------------------------------------------------------------------ text
 
+    /// <summary>Begins a text object (BT). Text operators are only valid between this and <see cref="EndText"/>.</summary>
     public PdfCanvas BeginText() => WriteRaw("BT");
 
+    /// <summary>Ends the text object started with <see cref="BeginText"/> (ET).</summary>
     public PdfCanvas EndText() => WriteRaw("ET");
 
     /// <summary>Selects the font (Tf). Fonts are registered as page resources automatically.</summary>
@@ -269,24 +334,31 @@ public sealed class PdfCanvas : IDisposable
     /// <summary>Sets the text matrix so that the next text starts at (x, y).</summary>
     public PdfCanvas SetTextPosition(double x, double y) => Op("Tm", 1, 0, 0, 1, x, y);
 
+    /// <summary>Sets the text matrix and the text line matrix to [a b c d e f] (Tm).</summary>
     public PdfCanvas SetTextMatrix(double a, double b, double c, double d, double e, double f) => Op("Tm", a, b, c, d, e, f);
 
     /// <summary>Moves to the start of the next line offset by (tx, ty) (Td).</summary>
     public PdfCanvas MoveText(double tx, double ty) => Op("Td", tx, ty);
 
+    /// <summary>Sets the leading (TL): the distance between baselines used by <see cref="NewLine"/>, in unscaled text space units.</summary>
     public PdfCanvas SetLeading(double leading) => Op("TL", leading);
 
+    /// <summary>Moves to the start of the next line, using the current leading (T*).</summary>
     public PdfCanvas NewLine() => WriteRaw("T*");
 
+    /// <summary>Sets extra spacing added after every character (Tc), in unscaled text space units.</summary>
     public PdfCanvas SetCharacterSpacing(double spacing) => Op("Tc", spacing);
 
     /// <summary>Word spacing (Tw). Note: only effective for single-byte fonts (standard fonts).</summary>
     public PdfCanvas SetWordSpacing(double spacing) => Op("Tw", spacing);
 
+    /// <summary>Sets the horizontal scaling of glyphs in percent (Tz); 100 is normal width.</summary>
     public PdfCanvas SetHorizontalScaling(double percent) => Op("Tz", percent);
 
+    /// <summary>Sets the text rise (Ts): a vertical baseline shift, positive upwards (e.g. for superscripts).</summary>
     public PdfCanvas SetTextRise(double rise) => Op("Ts", rise);
 
+    /// <summary>Sets how glyphs are painted (Tr), e.g. <see cref="TextRenderingMode.Invisible"/> for an OCR text layer.</summary>
     public PdfCanvas SetTextRenderingMode(TextRenderingMode mode) => Op("Tr", (int)mode);
 
     /// <summary>Shows text with the current font (Tj).</summary>
@@ -475,6 +547,7 @@ public sealed class PdfCanvas : IDisposable
         return this;
     }
 
+    /// <summary>Ends the marked-content sequence started with <see cref="BeginTag"/> (EMC).</summary>
     public PdfCanvas EndTag() => WriteRaw("EMC");
 
     /// <summary>Draws the content produced by <paramref name="draw"/> as content of <paramref name="element"/>.</summary>
@@ -495,6 +568,7 @@ public sealed class PdfCanvas : IDisposable
         return WriteRaw($"/Artifact <</Type /{type}>> BDC");
     }
 
+    /// <summary>Ends the artifact started with <see cref="BeginArtifact"/> (EMC).</summary>
     public PdfCanvas EndArtifact() => WriteRaw("EMC");
 
     /// <summary>Draws the content produced by <paramref name="draw"/> as an artifact.</summary>
@@ -529,5 +603,6 @@ public sealed class PdfCanvas : IDisposable
         }
     }
 
+    /// <summary>Stores the content by calling <see cref="Flush"/>.</summary>
     public void Dispose() => Flush();
 }

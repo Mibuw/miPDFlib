@@ -3,10 +3,14 @@ using MiPdf.Graphics;
 
 namespace MiPdf.Layout;
 
+/// <summary>Vertical alignment of the content within a table <see cref="Cell"/>.</summary>
 public enum VerticalAlignment
 {
+    /// <summary>Content starts at the top of the cell.</summary>
     Top,
+    /// <summary>Content is centered vertically in the cell.</summary>
     Middle,
+    /// <summary>Content ends at the bottom of the cell.</summary>
     Bottom,
 }
 
@@ -15,16 +19,20 @@ public sealed class Cell
 {
     private readonly List<LayoutElement> _content = new();
 
+    /// <summary>Creates an empty cell spanning the given number of columns and rows (values below 1 are treated as 1).</summary>
     public Cell(int colSpan = 1, int rowSpan = 1)
     {
         ColSpan = Math.Max(1, colSpan);
         RowSpan = Math.Max(1, rowSpan);
     }
 
+    /// <summary>Creates a cell containing <paramref name="text"/> (see <see cref="Add(string)"/>).</summary>
     public Cell(string text, int colSpan = 1, int rowSpan = 1) : this(colSpan, rowSpan) => Add(text);
 
+    /// <summary>The block elements added with <see cref="Add(LayoutElement)"/>; they are rendered after text added with <see cref="Add(string)"/>.</summary>
     public IReadOnlyList<LayoutElement> Content => _content;
 
+    /// <summary>Number of columns the cell spans (limited to the columns remaining in the row).</summary>
     public int ColSpan { get; }
 
     /// <summary>Number of rows the cell spans.</summary>
@@ -33,23 +41,28 @@ public sealed class Cell
     /// <summary>Overrides the table's default padding.</summary>
     public Thickness? Padding { get; set; }
 
+    /// <summary>Background color of the cell; overrides the table's header and alternate row backgrounds (null = table default).</summary>
     public PdfColor? Background { get; set; }
 
     /// <summary>Overrides the table's default border width (0 = no border).</summary>
     public double? BorderWidth { get; set; }
 
+    /// <summary>Overrides the table's default border color.</summary>
     public PdfColor? BorderColor { get; set; }
 
     /// <summary>Alignment applied to text added with <see cref="Add(string)"/>.</summary>
     public TextAlignment? TextAlignment { get; set; }
 
+    /// <summary>Vertical alignment of the cell content within the row height (default <see cref="Layout.VerticalAlignment.Top"/>).</summary>
     public VerticalAlignment VerticalAlignment { get; set; } = VerticalAlignment.Top;
 
     /// <summary>Font for text added with <see cref="Add(string)"/> (defaults to the table's font).</summary>
     public PdfFont? Font { get; set; }
 
+    /// <summary>Font size in points for text added with <see cref="Add(string)"/> (defaults to the table's font size).</summary>
     public double? FontSize { get; set; }
 
+    /// <summary>Color of text added with <see cref="Add(string)"/> (defaults to black).</summary>
     public PdfColor? TextColor { get; set; }
 
     internal string? PlainText { get; private set; }
@@ -61,6 +74,7 @@ public sealed class Cell
         return this;
     }
 
+    /// <summary>Adds a block element (paragraph, image, nested table, ...) to the cell.</summary>
     public Cell Add(LayoutElement element)
     {
         _content.Add(element);
@@ -87,42 +101,58 @@ public sealed class Table : LayoutElement
     /// <summary>Creates a table with <paramref name="columns"/> equally wide columns.</summary>
     public static Table WithColumns(int columns) => new(Enumerable.Repeat(1.0, columns).ToArray());
 
+    /// <summary>Number of columns.</summary>
     public int ColumnCount => _columnWidths.Length;
 
     /// <summary>Table width as percentage of the available width.</summary>
     public double WidthPercent { get; set; } = 100;
 
+    /// <summary>Default font for text in body cells (default Helvetica).</summary>
     public PdfFont Font { get; set; } = PdfStandardFont.Helvetica;
 
+    /// <summary>Default font for text in header cells (default Helvetica-Bold).</summary>
     public PdfFont HeaderFont { get; set; } = PdfStandardFont.HelveticaBold;
 
+    /// <summary>Default font size in points for cell text (default 9).</summary>
     public double FontSize { get; set; } = 9;
 
+    /// <summary>Default inner padding of the cells in points (default 4 horizontal, 3 vertical).</summary>
     public Thickness CellPadding { get; set; } = new(4, 3);
 
+    /// <summary>Default border width of the cells in points (default 0.5; 0 = no borders).</summary>
     public double BorderWidth { get; set; } = 0.5;
 
+    /// <summary>Default border color of the cells (default black).</summary>
     public PdfColor BorderColor { get; set; } = PdfColor.Black;
 
+    /// <summary>Background of header cells (default light gray; null = none).</summary>
     public PdfColor? HeaderBackground { get; set; } = PdfColor.Gray(0.9);
 
     /// <summary>Background for every second body row (zebra striping).</summary>
     public PdfColor? AlternateRowBackground { get; set; }
 
+    /// <summary>Repeat the header rows at the top of every page the table continues on (default true).</summary>
     public bool RepeatHeader { get; set; } = true;
 
+    /// <summary>Adds a header cell containing <paramref name="text"/> and returns it.</summary>
     public Cell AddHeaderCell(string text) => AddHeaderCell(new Cell(text));
 
+    /// <summary>
+    /// Adds a header cell and returns it. Leading rows that consist only of header cells form the table header.
+    /// </summary>
     public Cell AddHeaderCell(Cell cell)
     {
         _cells.Add((cell, true));
         return cell;
     }
 
+    /// <summary>Adds a body cell containing <paramref name="text"/> and returns it.</summary>
     public Cell AddCell(string text) => AddCell(new Cell(text));
 
+    /// <summary>Adds a body cell containing <paramref name="element"/> and returns it.</summary>
     public Cell AddCell(LayoutElement element) => AddCell(new Cell().Add(element));
 
+    /// <summary>Adds a body cell and returns it. Cells fill the rows from left to right.</summary>
     public Cell AddCell(Cell cell)
     {
         _cells.Add((cell, false));

@@ -6,6 +6,7 @@ namespace MiPdf;
 /// <summary>Relationship of an embedded file to the document (/AFRelationship, PDF/A-3 and PDF 2.0).</summary>
 public enum AttachmentRelationship
 {
+    /// <summary>No relationship stated (/Unspecified), also used when the entry is missing or unknown.</summary>
     Unspecified,
 
     /// <summary>The original source of the document (e.g. a word processing file).</summary>
@@ -39,14 +40,17 @@ public sealed class PdfAttachment
     /// <summary>File name (/UF or /F).</summary>
     public string FileName => FileSpec.GetText(PdfName.Get("UF")) ?? FileSpec.GetText(PdfName.F) ?? Name;
 
+    /// <summary>Description of the attachment (/Desc of the file specification), or null.</summary>
     public string? Description => FileSpec.GetText(PdfName.Get("Desc"));
 
     /// <summary>MIME type (/Subtype of the embedded file stream).</summary>
     public string? MimeType => Stream?.GetName(PdfName.Subtype)?.Value;
 
+    /// <summary>The /AFRelationship entry; <see cref="AttachmentRelationship.Unspecified"/> if missing or unknown.</summary>
     public AttachmentRelationship Relationship =>
         Enum.TryParse<AttachmentRelationship>(FileSpec.GetName(PdfName.Get("AFRelationship"))?.Value, out var r) ? r : AttachmentRelationship.Unspecified;
 
+    /// <summary>Modification date of the file (/ModDate in /Params of the embedded file stream), or null.</summary>
     public DateTimeOffset? ModificationDate => PdfDate.Parse(Stream?.GetDictionary(PdfName.Get("Params"))?.GetText(PdfName.Get("ModDate")));
 
     /// <summary>Size in bytes as declared in /Params (may be missing).</summary>
@@ -59,6 +63,7 @@ public sealed class PdfAttachment
     /// <summary>Returns the file content.</summary>
     public byte[] GetData() => Stream?.GetBytes() ?? throw new PdfException($"Attachment '{Name}' has no embedded file stream.");
 
+    /// <summary>Returns file name, MIME type and size for display.</summary>
     public override string ToString() => $"{FileName} ({MimeType}, {Size} bytes)";
 }
 

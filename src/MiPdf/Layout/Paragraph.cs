@@ -6,6 +6,7 @@ namespace MiPdf.Layout;
 /// <summary>A piece of text with uniform formatting inside a <see cref="Paragraph"/>.</summary>
 public sealed class TextRun
 {
+    /// <summary>Creates a run; formatting values that are null are inherited from the paragraph.</summary>
     public TextRun(string text, PdfFont? font = null, double? fontSize = null, PdfColor? color = null)
     {
         Text = text ?? "";
@@ -14,17 +15,22 @@ public sealed class TextRun
         Color = color;
     }
 
+    /// <summary>The text; line breaks ("\n") are honored.</summary>
     public string Text { get; set; }
 
     /// <summary>Font; inherits the paragraph's font if null.</summary>
     public PdfFont? Font { get; set; }
 
+    /// <summary>Font size in points; inherits the paragraph's font size if null.</summary>
     public double? FontSize { get; set; }
 
+    /// <summary>Text color; inherits the paragraph's color if null.</summary>
     public PdfColor? Color { get; set; }
 
+    /// <summary>Draw a line below the text (position and thickness from the font metrics).</summary>
     public bool Underline { get; set; }
 
+    /// <summary>Draw a line through the text.</summary>
     public bool Strikethrough { get; set; }
 }
 
@@ -36,8 +42,10 @@ public sealed class Paragraph : LayoutElement
 {
     private readonly List<TextRun> _runs = new();
 
+    /// <summary>Creates an empty paragraph; add text with <see cref="Add(string)"/>.</summary>
     public Paragraph() { }
 
+    /// <summary>Creates a paragraph with <paramref name="text"/>; a null font or size keeps the default (Helvetica, 10 pt).</summary>
     public Paragraph(string text, PdfFont? font = null, double? fontSize = null)
     {
         if (font != null) Font = font;
@@ -45,23 +53,31 @@ public sealed class Paragraph : LayoutElement
         Add(text);
     }
 
+    /// <summary>The text runs in the order they were added.</summary>
     public IReadOnlyList<TextRun> Runs => _runs;
 
+    /// <summary>Default font for runs without their own font (default Helvetica).</summary>
     public PdfFont Font { get; set; } = PdfStandardFont.Helvetica;
 
+    /// <summary>Default font size in points for runs without their own size (default 10).</summary>
     public double FontSize { get; set; } = 10;
 
+    /// <summary>Default text color for runs without their own color (default black).</summary>
     public PdfColor Color { get; set; } = PdfColor.Black;
 
+    /// <summary>Horizontal alignment of the lines (default <see cref="TextAlignment.Left"/>).</summary>
     public TextAlignment Alignment { get; set; } = TextAlignment.Left;
 
     /// <summary>Line height as a multiple of the font's natural line height (default 1.15).</summary>
     public double LineSpacing { get; set; } = 1.15;
 
+    /// <summary>Additional indent of the first line in points, relative to <see cref="LeftIndent"/> (default 0).</summary>
     public double FirstLineIndent { get; set; }
 
+    /// <summary>Left indent of all lines in points (default 0).</summary>
     public double LeftIndent { get; set; }
 
+    /// <summary>Right indent of all lines in points (default 0).</summary>
     public double RightIndent { get; set; }
 
     /// <summary>Apply the font's pair kerning (TrueType/OpenType fonts; default true).</summary>
@@ -87,16 +103,19 @@ public sealed class Paragraph : LayoutElement
         return this;
     }
 
+    /// <summary>Adds a formatted text run; returns the paragraph.</summary>
     public Paragraph Add(TextRun run)
     {
         _runs.Add(run);
         return this;
     }
 
+    /// <summary>Adds text with its own font (and optionally size and color); returns the paragraph.</summary>
     public Paragraph Add(string text, PdfFont font, double? fontSize = null, PdfColor? color = null) =>
         Add(new TextRun(text, font, fontSize, color));
 
     // fluent setters
+    /// <summary>Sets <see cref="Font"/> and, if given, <see cref="FontSize"/>; returns the paragraph.</summary>
     public Paragraph SetFont(PdfFont font, double? size = null)
     {
         Font = font;
@@ -104,24 +123,28 @@ public sealed class Paragraph : LayoutElement
         return this;
     }
 
+    /// <summary>Sets <see cref="FontSize"/> in points; returns the paragraph.</summary>
     public Paragraph SetFontSize(double size)
     {
         FontSize = size;
         return this;
     }
 
+    /// <summary>Sets <see cref="Color"/>; returns the paragraph.</summary>
     public Paragraph SetColor(PdfColor color)
     {
         Color = color;
         return this;
     }
 
+    /// <summary>Sets <see cref="Alignment"/>; returns the paragraph.</summary>
     public Paragraph SetAlignment(TextAlignment alignment)
     {
         Alignment = alignment;
         return this;
     }
 
+    /// <summary>Sets the space before and after the paragraph in points; returns the paragraph.</summary>
     public Paragraph SetSpacing(double before, double after)
     {
         SpacingBefore = before;

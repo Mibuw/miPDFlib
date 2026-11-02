@@ -12,6 +12,7 @@ namespace MiPdf.Invoicing;
 /// <param name="Value">The value as it appears in the XML.</param>
 public sealed record FacturXFinding(string BusinessTerm, string Name, string Value)
 {
+    /// <summary>Returns a readable message, e.g. <c>Invoice number (BT-1) "R-123" was not found in the visible invoice.</c></summary>
     public override string ToString() => $"{Name} ({BusinessTerm}) \"{Value}\" was not found in the visible invoice.";
 }
 

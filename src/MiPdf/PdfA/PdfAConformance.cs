@@ -44,6 +44,7 @@ public sealed record PdfAIdentification(int Part, string Conformance)
         _ => null,
     };
 
+    /// <summary>Returns the usual notation, e.g. "PDF/A-3b" (just "PDF/A-4" if the conformance level is empty).</summary>
     public override string ToString() => $"PDF/A-{Part}{Conformance.ToLowerInvariant()}";
 }
 
@@ -217,6 +218,10 @@ public static class XmpMetadata
 /// </summary>
 public static class PdfAChecker
 {
+    /// <summary>
+    /// Checks a document against the basic requirements of the given conformance level and returns a readable
+    /// message per issue found (page numbers are 1-based); an empty list means no issue was found by these checks.
+    /// </summary>
     public static IReadOnlyList<string> Check(PdfDocument document, PdfAConformance conformance)
     {
         var issues = new List<string>();

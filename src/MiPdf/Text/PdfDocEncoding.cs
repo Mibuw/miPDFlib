@@ -32,6 +32,7 @@ public static class PdfDocEncoding
         return d;
     }
 
+    /// <summary>Decodes PDFDocEncoding bytes; the undefined codes 0x9F and 0xAD become U+FFFD.</summary>
     public static string GetString(ReadOnlySpan<byte> bytes)
     {
         var chars = new char[bytes.Length];
@@ -47,6 +48,10 @@ public static class PdfDocEncoding
         return true;
     }
 
+    /// <summary>
+    /// Encodes <paramref name="text"/> in PDFDocEncoding (one byte per UTF-16 char); characters that cannot be
+    /// represented become '?'. Use <see cref="CanEncode"/> to check beforehand.
+    /// </summary>
     public static byte[] GetBytes(string text)
     {
         var result = new byte[text.Length];

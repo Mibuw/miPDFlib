@@ -5,6 +5,10 @@ namespace MiPdf;
 /// <summary>Conversion between <see cref="DateTimeOffset"/> and PDF date strings (<c>D:YYYYMMDDHHmmSSOHH'mm'</c>).</summary>
 public static class PdfDate
 {
+    /// <summary>
+    /// Formats a date as PDF date string in its own offset, e.g. <c>D:20240131143000+01'00'</c>
+    /// (<c>Z</c> for UTC).
+    /// </summary>
     public static string Format(DateTimeOffset date)
     {
         var offset = date.Offset;

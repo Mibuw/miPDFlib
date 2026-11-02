@@ -24,11 +24,13 @@ public sealed class PreparedSignature
     /// <summary>The prepared PDF (store it if the signature is completed in another process).</summary>
     public byte[] PreparedPdf { get; }
 
+    /// <summary>Name of the signature field (<see cref="PdfSignatureOptions.FieldName"/> or a generated name such as "Signature1").</summary>
     public string FieldName { get; }
 
     /// <summary>The /ByteRange [offset1 length1 offset2 length2].</summary>
     public IReadOnlyList<long> ByteRange { get; }
 
+    /// <summary>The hash algorithm used by <see cref="GetDocumentDigest"/> (from <see cref="PdfSignatureOptions.DigestAlgorithm"/>).</summary>
     public HashAlgorithmName DigestAlgorithm { get; }
 
     /// <summary>Space available for the DER-encoded signature container in bytes.</summary>
@@ -62,6 +64,7 @@ public sealed class PdfSigningResult
     /// <summary>The signed document.</summary>
     public byte[] Pdf { get; }
 
+    /// <summary>Name of the signature field that was signed (<see cref="PdfSignatureOptions.FieldName"/> or a generated name such as "Signature1").</summary>
     public string FieldName { get; }
 
     /// <summary>The embedded CMS signature container.</summary>

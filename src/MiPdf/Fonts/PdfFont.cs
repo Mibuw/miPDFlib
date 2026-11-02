@@ -24,8 +24,10 @@ public abstract class PdfFont
     /// <summary>Additional line gap in 1/1000 em.</summary>
     public virtual double LineGap => 0;
 
+    /// <summary>Position of the underline relative to the baseline in 1/1000 em (negative = below); -100 by default.</summary>
     public virtual double UnderlinePosition => -100;
 
+    /// <summary>Thickness of the underline in 1/1000 em; 50 by default.</summary>
     public virtual double UnderlineThickness => 50;
 
     /// <summary>Advance width of a character in 1/1000 em.</summary>

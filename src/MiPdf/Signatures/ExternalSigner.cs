@@ -34,6 +34,10 @@ public interface IExternalSigner
 /// <summary>An <see cref="IExternalSigner"/> backed by a local certificate with private key.</summary>
 public sealed class CertificateSigner : IExternalSigner
 {
+    /// <summary>Creates a signer for a certificate with an RSA or ECDSA private key.</summary>
+    /// <param name="certificate">The signer certificate including its private key.</param>
+    /// <param name="chain">Intermediate certificates to embed in the signature (optional).</param>
+    /// <exception cref="ArgumentException">The certificate has no private key.</exception>
     public CertificateSigner(X509Certificate2 certificate, IEnumerable<X509Certificate2>? chain = null)
     {
         if (!certificate.HasPrivateKey) throw new ArgumentException("The certificate has no private key.", nameof(certificate));
@@ -54,10 +58,14 @@ public sealed class CertificateSigner : IExternalSigner
         return new CertificateSigner(signer, collection.Where(c => !ReferenceEquals(c, signer)));
     }
 
+    /// <inheritdoc/>
     public X509Certificate2 Certificate { get; }
 
+    /// <inheritdoc/>
     public IReadOnlyList<X509Certificate2> CertificateChain { get; }
 
+    /// <summary>Signs a hash with the private key: PKCS#1 v1.5 for RSA keys, IEEE P1363 (r || s) for EC keys.</summary>
+    /// <exception cref="PdfException">The key is neither RSA nor ECDSA.</exception>
     public byte[] SignHash(byte[] hash, HashAlgorithmName hashAlgorithm) => SignHash(hash, hashAlgorithm, RSASignaturePadding.Pkcs1);
 
     /// <summary>Signs with the given RSA padding (ignored for EC keys).</summary>

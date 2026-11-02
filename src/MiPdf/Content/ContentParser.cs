@@ -12,19 +12,26 @@ public sealed class ContentOperation
         Operands = operands;
     }
 
+    /// <summary>The operator, e.g. "Tj", "re" or "cm".</summary>
     public string Operator { get; }
 
+    /// <summary>The operands preceding the operator, in stream order.</summary>
     public IReadOnlyList<PdfObject> Operands { get; }
 
     /// <summary>For inline images (operator "BI"): the image dictionary and data.</summary>
     public PdfStream? InlineImage { get; internal set; }
 
+    /// <summary>Returns the operation in content stream syntax: operands followed by the operator.</summary>
     public override string ToString() => string.Join(' ', Operands.Select(o => o.ToString())) + " " + Operator;
 }
 
 /// <summary>Parses content streams into operations (ISO 32000-2, 7.8.2).</summary>
 public static class ContentParser
 {
+    /// <summary>
+    /// Parses decoded content stream bytes into operations. The sequence is evaluated lazily and ends silently at the
+    /// first syntax error.
+    /// </summary>
     public static IEnumerable<ContentOperation> Parse(byte[] content)
     {
         var lexer = new PdfLexer(content);
