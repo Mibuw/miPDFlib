@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.1
 
 - Docs: comparison with iText and Syncfusion PDF (`docs/COMPARISON.md`), "Why miPDFlib?" and article links in both
   readmes, more descriptive package description.
