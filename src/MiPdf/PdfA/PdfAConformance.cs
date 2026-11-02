@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Security;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using MiPdf.Content;
 using MiPdf.Objects;
 
@@ -149,6 +151,63 @@ public static class XmpMetadata
         sb.Append("</rdf:RDF>\n</x:xmpmeta>\n");
         sb.Append(new string(' ', 2000)).Append("\n<?xpacket end=\"w\"?>");
         return Encoding.UTF8.GetBytes(sb.ToString());
+    }
+
+    private static readonly XNamespace Rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    private static readonly XNamespace Xmp = "http://ns.adobe.com/xap/1.0/";
+    private static readonly XNamespace Pdf = "http://ns.adobe.com/pdf/1.3/";
+
+    /// <summary>
+    /// Updates xmp:ModifyDate, xmp:MetadataDate and/or pdf:Producer in existing XMP metadata from the document
+    /// information, keeping everything else. Returns null if the packet cannot be parsed (it is then left unchanged).
+    /// </summary>
+    internal static byte[]? Update(byte[] xmp, PdfDocumentInfo info, bool dates, bool producer)
+    {
+        XDocument document;
+        try
+        {
+            var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
+            using var reader = XmlReader.Create(new MemoryStream(xmp), settings);
+            document = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
+        }
+        catch (XmlException)
+        {
+            return null;
+        }
+        var description = document.Descendants(Rdf + "Description").FirstOrDefault();
+        if (description == null) return null;
+
+        void Set(XNamespace ns, string prefix, string name, string value)
+        {
+            var element = document.Descendants(ns + name).FirstOrDefault();
+            if (element != null && !element.HasElements)
+            {
+                element.Value = value;
+                return;
+            }
+            var attribute = document.Descendants(Rdf + "Description").Attributes(ns + name).FirstOrDefault();
+            if (attribute != null)
+            {
+                attribute.Value = value;
+                return;
+            }
+            if (element != null) return; // unexpected structured value: leave it alone
+            if (description.GetPrefixOfNamespace(ns) == null) description.SetAttributeValue(XNamespace.Xmlns + prefix, ns.NamespaceName);
+            description.Add(new XElement(ns + name, value));
+        }
+
+        if (dates && info.ModificationDate is { } modified)
+        {
+            string date = modified.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture);
+            Set(Xmp, "xmp", "ModifyDate", date);
+            Set(Xmp, "xmp", "MetadataDate", date);
+        }
+        if (producer && info.Producer is { } text) Set(Pdf, "pdf", "Producer", text);
+
+        using var output = new MemoryStream();
+        var writerSettings = new XmlWriterSettings { Encoding = new UTF8Encoding(false), OmitXmlDeclaration = document.Declaration == null };
+        using (var writer = XmlWriter.Create(output, writerSettings)) document.Save(writer);
+        return output.ToArray();
     }
 }
 

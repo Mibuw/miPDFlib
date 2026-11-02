@@ -283,7 +283,7 @@ public static class PdfLtv
         }
         if (!dss.Changed) return new LtvResult(pdf, 0, 0, 0, complete, warnings, null);
         dss.Commit();
-        var result = doc.ToArray(new PdfSaveOptions { Incremental = true });
+        var result = doc.ToArray(new PdfSaveOptions { Incremental = true, UpdateModificationDate = false, UpdateProducer = false });
         return new LtvResult(result, certsAdded, ocspAdded, crlAdded, complete, warnings, null);
     }
 

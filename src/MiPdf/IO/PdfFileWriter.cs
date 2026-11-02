@@ -25,6 +25,19 @@ public sealed class PdfSaveOptions
 
     /// <summary>Overrides the PDF version written into the header, e.g. "1.7" or "2.0".</summary>
     public string? Version { get; set; }
+
+    /// <summary>
+    /// Sets the modification date (/ModDate, and xmp:ModifyDate / xmp:MetadataDate in existing XMP metadata) to the
+    /// current time (default true). Signing and long-term validation updates never change the document information.
+    /// </summary>
+    public bool UpdateModificationDate { get; set; } = true;
+
+    /// <summary>
+    /// For documents opened from a file: appends "; modified with miPDFlib" to the producer (/Producer and
+    /// pdf:Producer), or sets "miPDFlib" if there is none (default true). Set <see cref="PdfDocumentInfo.Producer"/>
+    /// yourself and disable this option for a different text.
+    /// </summary>
+    public bool UpdateProducer { get; set; } = true;
 }
 
 /// <summary>Writes the objects of a <see cref="PdfObjectStore"/> as a PDF file.</summary>

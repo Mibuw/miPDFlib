@@ -26,6 +26,24 @@ doc.Save("same.pdf",  new PdfSaveOptions { Incremental = true });      // append
 | `UseObjectStreams` | additionally packs objects into compressed object streams – typically 10–40 % smaller |
 | `Incremental` | original bytes stay untouched, only changed objects are appended. **Required for signed documents.** |
 | `Version` | override the header version |
+| `UpdateModificationDate` | sets the modification date to now (default true) |
+| `UpdateProducer` | documents opened from a file: appends "; modified with miPDFlib" to the producer (default true) |
+
+### Document information on saving
+
+Saving sets the modification date (`/ModDate`) and, for a document opened from a file, notes the edit in the
+producer: "Word; modified with miPDFlib" (or "miPDFlib" if there was none; the note is added only once). Existing
+XMP metadata is updated accordingly (`xmp:ModifyDate`, `xmp:MetadataDate`, `pdf:Producer`), so PDF/A documents stay
+consistent. New documents get the producer "miPDFlib"; the creating application belongs in `doc.Info.Creator`.
+
+```csharp
+doc.Info.Producer = "MyApp 2.1";                                     // your own text ...
+doc.Save("out.pdf", new PdfSaveOptions { UpdateProducer = false });  // ... kept as it is
+```
+
+Signatures, document time-stamps and long-term validation data (`PdfSigner`, `PdfLtv`) never change the document
+information – signing is not an edit of the content. The signing application is recorded in the signature itself
+(`PdfSignatureOptions.SignatureCreator`, default "miPDFlib").
 
 ### PDF 2.0
 

@@ -31,7 +31,7 @@ Last update: 2026-11-02 (release 0.3.1)
 | 22 Field locks (FieldMDP) | ✅ done (244 tests; /Lock + FieldMDP reference, combinable with DocMDP and deferred signing, validator reports changed locked fields; EU DSS reads the lock dictionaries; Acrobat flags a changed locked field as invalid) |
 | 23 Widget borders and rotation | ✅ done (253 tests; fields without border, widget rotation/colors with rebuilt appearances incl. check boxes and radio buttons, signature appearance upright on rotated pages) |
 
-Current state: 254 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 260 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 

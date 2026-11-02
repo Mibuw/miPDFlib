@@ -62,6 +62,26 @@ public sealed partial class PdfDocument
         return PdfAChecker.Check(this, conformance);
     }
 
+    private const string ProducerName = "miPDFlib";
+
+    /// <summary>Modification date and producer on saving (see <see cref="PdfSaveOptions.UpdateModificationDate"/>).</summary>
+    private void UpdateDocumentInfo(PdfSaveOptions options)
+    {
+        bool producerChanged = false;
+        if (options.UpdateProducer && IsOpenedFromFile)
+        {
+            var producer = Info.Producer;
+            if (string.IsNullOrWhiteSpace(producer)) Info.Producer = ProducerName;
+            else if (!producer.Contains(ProducerName, StringComparison.Ordinal)) Info.Producer = producer + "; modified with " + ProducerName;
+            producerChanged = Info.Producer != producer;
+        }
+        if (options.UpdateModificationDate) Info.ModificationDate = DateTimeOffset.Now;
+        // with PDF/A, PDF/UA or XMP extensions the XMP metadata is rewritten from the document information anyway
+        if ((options.UpdateModificationDate || producerChanged) && Conformance == null && _uaConformance == null && XmpExtensions.Count == 0
+            && GetXmpMetadata() is { } xmp && XmpMetadata.Update(xmp, Info, options.UpdateModificationDate, producerChanged) is { } updated)
+            SetXmpMetadata(updated);
+    }
+
     private void ApplyConformance(PdfSaveOptions options)
     {
         if (Conformance == null && _uaConformance == null && XmpExtensions.Count == 0) return;

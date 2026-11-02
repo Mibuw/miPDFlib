@@ -60,6 +60,7 @@ public sealed partial class PdfDocument
     partial void OnBeforeSave(PdfSaveOptions options)
     {
         CheckRedactedSave(options);
+        UpdateDocumentInfo(options);
         ApplyAccessibility(options);
         BeforeSave?.Invoke(options);
         ApplyConformance(options);

@@ -279,7 +279,8 @@ public static class PdfSigner
         }
 
         // the update is appended to the PDF data (without data before the %PDF- header, if any)
-        var bytes = doc.ToArray(new PdfSaveOptions { Incremental = true });
+        // the document information stays unchanged: a signature is not an edit of the content
+        var bytes = doc.ToArray(new PdfSaveOptions { Incremental = true, UpdateModificationDate = false, UpdateProducer = false });
         return LocatePlaceholders(bytes, doc.Store.OriginalData.Length, containerSize, fieldName, options.DigestAlgorithm);
     }
 

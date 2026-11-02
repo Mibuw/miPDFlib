@@ -2,6 +2,10 @@
 
 ## 0.3.1
 
+- Saving updates the document information: the modification date is set to now and, for documents opened from a
+  file, "; modified with miPDFlib" is appended to the producer (once). Existing XMP metadata is kept in sync, so PDF/A
+  documents stay valid. Options: `PdfSaveOptions.UpdateModificationDate`, `UpdateProducer`. Signing and LTV updates
+  do not change the document information.
 - Docs: comparison with iText and Syncfusion PDF (`docs/COMPARISON.md`), "Why miPDFlib?" and article links in both
   readmes, more descriptive package description.
 - Docs: "Used by" section in both readmes.
