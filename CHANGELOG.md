@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Signatures: `PdfSignatureValidator` evaluates the stored revocation data – OCSP responses and CRLs from the
+  Document Security Store and from the `adbe-revocationInfoArchival` attribute – and reports the revocation status
+  at the time of signing for every certificate of the chain (`Revocation`, `RevocationDetails`; also for the
+  time-stamping authority of document time-stamps). Only revocation data signed by the issuer or an authorised OCSP
+  responder counts.
+
 ## 0.4.0
 
 - E-invoices: `FacturX.CheckConsistency(doc)` checks whether the invoice number, issue date, seller and buyer, VAT

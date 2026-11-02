@@ -44,7 +44,7 @@ miPDFlib is young; its strengths are the licence, signatures without BouncyCastl
 | External signing (HSM, cloud) | `IExternalSignature`, `IExternalSignatureContainer` | `ComputeHash` event, `IPdfExternalSigner` | `IExternalSigner`; two-step `PrepareExternalSignature` / `CompleteExternalSignature` |
 | Custom signed attributes | via your own CMS container | via `ComputeHash` and your own CMS | `AdditionalSignedAttributes` |
 | Certification and field locks | DocMDP, FieldMDP | DocMDP | DocMDP (`Certification`), FieldMDP (`FieldLock`) |
-| Validation | validation module (since 9) | built in | `PdfSignatureValidator` (integrity, chain, coverage, timestamp, PAdES level, field locks; embedded revocation data not yet evaluated) |
+| Validation | validation module (since 9) | built in | `PdfSignatureValidator` (integrity, chain, coverage, timestamp, PAdES level, field locks, revocation status from the embedded OCSP responses and CRLs) |
 | Cryptography | BouncyCastle (mandatory adapter) | own implementation; BouncyCastle or .NET for custom CMS | .NET (`System.Security.Cryptography.Pkcs`), no BouncyCastle |
 
 ## When to choose what

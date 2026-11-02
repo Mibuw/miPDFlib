@@ -302,11 +302,18 @@ public static class RevocationInfo
 internal static class CertificateSignature
 {
     /// <summary>True/false if the signature could be checked, null for unsupported algorithms.</summary>
-    public static bool? Verify(X509Certificate2 certificate, X509Certificate2 issuer)
+    public static bool? Verify(X509Certificate2 certificate, X509Certificate2 issuer) => VerifySigned(certificate.RawData, issuer);
+
+    /// <summary>
+    /// Verifies a signed X.509 structure – certificate, CRL or BasicOCSPResponse, all SEQUENCE { tbs, algorithm,
+    /// signature, ... } – with the public key of <paramref name="signer"/>. Null for unsupported algorithms.
+    /// </summary>
+    public static bool? VerifySigned(byte[] der, X509Certificate2 signer)
     {
+        var issuer = signer;
         try
         {
-            var cert = new AsnReader(certificate.RawData, AsnEncodingRules.DER).ReadSequence();
+            var cert = new AsnReader(der, AsnEncodingRules.DER).ReadSequence();
             var tbs = cert.ReadEncodedValue();
             var algorithm = cert.ReadSequence();
             string oid = algorithm.ReadObjectIdentifier();

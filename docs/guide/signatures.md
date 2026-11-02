@@ -221,7 +221,39 @@ foreach (var r in PdfSignatureValidator.Validate(File.ReadAllBytes("signed.pdf")
 | `CertificationLevel` | DocMDP level of a certification signature |
 | `FieldLock`, `ModifiedLockedFields` | FieldMDP lock of the signature and the locked fields whose value was changed or that were removed after signing |
 | `Level` | PAdES level (B-B, B-T, B-LT, B-LTA) derived from time-stamps, DSS and later document time-stamps |
+| `Revocation`, `RevocationDetails` | revocation status at the time of signing from the OCSP responses and CRLs stored in the document (see below) |
 | `Cms`, `Certificates`, `GetSignedAttribute(oid)` | raw container, embedded certificates, attribute values (e.g. biometric data) |
+
+### Revocation status from the stored validation data
+
+```csharp
+foreach (var r in PdfSignatureValidator.Validate(File.ReadAllBytes("signed-lt.pdf")))
+{
+    Console.WriteLine($"{r.FieldName}: {r.Revocation}");                       // Good, Revoked, Unknown – null without data
+    foreach (var c in r.RevocationDetails)
+        Console.WriteLine($"  {c.Certificate.Subject}: {c.Status} via {c.Source}, issued {c.IssuedAt}, fresh={c.IsFresh}");
+}
+```
+
+The validator evaluates the OCSP responses and CRLs of the Document Security Store and of the
+`adbe-revocationInfoArchival` signature attribute – offline, without contacting any service:
+
+- Every certificate of the signer's chain is checked up to a self-signed root or a root in `TrustedRoots`. For
+  document time-stamps, the chain of the time-stamping authority is checked.
+- Only validly signed revocation data counts: CRLs signed by the issuer, OCSP responses signed by the issuer or by
+  a responder certificate the issuer authorised (extended key usage OCSP signing). Everything else is ignored, and
+  the certificate is `Unknown`.
+- The decisive time is the verified signature time-stamp, otherwise the earliest later document time-stamp,
+  otherwise the time of validation – the claimed signing time (`/M`) is not trusted. A revocation *after* that time
+  keeps the status `Good` (`RevocationTime` shows when it happened); a revocation at or before it gives `Revoked`.
+- `IsFresh` tells whether the evidence was issued after the time of signing, i.e. whether it proves the status *at*
+  that time. Right after signing this is usually false: OCSP responders and CRLs publish data that is hours or
+  days old. For archiving, add the validation data again after a grace period (for example a day later with
+  `PdfLtv.AddValidationData` or `MakeLta`).
+- `IsIntegrityValid` is not affected; a signature is valid if `IsIntegrityValid`, `IsCertificateTrusted` and a
+  `Revocation` other than `Revoked` all hold. Online checking through the operating system is still available with
+  `SignatureValidationOptions.RevocationMode` together with `CheckCertificateChain`.
+- Tested with real DigiCert OCSP responses and CRLs (time-stamping chain with three certificates).
 
 Apart from the values of locked fields (`ModifiedLockedFields`), whether changes after a signature are *permitted*
 (DocMDP analysis, other object changes) is not evaluated; the validator reports that later revisions exist.
@@ -242,4 +274,4 @@ Apart from the values of locked fields (`ModifiedLockedFields`), whether changes
 - Field locks: EU DSS reads the /SigFieldLock and FieldMDP dictionaries (action and field list) and accepts them; Adobe
   Acrobat keeps the signature valid when an unlocked field is filled and reports it as invalid when a locked field is changed.
 - Not yet supported: /P in field locks (PDF 2.0), legacy `adbe.x509.rsa_sha1` creation, full evaluation of permitted
-  changes after signing (DocMDP), revocation checking of the stored validation data in the validator.
+  changes after signing (DocMDP).

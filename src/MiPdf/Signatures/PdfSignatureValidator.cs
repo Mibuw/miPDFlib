@@ -76,6 +76,19 @@ public sealed class SignatureValidationResult
     /// </summary>
     public PadesLevel? Level { get; internal set; }
 
+    /// <summary>
+    /// Revocation status of the signer's certificate chain at the time of signing, evaluated from the OCSP responses
+    /// and CRLs stored in the document (DSS) or in the signature (adbe-revocationInfoArchival); null if the document
+    /// contains no revocation data. For document time-stamps this is the chain of the time-stamping authority. The
+    /// time of signing is the verified signature time-stamp, otherwise the earliest later document time-stamp,
+    /// otherwise the time of validation – the claimed signing time is not trusted. Details per certificate:
+    /// <see cref="RevocationDetails"/>.
+    /// </summary>
+    public RevocationStatus? Revocation { get; internal set; }
+
+    /// <summary>Revocation status per certificate of the chain (signer first; roots are not checked).</summary>
+    public IReadOnlyList<CertificateRevocation> RevocationDetails { get; internal set; } = Array.Empty<CertificateRevocation>();
+
     /// <summary>Returns the DER value of a signed CMS attribute (e.g. biometric data), or null.</summary>
     public byte[]? GetSignedAttribute(string oid) => Cms == null || IsDocumentTimestamp ? null : CmsUtil.GetSignedAttribute(Cms, oid);
 
@@ -132,7 +145,53 @@ public static class PdfSignatureValidator
                 : result.HasTimestamp || laterTimestamp ? PadesLevel.BT
                 : PadesLevel.BB;
         }
+        EvaluateRevocation(dss, results, options);
         return results;
+    }
+
+    /// <summary>Sets <see cref="SignatureValidationResult.Revocation"/> from the stored validation data.</summary>
+    private static void EvaluateRevocation(PdfDictionary? dss, List<SignatureValidationResult> results, SignatureValidationOptions options)
+    {
+        List<byte[]> Streams(string key) => dss?.GetArray(PdfName.Get(key))?.Select(o => o.Resolve()).OfType<PdfStream>()
+            .Take(EmbeddedRevocation.MaxItems).Select(s => s.GetBytes()).ToList() ?? new List<byte[]>();
+        var dssOcsps = Streams("OCSPs").Select(EmbeddedRevocation.ParseOcsp).OfType<EmbeddedRevocation.Ocsp>().ToList();
+        var dssCrls = Streams("CRLs").Select(EmbeddedRevocation.ParseCrl).OfType<EmbeddedRevocation.Crl>().ToList();
+        var dssCerts = new List<X509Certificate2>();
+        foreach (var der in Streams("Certs"))
+        {
+            try
+            {
+                dssCerts.Add(CmsBuilder.LoadCertificate(der));
+            }
+            catch (CryptographicException)
+            {
+                // unreadable certificates are ignored
+            }
+        }
+
+        foreach (var result in results.Where(r => r.SignerCertificate != null))
+        {
+            var ocsps = new List<EmbeddedRevocation.Ocsp>(dssOcsps);
+            var crls = new List<EmbeddedRevocation.Crl>(dssCrls);
+            if (result.GetSignedAttribute(EmbeddedRevocation.OidRevocationInfoArchival) is { } archival)
+            {
+                var crlData = new List<byte[]>();
+                var ocspData = new List<byte[]>();
+                EmbeddedRevocation.ParseRevocationInfoArchival(archival, crlData, ocspData);
+                ocsps.AddRange(ocspData.Select(EmbeddedRevocation.ParseOcsp).OfType<EmbeddedRevocation.Ocsp>());
+                crls.AddRange(crlData.Select(EmbeddedRevocation.ParseCrl).OfType<EmbeddedRevocation.Crl>());
+            }
+            if (ocsps.Count == 0 && crls.Count == 0) continue;
+            var pool = result.Certificates.Concat(dssCerts).Concat(ocsps.SelectMany(o => o.Certificates))
+                .Concat(options.TrustedRoots.Cast<X509Certificate2>()).ToList();
+            var time = result.TimestampTime
+                ?? results.Where(r => r.IsDocumentTimestamp && r.IsIntegrityValid && r.SignedRevisionLength > result.SignedRevisionLength)
+                    .Select(r => r.TimestampTime).Min()
+                ?? DateTimeOffset.UtcNow;
+            var (status, details) = EmbeddedRevocation.Evaluate(result.SignerCertificate!, pool, options.TrustedRoots.Cast<X509Certificate2>().ToList(), ocsps, crls, time);
+            result.Revocation = status;
+            result.RevocationDetails = details;
+        }
     }
 
     private static SignatureValidationResult Verify(string fieldName, PdfDictionary sig, byte[] file, SignatureValidationOptions options)

@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-11-02 (release 0.4.0)
+Last update: 2026-11-02 (after 0.4.0: stored revocation data in the validator)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -31,8 +31,9 @@ Last update: 2026-11-02 (release 0.4.0)
 | 22 Field locks (FieldMDP) | ✅ done (244 tests; /Lock + FieldMDP reference, combinable with DocMDP and deferred signing, validator reports changed locked fields; EU DSS reads the lock dictionaries; Acrobat flags a changed locked field as invalid) |
 | 23 Widget borders and rotation | ✅ done (253 tests; fields without border, widget rotation/colors with rebuilt appearances incl. check boxes and radio buttons, signature appearance upright on rotated pages) |
 | 24 E-invoice checks | ✅ done (273 tests; `FacturX.CheckConsistency` compares the embedded XML with the visible text, `Attach` rejects a profile that contradicts the guideline ID, `FacturX.DetectProfile`) |
+| 25 Stored revocation data | ✅ done (281 tests; validator evaluates DSS and adbe-revocationInfoArchival OCSP/CRL with signature checks of the evidence and delegated responders; tested with real DigiCert OCSP responses and CRLs) |
 
-Current state: 273 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 281 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -47,9 +48,8 @@ Current state: 273 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 ## Roadmap
 
 1. External validation: Adobe Acrobat; signatures from certificates of EU trusted list CAs with EU DSS.
-2. Checking the revocation data embedded in documents in `PdfSignatureValidator`.
-3. Performance/memory for very large files (stream-based reading instead of loading everything into memory).
-4. PDF/A-4, PDF/UA-2 and the PDF 2.0 structure namespaces.
+2. Performance/memory for very large files (stream-based reading instead of loading everything into memory).
+3. PDF/A-4, PDF/UA-2 and the PDF 2.0 structure namespaces.
 
 Known gaps: no full evaluation of permitted changes after signing (DocMDP; for FieldMDP the values of locked fields are compared); the tagged structure is not taken
 over when importing pages; no text shaping (Arabic/Indic scripts, ligatures); hyphenation patterns are not bundled
