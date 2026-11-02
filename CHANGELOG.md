@@ -4,6 +4,8 @@
 
 - Forms: export and import (merge) field values as XFDF and FDF – `PdfAcroForm.ExportXfdf`, `ImportXfdf`,
   `ExportFdf`, `ImportFdf` with `FormDataImportResult` (fields set, unknown fields, invalid values).
+- Samples: ZUGFeRD / Factur-X invoice (`08-zugferd-invoice.pdf`); CI validates it with Mustang (PDF/A-3, EN 16931
+  rules) and the KoSIT validator on every push.
 - Docs: API reference and guides on GitHub Pages (https://mibuw.github.io/miPDFlib/), generated with DocFX.
 - Signatures: `PdfSignatureValidator` evaluates the stored revocation data – OCSP responses and CRLs from the
   Document Security Store and from the `adbe-revocationInfoArchival` attribute – and reports the revocation status

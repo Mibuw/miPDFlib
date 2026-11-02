@@ -21,3 +21,51 @@ jobs:
       - run: dotnet restore
       - run: dotnet build --no-restore -c Release
       - run: dotnet test --no-build -c Release --verbosity normal
+
+  # ZUGFeRD sample (samples/MiPdf.Samples, 08-zugferd-invoice.pdf) validated with Mustang (PDF/A-3 + EN 16931)
+  # and the KoSIT validator (EN 16931 CII). Downloads are pinned by version and SHA-256.
+  einvoice:
+    runs-on: ubuntu-latest
+    env:
+      MUSTANG_URL: https://github.com/ZUGFeRD/mustangproject/releases/download/core-2.26.0/Mustang-CLI-2.26.0.jar
+      MUSTANG_SHA256: 42d7868cb68264874a7b8cab4c3587b03b23ccc7cd72373da917f66758bb9736
+      KOSIT_URL: https://github.com/itplr-kosit/validator/releases/download/v1.6.3/validator-1.6.3-standalone.jar
+      KOSIT_SHA256: 799e64befca97d4080e03608c80b85dd5a5ecc5f4ae4f35d1116ec2855b9a7c9
+      KOSIT_CONFIG_URL: https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/v2026-08-31/xrechnung-3.0.2-validator-configuration-2026-08-31.zip
+      KOSIT_CONFIG_SHA256: 2530cd107c414511c5d0462ec10f886910395abfca820db82e83d70bf01221a8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Fonts for PDF/A
+        run: test -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf || (sudo apt-get update && sudo apt-get install -y fonts-dejavu-core)
+      - name: Create the sample invoice
+        run: |
+          dotnet run --project samples/MiPdf.Samples -c Release -- samples-output
+          test -f samples-output/08-zugferd-invoice.pdf
+      - name: Download validators
+        run: |
+          mkdir -p "$RUNNER_TEMP/validators" && cd "$RUNNER_TEMP/validators"
+          curl -fsSL -o mustang.jar "$MUSTANG_URL"
+          curl -fsSL -o kosit.jar "$KOSIT_URL"
+          curl -fsSL -o config.zip "$KOSIT_CONFIG_URL"
+          printf '%s  mustang.jar\n%s  kosit.jar\n%s  config.zip\n' "$MUSTANG_SHA256" "$KOSIT_SHA256" "$KOSIT_CONFIG_SHA256" | sha256sum -c
+          unzip -q config.zip -d config
+      - name: Mustang (PDF/A-3 and EN 16931 rules)
+        run: |
+          java -jar "$RUNNER_TEMP/validators/mustang.jar" --action validate --source samples-output/08-zugferd-invoice.pdf --no-notices > mustang.xml
+          cat mustang.xml
+          ! grep -q 'status="invalid"' mustang.xml
+          grep -q 'status="valid"' mustang.xml
+      - name: KoSIT validator (EN 16931 CII)
+        run: |
+          V="$RUNNER_TEMP/validators"
+          printf '' | java -jar "$V/kosit.jar" -s "$V/config/scenarios.xml" -r "$V/config" -o kosit samples/MiPdf.Samples/factur-x.xml
+          grep -q '<rep:accept>' kosit/factur-x-report.xml

@@ -7,6 +7,7 @@ using MiPdf.Barcodes;
 using MiPdf.Fonts;
 using MiPdf.Forms;
 using MiPdf.Graphics;
+using MiPdf.Invoicing;
 using MiPdf.IO;
 using MiPdf.Layout;
 using MiPdf.Security;
@@ -23,6 +24,7 @@ ExtractText(Out("01-invoice.pdf"));
 Encrypt(Out("01-invoice.pdf"), Out("05-encrypted.pdf"));
 Sign(Out("01-invoice.pdf"), Out("06-signed.pdf"));
 Accessible(Out("07-accessible.pdf"));
+ZugferdInvoice(Out("08-zugferd-invoice.pdf"));
 Console.WriteLine($"Samples written to {Path.GetFullPath(output)}");
 
 // 1. Generate a multi-page invoice with the flow layout
@@ -174,4 +176,40 @@ static void Accessible(string path)
     }
     Console.WriteLine($"PDF/UA check: {(pdf.CheckPdfUA().Count == 0 ? "ok" : string.Join("; ", pdf.CheckPdfUA()))}");
     pdf.Save(path);
+}
+
+// 8. ZUGFeRD / Factur-X e-invoice (PDF/A-3b with the EN 16931 XML from factur-x.xml); validated in CI with Mustang and KoSIT
+static void ZugferdInvoice(string path)
+{
+    string? fontFile = new[] { @"C:\Windows\Fonts\arial.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" }.FirstOrDefault(File.Exists);
+    if (fontFile == null) return; // PDF/A requires an embeddable font
+    var font = PdfTrueTypeFont.FromFile(fontFile);
+    using var pdf = PdfDocument.Create();
+    pdf.Info.Title = "Invoice 2026-0042";
+    using (var layout = new LayoutDocument(pdf, PageSize.A4, new Thickness(50)))
+    {
+        layout.Add(new Paragraph("Example Seller GmbH · Example Street 1 · 10115 Berlin", font, 8) { SpacingAfter = 20 });
+        layout.Add(new Paragraph("Example Buyer AG\nSample Road 2\n80331 Munich", font, 10) { SpacingAfter = 20 });
+        layout.Add(new Paragraph("Invoice 2026-0042", font, 16) { SpacingAfter = 4 });
+        layout.Add(new Paragraph("Date: 2026-11-02 · Delivery: 2026-10-31 · VAT ID: DE123456789", font, 9) { SpacingAfter = 12 });
+        var table = new Table(3, 1, 1.2, 1.2) { Font = font, HeaderFont = font, SpacingAfter = 12 };
+        foreach (var header in new[] { "Description", "Hours", "Price", "Amount" }) table.AddHeaderCell(header);
+        table.AddCell("Consulting");
+        table.AddCell(new Cell("10") { TextAlignment = TextAlignment.Right });
+        table.AddCell(new Cell("100.00 EUR") { TextAlignment = TextAlignment.Right });
+        table.AddCell(new Cell("1,000.00 EUR") { TextAlignment = TextAlignment.Right });
+        table.AddCell(new Cell("VAT 19 %", colSpan: 3) { TextAlignment = TextAlignment.Right });
+        table.AddCell(new Cell("190.00 EUR") { TextAlignment = TextAlignment.Right });
+        table.AddCell(new Cell("Total", colSpan: 3) { TextAlignment = TextAlignment.Right });
+        table.AddCell(new Cell("1,190.00 EUR") { TextAlignment = TextAlignment.Right });
+        layout.Add(table);
+        layout.Add(new Paragraph("Payable by 2026-11-16 to IBAN DE02 1203 0000 0000 2020 51.", font, 10));
+    }
+    FacturX.Attach(pdf, File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "factur-x.xml")), FacturXProfile.EN16931);
+    pdf.Save(path);
+
+    using var check = PdfDocument.Open(path);
+    var findings = FacturX.CheckConsistency(check);
+    Console.WriteLine($"ZUGFeRD: profile {FacturX.GetProfile(check)}, PDF/A issues {check.CheckPdfA(MiPdf.PdfA.PdfAConformance.PdfA3B).Count}, " +
+        $"consistency {(findings.Count == 0 ? "ok" : string.Join("; ", findings))}");
 }
