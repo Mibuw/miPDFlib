@@ -1,0 +1,38 @@
+- name: How-to
+  items:
+  - name: Sign a PDF with PAdES
+    href: ../../docs/howto/sign-pdf-pades-dotnet.md
+  - name: ZUGFeRD / XRechnung invoice
+    href: ../../docs/howto/zugferd-xrechnung-invoice-csharp.md
+  - name: Replace iText
+    href: ../../docs/howto/replace-itext-dotnet.md
+- name: Guides
+  items:
+  - name: Creating documents
+    href: ../../docs/guide/creating-documents.md
+  - name: Opening and manipulating
+    href: ../../docs/guide/manipulating-documents.md
+  - name: Text extraction
+    href: ../../docs/guide/text-extraction.md
+  - name: Forms
+    href: ../../docs/guide/forms.md
+  - name: Redaction
+    href: ../../docs/guide/redaction.md
+  - name: Security and encryption
+    href: ../../docs/guide/security.md
+  - name: Signatures
+    href: ../../docs/guide/signatures.md
+  - name: Accessibility (PDF/UA)
+    href: ../../docs/guide/accessibility.md
+  - name: Attachments and e-invoices
+    href: ../../docs/guide/attachments.md
+  - name: Barcodes
+    href: ../../docs/guide/barcodes.md
+- name: Background
+  items:
+  - name: Comparison with iText and Syncfusion
+    href: ../../docs/COMPARISON.md
+  - name: Migration from iText
+    href: ../../docs/MIGRATION.md
+  - name: Architecture
+    href: ../../docs/ARCHITECTURE.md

@@ -88,7 +88,7 @@ merged.Save("complete.pdf");
 
 HTML to PDF (iText pdfHTML), rendering PDF pages to images and OCR are not part of miPDFlib; the
 [migration guide](../MIGRATION.md#not-yet-covered-by-mipdflib) lists alternatives. Office documents can be converted
-with LibreOffice via Gotenberg (see the [README](../../README.md#office-documents-word-excel-powerpoint)).
+with LibreOffice via Gotenberg (see the [README](https://github.com/Mibuw/miPDFlib#office-documents-word-excel-powerpoint)).
 
 ## Checklist
 

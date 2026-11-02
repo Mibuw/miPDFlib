@@ -82,6 +82,8 @@ byte[] signed = PdfSigner.Sign(File.ReadAllBytes("hello.pdf"), CertificateSigner
 
 ## Documentation
 
+**[API reference and guides](https://mibuw.github.io/miPDFlib/)** – every namespace, class and method, searchable.
+
 **How-to guides:**
 [Sign a PDF with PAdES in .NET](https://github.com/Mibuw/miPDFlib/blob/main/docs/howto/sign-pdf-pades-dotnet.md) ·
 [Create a ZUGFeRD / XRechnung invoice in C#](https://github.com/Mibuw/miPDFlib/blob/main/docs/howto/zugferd-xrechnung-invoice-csharp.md) ·

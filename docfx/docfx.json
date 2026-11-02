@@ -1,0 +1,82 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src/MiPdf",
+          "files": [
+            "MiPdf.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "properties": {
+        "TargetFramework": "net8.0"
+      },
+      "enumSortOrder": "declaringOrder"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "index.md",
+          "toc.yml",
+          "docs/toc.yml"
+        ]
+      },
+      {
+        "files": [
+          "guide/*.md",
+          "howto/*.md",
+          "COMPARISON.md",
+          "MIGRATION.md",
+          "ARCHITECTURE.md"
+        ],
+        "src": "../docs",
+        "dest": "docs"
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/*.png"
+        ]
+      },
+      {
+        "files": [
+          "social-preview.png"
+        ],
+        "src": "../assets",
+        "dest": "images"
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "template"
+    ],
+    "globalMetadata": {
+      "_appName": "miPDFlib",
+      "_appTitle": "miPDFlib",
+      "_appLogoPath": "images/logo.png",
+      "_appFaviconPath": "images/favicon.png",
+      "_appFooter": "miPDFlib – Apache-2.0 – <a href=\"https://github.com/Mibuw/miPDFlib\">GitHub</a> · <a href=\"https://www.nuget.org/packages/miPDFlib\">NuGet</a>",
+      "_enableSearch": true,
+      "_disableContribution": false,
+      "_gitContribute": {
+        "repo": "https://github.com/Mibuw/miPDFlib",
+        "branch": "main"
+      },
+      "pdf": false
+    }
+  }
+}
