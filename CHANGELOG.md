@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- E-invoices: `FacturX.CheckConsistency(doc)` checks whether the invoice number, issue date, seller and buyer, VAT
+  identifier, IBAN and totals of the embedded XML appear in the visible PDF (plausibility check, e.g. for incoming
+  invoices).
+- E-invoices: `FacturX.Attach` rejects a profile that contradicts the guideline ID (BT-24) in the XML, for example
+  `FacturXProfile.EN16931` for a MINIMUM invoice. New: `FacturX.DetectProfile(xml)`.
+- Docs: kerning is supported (removed from the "not supported" list in the creating documents guide).
+
 ## 0.3.1
 
 - Saving updates the document information: the modification date is set to now and, for documents opened from a

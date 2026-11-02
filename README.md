@@ -48,7 +48,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 | **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA** (CAdES detached, signing-certificate-v2, DSS with OCSP/CRL), custom signed attributes, handwritten ink appearances, TSA failover, RFC 3161 time-stamps, document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |
 | **PDF/A** | PDF/A-1b/2b/2u/3b/3u output (XMP, sRGB output intent) and a basic conformance checker |
 | **Accessibility** | tagged PDF and **PDF/UA-1**: automatic tagging by the layout engine (headings, paragraphs, tables, figures, artifacts), manual tagging API, PDF/UA checker |
-| **Attachments / e-invoices** | embedded files with PDF/A-3 associated files, ZUGFeRD 2.x / Factur-X / XRechnung hybrid invoices |
+| **Attachments / e-invoices** | embedded files with PDF/A-3 associated files, ZUGFeRD 2.x / Factur-X / XRechnung hybrid invoices, consistency check of the visible invoice against the XML |
 | **Hardening** | resource limits against decompression bombs and CPU exhaustion, SSRF-safe revocation fetching, fuzz-tested parser – see [SECURITY.md](https://github.com/Mibuw/miPDFlib/blob/main/SECURITY.md) |
 | **Barcodes** | QR Code, EPC/GiroCode, Data Matrix (incl. GS1), Code 128/GS1-128, EAN-13/8, UPC-A, Code 39, ITF – vector output |
 

@@ -174,7 +174,14 @@ instead of a hybrid PDF – check the recipient's requirements.
 using var doc = PdfDocument.Open("incoming.pdf");
 byte[]? xml = FacturX.GetInvoiceXml(doc);          // also finds zugferd-invoice.xml (ZUGFeRD 2.0)
 FacturXProfile? profile = FacturX.GetProfile(doc);
+
+// does the visible invoice show the same invoice number, date, IBAN and totals as the XML?
+foreach (var finding in FacturX.CheckConsistency(doc))
+    Console.WriteLine(finding);
 ```
+
+The XML is the legally binding part of the invoice. `CheckConsistency` reports values of the XML that do not appear
+in the visible PDF – a different IBAN in the PDF, for example, is a reason to look closer before paying.
 
 ## 5. Signing the invoice (optional)
 

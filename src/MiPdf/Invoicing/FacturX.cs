@@ -1,4 +1,6 @@
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using MiPdf.PdfA;
 
 namespace MiPdf.Invoicing;
@@ -28,7 +30,7 @@ public enum FacturXProfile
 /// pdf.Save("invoice.pdf");    // PDF/A-3b with factur-x.xml
 /// </code>
 /// </example>
-public static class FacturX
+public static partial class FacturX
 {
     /// <summary>XMP namespace of the Factur-X extension schema.</summary>
     public const string NamespaceUri = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
@@ -43,11 +45,15 @@ public static class FacturX
     /// <param name="xml">The CII invoice XML (UTF-8).</param>
     /// <param name="profile">Profile of the XML.</param>
     /// <param name="fileName">Attachment name (default "factur-x.xml", or "xrechnung.xml" for <see cref="FacturXProfile.XRechnung"/>).</param>
+    /// <exception cref="ArgumentException">The XML is not well-formed, or its guideline ID (BT-24) names a different profile.</exception>
     public static PdfAttachment Attach(PdfDocument document, byte[] xml, FacturXProfile profile, string? fileName = null)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(xml);
-        CheckXml(xml);
+        var invoice = Parse(xml, nameof(xml));
+        if (GuidelineId(invoice) is { } guideline && ProfileFromGuideline(guideline) is { } declared && declared != profile)
+            throw new ArgumentException($"The XML declares the profile {ConformanceLevel(declared)} (guideline ID \"{guideline}\"), " +
+                $"not {ConformanceLevel(profile)}.", nameof(profile));
         fileName ??= profile == FacturXProfile.XRechnung ? "xrechnung.xml" : "factur-x.xml";
         if (document.Conformance is not (PdfAConformance.PdfA3B or PdfAConformance.PdfA3U)) document.Conformance = PdfAConformance.PdfA3B;
 
@@ -100,17 +106,52 @@ public static class FacturX
         return null;
     }
 
-    private static void CheckXml(byte[] xml)
+    /// <summary>
+    /// Determines the profile from the guideline ID (BT-24) of a CII invoice, for example
+    /// <c>urn:cen.eu:en16931:2017</c> → <see cref="FacturXProfile.EN16931"/>. Returns null if the ID is missing or unknown.
+    /// </summary>
+    /// <exception cref="ArgumentException">The XML is not well-formed.</exception>
+    public static FacturXProfile? DetectProfile(byte[] xml)
+    {
+        ArgumentNullException.ThrowIfNull(xml);
+        return ProfileFromGuideline(GuidelineId(Parse(xml, nameof(xml))));
+    }
+
+    /// <summary>Maps Factur-X 1.0 / ZUGFeRD 2.x and XRechnung guideline IDs to a profile.</summary>
+    internal static FacturXProfile? ProfileFromGuideline(string? id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        id = id.Trim();
+        if (id.Contains("xrechnung", StringComparison.OrdinalIgnoreCase)) return FacturXProfile.XRechnung;
+        if (id.EndsWith(":minimum", StringComparison.OrdinalIgnoreCase)) return FacturXProfile.Minimum;
+        if (id.EndsWith(":basicwl", StringComparison.OrdinalIgnoreCase)) return FacturXProfile.BasicWL;
+        if (id.EndsWith(":basic", StringComparison.OrdinalIgnoreCase)) return FacturXProfile.Basic;
+        if (id.EndsWith(":extended", StringComparison.OrdinalIgnoreCase)) return FacturXProfile.Extended;
+        if (id == "urn:cen.eu:en16931:2017") return FacturXProfile.EN16931;
+        return null;
+    }
+
+    private static string? GuidelineId(XDocument invoice) =>
+        Element(invoice.Root, "ExchangedDocumentContext", "SpecifiedExchangedDocumentContext")
+            ?.Elements().FirstOrDefault(e => e.Name.LocalName == "GuidelineSpecifiedDocumentContextParameter")
+            ?.Elements().FirstOrDefault(e => e.Name.LocalName == "ID")?.Value.Trim();
+
+    /// <summary>Child element by local name (CII and ZUGFeRD 1.0 use different namespaces and some different names).</summary>
+    private static XElement? Element(XElement? parent, params string[] localNames) =>
+        parent?.Elements().FirstOrDefault(e => localNames.Contains(e.Name.LocalName));
+
+    /// <summary>Parses untrusted XML without DTDs or external resolution.</summary>
+    private static XDocument Parse(byte[] xml, string paramName)
     {
         try
         {
-            using var reader = System.Xml.XmlReader.Create(new MemoryStream(xml),
-                new System.Xml.XmlReaderSettings { DtdProcessing = System.Xml.DtdProcessing.Prohibit, XmlResolver = null });
-            while (reader.Read()) { }
+            using var reader = XmlReader.Create(new MemoryStream(xml),
+                new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
+            return XDocument.Load(reader);
         }
-        catch (System.Xml.XmlException ex)
+        catch (XmlException ex)
         {
-            throw new ArgumentException("The invoice is not well-formed XML: " + ex.Message, nameof(xml), ex);
+            throw new ArgumentException("The invoice is not well-formed XML: " + ex.Message, paramName, ex);
         }
     }
 }
