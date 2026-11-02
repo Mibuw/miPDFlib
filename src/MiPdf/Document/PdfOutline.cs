@@ -53,8 +53,8 @@ public sealed class PdfOutline
     }
 
     /// <summary>
-    /// Text color (/C), or null for the default (black). Only RGB is stored; a non-RGB color is stored as gray
-    /// from its first component. <c>null</c> removes the entry.
+    /// Text color (/C), or null for the default (black). Outlines store RGB: gray is stored as equal RGB components,
+    /// CMYK is converted with the naive formula (R = (1 − C)(1 − K), …). <c>null</c> removes the entry.
     /// </summary>
     public PdfColor? Color
     {
@@ -64,7 +64,12 @@ public sealed class PdfOutline
             if (value is not { } v) Dictionary.Remove(PdfName.C);
             else
             {
-                var rgb = v.ColorSpace == PdfColorSpace.Rgb ? v : PdfColor.Rgb(v.C1, v.C1, v.C1);
+                var rgb = v.ColorSpace switch
+                {
+                    PdfColorSpace.Rgb => v,
+                    PdfColorSpace.Cmyk => PdfColor.Rgb((1 - v.C1) * (1 - v.C4), (1 - v.C2) * (1 - v.C4), (1 - v.C3) * (1 - v.C4)),
+                    _ => PdfColor.Rgb(v.C1, v.C1, v.C1),
+                };
                 Dictionary[PdfName.C] = PdfArray.FromNumbers(rgb.C1, rgb.C2, rgb.C3);
             }
         }

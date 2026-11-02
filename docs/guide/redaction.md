@@ -22,6 +22,9 @@ doc.Save("marked.pdf");
 doc.ApplyRedactions();
 ```
 
+Every mark keeps its own overlay text (`/OverlayText`); it takes precedence over `RedactionOptions.OverlayText`,
+while fill color and the other settings come from the options passed to `ApplyRedactions`.
+
 ## What is removed
 
 | Content | Behaviour |

@@ -25,7 +25,7 @@ public sealed class HttpTimestampClient : ITimestampClient
     {
         Url = url;
         UserName = userName;
-        Password = password;
+        _password = password;
         _http = httpClient ?? SharedClient;
     }
 
@@ -35,8 +35,8 @@ public sealed class HttpTimestampClient : ITimestampClient
     /// <summary>User for HTTP basic authentication; null = no authentication.</summary>
     public string? UserName { get; }
 
-    /// <summary>Password for HTTP basic authentication (only used if <see cref="UserName"/> is set).</summary>
-    public string? Password { get; }
+    // password for HTTP basic authentication (only used if UserName is set); deliberately not readable from outside
+    private readonly string? _password;
 
     /// <summary>Maximum accepted response size in bytes (default 1 MB).</summary>
     public int MaxResponseSize { get; set; } = 1024 * 1024;
@@ -63,7 +63,7 @@ public sealed class HttpTimestampClient : ITimestampClient
         message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/timestamp-query");
         if (UserName != null)
         {
-            var credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{UserName}:{Password}"));
+            var credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{UserName}:{_password}"));
             message.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
         }
         using var response = _http.Send(message);

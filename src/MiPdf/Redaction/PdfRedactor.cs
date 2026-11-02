@@ -33,6 +33,17 @@ public sealed class RedactionOptions
 
     /// <summary>A glyph is removed when this share of its box overlaps a redacted area (default 0.3).</summary>
     public double GlyphOverlapThreshold { get; init; } = 0.3;
+
+    internal RedactionOptions WithOverlayText(string? overlayText) => overlayText == OverlayText ? this : new RedactionOptions
+    {
+        FillColor = FillColor,
+        OverlayText = overlayText,
+        OverlayFont = OverlayFont,
+        OverlayTextColor = OverlayTextColor,
+        RemoveAnnotations = RemoveAnnotations,
+        RemoveVectorGraphics = RemoveVectorGraphics,
+        GlyphOverlapThreshold = GlyphOverlapThreshold,
+    };
 }
 
 /// <summary>What a redaction removed.</summary>
@@ -157,32 +168,37 @@ public static class PdfRedactor
         return page.AddAnnotation(dict);
     }
 
-    /// <summary>Applies all Redact annotations of the document and removes them.</summary>
+    /// <summary>
+    /// Applies all Redact annotations of the document and removes them. The /OverlayText of an annotation takes
+    /// precedence over <see cref="RedactionOptions.OverlayText"/>; all other settings come from <paramref name="options"/>.
+    /// </summary>
     public static RedactionResult ApplyRedactions(PdfDocument document, RedactionOptions? options = null)
     {
+        options ??= new RedactionOptions();
         var total = new RedactionResult();
         foreach (var page in document.Pages)
         {
             var marks = page.Annotations.Where(a => a.Subtype == "Redact").ToList();
             if (marks.Count == 0) continue;
-            var areas = new List<PdfRectangle>();
+            var areas = new List<(PdfRectangle Area, string? Overlay)>();
             foreach (var mark in marks)
             {
+                string? overlay = mark.Dictionary.GetText(PdfName.Get("OverlayText")) ?? options.OverlayText;
                 if (mark.Dictionary.GetArray(PdfName.Get("QuadPoints")) is { Count: >= 8 } q)
                 {
                     for (int i = 0; i + 7 < q.Count; i += 8)
                     {
                         var xs = new[] { q.GetDouble(i), q.GetDouble(i + 2), q.GetDouble(i + 4), q.GetDouble(i + 6) };
                         var ys = new[] { q.GetDouble(i + 1), q.GetDouble(i + 3), q.GetDouble(i + 5), q.GetDouble(i + 7) };
-                        areas.Add(new PdfRectangle(xs.Min(), ys.Min(), xs.Max(), ys.Max()));
+                        areas.Add((new PdfRectangle(xs.Min(), ys.Min(), xs.Max(), ys.Max()), overlay));
                     }
                 }
-                else areas.Add(mark.Rect);
+                else areas.Add((mark.Rect, overlay));
                 page.RemoveAnnotation(mark);
             }
-            string? overlay = marks.Select(m => m.Dictionary.GetText(PdfName.Get("OverlayText"))).FirstOrDefault(t => t != null);
-            var pageOptions = options ?? new RedactionOptions { OverlayText = overlay };
-            total.Add(Redact(page, areas, pageOptions));
+            // one pass per overlay text, so every mark keeps its own text
+            foreach (var group in areas.GroupBy(a => a.Overlay))
+                total.Add(Redact(page, group.Select(a => a.Area).ToList(), options.WithOverlayText(group.Key)));
         }
         return total;
     }

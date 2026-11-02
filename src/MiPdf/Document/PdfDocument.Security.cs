@@ -32,8 +32,12 @@ public sealed partial class PdfDocument
     /// <summary>Encryption revision of an encrypted document (2–6), 0 if not encrypted.</summary>
     public int EncryptionRevision => _security?.Revision ?? 0;
 
+    /// <summary>The password the document was opened with (needed to reopen earlier revisions, e.g. of signed documents).</summary>
+    internal string? OpenPassword { get; private set; }
+
     private void InitSecurity(string? password)
     {
+        OpenPassword = password;
         if (!IsEncrypted) return;
         var encryptRef = Trailer[PdfName.Encrypt] as PdfReference;
         if (encryptRef != null) Store.EncryptObjectNumber = encryptRef.ObjectNumber;

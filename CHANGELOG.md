@@ -1,19 +1,27 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
 
-- Forms: export and import (merge) field values as XFDF and FDF – `PdfAcroForm.ExportXfdf`, `ImportXfdf`,
-  `ExportFdf`, `ImportFdf` with `FormDataImportResult` (fields set, unknown fields, invalid values).
-- Samples: ZUGFeRD / Factur-X invoice (`08-zugferd-invoice.pdf`); CI validates it with Mustang (PDF/A-3, EN 16931
-  rules) and the KoSIT validator on every push.
-- Docs: API reference and guides on GitHub Pages (https://mibuw.github.io/miPDFlib/), generated with DocFX.
-- Docs: every public type and member has an XML documentation comment (IntelliSense and API reference); the
-  compiler warning for missing comments is enabled again.
 - Signatures: `PdfSignatureValidator` evaluates the stored revocation data – OCSP responses and CRLs from the
   Document Security Store and from the `adbe-revocationInfoArchival` attribute – and reports the revocation status
   at the time of signing for every certificate of the chain (`Revocation`, `RevocationDetails`; also for the
   time-stamping authority of document time-stamps). Only revocation data signed by the issuer or an authorised OCSP
   responder counts.
+- Forms: export and import (merge) field values as XFDF and FDF – `PdfAcroForm.ExportXfdf`, `ImportXfdf`,
+  `ExportFdf`, `ImportFdf` with `FormDataImportResult` (fields set, unknown fields, invalid values).
+- Fix: `PdfRedactor.ApplyRedactions` kept only the first /OverlayText of a page and ignored the overlay texts of the
+  Redact annotations entirely when options were passed. Every mark now keeps its own text; it takes precedence over
+  `RedactionOptions.OverlayText`.
+- Fix: `PdfSignatureValidator.Validate(PdfDocument)` reported "(the signed revision cannot be read)" for field locks of
+  encrypted documents; the password the document was opened with is now used.
+- Fix: a CMYK outline color (`PdfOutline.Color`) was stored as gray from its cyan component; it is converted to RGB.
+- `HttpTimestampClient.Password` is no longer publicly readable (breaking: the getter was removed; the constructor is
+  unchanged).
+- Samples: ZUGFeRD / Factur-X invoice (`08-zugferd-invoice.pdf`); CI validates it with Mustang (PDF/A-3, EN 16931
+  rules) and the KoSIT validator on every push.
+- Docs: API reference and guides on GitHub Pages (https://mibuw.github.io/miPDFlib/), generated with DocFX.
+- Docs: every public type and member has an XML documentation comment (IntelliSense and API reference); the
+  compiler warning for missing comments is enabled again.
 
 ## 0.4.0
 

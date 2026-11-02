@@ -132,15 +132,18 @@ public static class PdfSignatureValidator
     /// <param name="pdf">The complete PDF file.</param>
     /// <param name="options">Validation options (default: no certificate chain check).</param>
     /// <param name="password">Password for encrypted documents.</param>
-    public static IReadOnlyList<SignatureValidationResult> Validate(byte[] pdf, SignatureValidationOptions? options = null, string? password = null) =>
-        Validate(PdfDocument.Open(pdf, password), options, password);
+    public static IReadOnlyList<SignatureValidationResult> Validate(byte[] pdf, SignatureValidationOptions? options = null, string? password = null)
+    {
+        using var document = PdfDocument.Open(pdf, password);
+        return Validate(document, options, password);
+    }
 
     /// <summary>
     /// Verifies all signatures and document time-stamps of an opened document against the file it was opened from
     /// (unsaved changes are not considered). Returns one result per signed signature field.
     /// </summary>
     public static IReadOnlyList<SignatureValidationResult> Validate(PdfDocument document, SignatureValidationOptions? options = null) =>
-        Validate(document, options, null);
+        Validate(document, options, document.OpenPassword);
 
     private static IReadOnlyList<SignatureValidationResult> Validate(PdfDocument document, SignatureValidationOptions? options, string? password)
     {

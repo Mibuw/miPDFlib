@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-11-02 (after 0.4.0: stored revocation data in the validator)
+Last update: 2026-11-02 (release 0.5.0)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -34,8 +34,9 @@ Last update: 2026-11-02 (after 0.4.0: stored revocation data in the validator)
 | 25 Stored revocation data | ✅ done (281 tests; validator evaluates DSS and adbe-revocationInfoArchival OCSP/CRL with signature checks of the evidence and delegated responders; tested with real DigiCert OCSP responses and CRLs) |
 | 26 Form data exchange | ✅ done (286 tests; FDF and XFDF export/import with hierarchical names, multiple selections, unknown-field and error reporting; XFDF without DTD processing) |
 | 27 API reference | ✅ DocFX site on GitHub Pages (https://mibuw.github.io/miPDFlib/), rebuilt on every push to main |
+| 28 API review fixes | ✅ done (289 tests; redaction overlay texts per mark, field locks of encrypted documents, CMYK outline colors, time-stamp password no longer readable) |
 
-Current state: 286 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 289 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
