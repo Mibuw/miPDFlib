@@ -85,7 +85,8 @@ byte[] signed = PdfSigner.Sign(File.ReadAllBytes("hello.pdf"), CertificateSigner
     new PdfSignatureOptions { Reason = "Approved", TimestampClient = new HttpTimestampClient("http://timestamp.digicert.com") });
 ```
 
-More examples: [samples/MiPdf.Samples](https://github.com/Mibuw/miPDFlib/blob/main/samples/MiPdf.Samples/Program.cs) (`dotnet run --project samples/MiPdf.Samples`).
+More examples: [samples/MiPdf.Samples](https://github.com/Mibuw/miPDFlib/blob/main/samples/MiPdf.Samples/Program.cs) (`dotnet run --project samples/MiPdf.Samples`)
+and an ASP.NET Core web API with Dockerfile that creates, signs and validates PDFs: [samples/MiPdf.WebApi](https://github.com/Mibuw/miPDFlib/blob/main/samples/MiPdf.WebApi/README.md).
 
 ## Office documents (Word, Excel, PowerPoint)
 
@@ -115,6 +116,11 @@ Notes:
 - LibreOffice renders Office documents very well, but not always pixel-identical to Microsoft Office.
 
 ## Documentation
+
+**How-to guides:**
+[Sign a PDF with PAdES in .NET](https://github.com/Mibuw/miPDFlib/blob/main/docs/howto/sign-pdf-pades-dotnet.md) ·
+[Create a ZUGFeRD / XRechnung invoice in C#](https://github.com/Mibuw/miPDFlib/blob/main/docs/howto/zugferd-xrechnung-invoice-csharp.md) ·
+[Replace iText with an Apache-2.0 library](https://github.com/Mibuw/miPDFlib/blob/main/docs/howto/replace-itext-dotnet.md)
 
 - [Creating documents](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/creating-documents.md) – fonts, canvas, images, flow layout, tables
 - [Opening and manipulating](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/manipulating-documents.md) – save options, pages, merge/split, stamps, bookmarks, links

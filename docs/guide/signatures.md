@@ -31,6 +31,13 @@ CSP/KSP, ...) or a `PdfDocument`.
 | `Format` | `PAdES` (default, `ETSI.CAdES.detached`, with signing-certificate-v2) or `Pkcs7Detached` (`adbe.pkcs7.detached`, with signing-time and signing-certificate-v2) |
 | `DigestAlgorithm` | SHA-256 (default), SHA-384, SHA-512 |
 | `RsaPadding` | RSA keys: `RSASignaturePadding.Pkcs1` (default, PKCS#1 v1.5) or `RSASignaturePadding.Pss` (RSASSA-PSS, MGF1 with the digest algorithm, salt length = digest length) |
+| `FieldName` | existing empty signature field to sign, or name of the new field (default `Signature1`, `Signature2`, ...) |
+| `TimestampClient` | time-stamp authority (B-T level) |
+| `Certification` | certify the document (DocMDP): `NoChanges`, `FormFilling`, `FormFillingAndAnnotations` |
+| `FieldLock` | form fields locked by this signature (FieldMDP): `PdfFieldLock.All()`, `Include(..)`, `Exclude(..)` |
+| `Appearance` | text template (`{name}`, `{date}`, `{reason}`, `{location}`, `{contact}`), image (left, background or image only), font, colors |
+| `Password` | password of an encrypted document |
+| `SignatureSize` | reserved container size (default: estimated automatically) |
 
 ### Key types
 
@@ -40,13 +47,6 @@ CSP/KSP, ...) or a `PdfDocument`.
 | ECDSA | NIST P-256, P-384, P-521 and Brainpool P256r1, P384r1, P512r1 (tested); any other curve the platform supports. Use a digest that matches the curve size (e.g. P-384 with SHA-384). |
 
 Certificates issued with RSASSA-PSS are supported for chain building, LTV and validation as well.
-| `FieldName` | existing empty signature field to sign, or name of the new field (default `Signature1`, `Signature2`, ...) |
-| `TimestampClient` | time-stamp authority (B-T level) |
-| `Certification` | certify the document (DocMDP): `NoChanges`, `FormFilling`, `FormFillingAndAnnotations` |
-| `FieldLock` | form fields locked by this signature (FieldMDP): `PdfFieldLock.All()`, `Include(..)`, `Exclude(..)` |
-| `Appearance` | text template (`{name}`, `{date}`, `{reason}`, `{location}`, `{contact}`), image (left, background or image only), font, colors |
-| `Password` | password of an encrypted document |
-| `SignatureSize` | reserved container size (default: estimated automatically) |
 
 ## HSM, smart cards, cloud signing – `IExternalSigner`
 

@@ -125,6 +125,13 @@ Converting Syncfusion's top-left coordinates: `yPdf = page.Height - ySyncfusion 
 | Create PDF/A | `new PdfADocument(writer, PdfAConformanceLevel.PDF_A_2B, outputIntent)` | `new PdfDocument(PdfConformanceLevel.Pdf_A2B)` | `doc.Conformance = PdfAConformance.PdfA2B` (embedded fonts required) |
 | Check | built-in checker (throws) | – | `doc.CheckPdfA(level)` (basic) + veraPDF for full validation |
 
+## Barcodes and long-term validation
+
+| Task | iText | Syncfusion | miPDFlib |
+|---|---|---|---|
+| Barcodes / QR codes | `BarcodeQRCode`, `Barcode128`, `BarcodeEAN`, `BarcodeDataMatrix` | `PdfQRBarcode`, `PdfCode128Barcode`, `PdfEan13Barcode`, `PdfDataMatrixBarcode` | `QrCode`, `Code128`, `Ean`, `DataMatrix`, `Code39`, `Interleaved2Of5`, `EpcQrCode` + `canvas.DrawBarcode(...)` / `BarcodeElement` – see [guide/barcodes.md](guide/barcodes.md); PDF417 is not implemented |
+| PAdES B-LT/B-LTA (DSS) | `LtvVerification` / `PdfPadesSigner` | `EnableLtv` | `PdfLtv.AddValidationData` / `PdfLtv.MakeLta` |
+
 ## Not (yet) covered by miPDFlib
 
 | Feature | Alternative |
@@ -132,7 +139,5 @@ Converting Syncfusion's top-left coordinates: `yPdf = page.Height - ySyncfusion 
 | HTML → PDF (iText pdfHTML, Syncfusion HtmlConverter) | headless browser (e.g. Playwright/Chromium `page.PdfAsync`) |
 | PDF → image rendering | PDFium-based libraries, Ghostscript |
 | Office → PDF | LibreOffice headless, OpenXML-based converters |
-| Barcodes / QR codes (iText `BarcodeQRCode`, `Barcode128`, `BarcodeEAN`, `BarcodeDataMatrix`; Syncfusion `PdfQRBarcode`, `PdfCode128Barcode`, `PdfEan13Barcode`, `PdfDataMatrixBarcode`) | `QrCode`, `Code128`, `Ean`, `DataMatrix`, `Code39`, `Interleaved2Of5`, `EpcQrCode` + `canvas.DrawBarcode(...)` / `BarcodeElement` – see [guide/barcodes.md](guide/barcodes.md); PDF417 is not implemented |
 | OCR | Tesseract |
-| PAdES B-LT/B-LTA validation data (DSS) | `PdfLtv.AddValidationData` / `PdfLtv.MakeLta` (iText `LtvVerification`/`PdfPadesSigner`, Syncfusion `EnableLtv`) |
 | XFA forms | not planned |

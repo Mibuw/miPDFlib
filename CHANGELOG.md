@@ -5,6 +5,10 @@
 - Docs: comparison with iText and Syncfusion PDF (`docs/COMPARISON.md`), "Why miPDFlib?" and article links in both
   readmes, more descriptive package description.
 - Docs: "Used by" section in both readmes.
+- Docs: how-to guides for PAdES signing, ZUGFeRD / XRechnung invoices and replacing iText (`docs/howto`).
+- Samples: ASP.NET Core web API (`samples/MiPdf.WebApi`) with Dockerfile – create, sign and validate PDFs.
+- Docs fixes: signature options table in the signatures guide; barcodes and PAdES LTV are no longer listed as
+  "not covered" in the migration guide.
 
 ## 0.3.0
 
