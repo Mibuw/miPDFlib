@@ -30,7 +30,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 - **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) and the
   [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
 
-> Status: **0.3.1** – all planned feature areas are implemented and tested (260 unit tests, real-world
+> Status: **0.4.0** – all planned feature areas are implemented and tested (273 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
 ## Features
@@ -168,7 +168,7 @@ Every release is also available as a [GitHub release](https://github.com/Mibuw/m
 `.nupkg` and symbol package attached.
 
 > **Versioning:** releases follow [Semantic Versioning](https://semver.org). Until 1.0 the public API may still change
-> between minor versions (0.3 → 0.4); such changes are listed in
+> between minor versions (0.4 → 0.5); such changes are listed in
 > [CHANGELOG.md](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md). There is no guaranteed support.
 
 ## Building

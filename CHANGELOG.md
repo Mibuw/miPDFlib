@@ -1,13 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 - E-invoices: `FacturX.CheckConsistency(doc)` checks whether the invoice number, issue date, seller and buyer, VAT
   identifier, IBAN and totals of the embedded XML appear in the visible PDF (plausibility check, e.g. for incoming
   invoices).
 - E-invoices: `FacturX.Attach` rejects a profile that contradicts the guideline ID (BT-24) in the XML, for example
-  `FacturXProfile.EN16931` for a MINIMUM invoice. New: `FacturX.DetectProfile(xml)`.
+  `FacturXProfile.EN16931` for a MINIMUM invoice (behaviour change: this used to be accepted). XML without a
+  guideline ID or with an unknown one is accepted as before. New: `FacturX.DetectProfile(xml)`.
 - Docs: kerning is supported (removed from the "not supported" list in the creating documents guide).
+- Docs: article "ZUGFeRD in .NET" linked in both readmes; generating the e-invoice XML stays out of scope
+  (see the design decisions in `docs/PROGRESS.md`).
 
 ## 0.3.1
 

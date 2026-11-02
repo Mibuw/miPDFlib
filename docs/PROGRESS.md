@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-11-02 (after release 0.3.1: e-invoice checks)
+Last update: 2026-11-02 (release 0.4.0)
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -32,7 +32,7 @@ Last update: 2026-11-02 (after release 0.3.1: e-invoice checks)
 | 23 Widget borders and rotation | ✅ done (253 tests; fields without border, widget rotation/colors with rebuilt appearances incl. check boxes and radio buttons, signature appearance upright on rotated pages) |
 | 24 E-invoice checks | ✅ done (273 tests; `FacturX.CheckConsistency` compares the embedded XML with the visible text, `Attach` rejects a profile that contradicts the guideline ID, `FacturX.DetectProfile`) |
 
-Current state: 260 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 273 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
