@@ -21,6 +21,15 @@
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
 
+**Why miPDFlib?**
+
+- **Apache-2.0:** free in closed commercial products – no AGPL obligations, no revenue limits, no licence key.
+- **eIDAS-ready signatures:** PAdES B-B to B-LTA, HSM/cloud signers and two-step signing, built on .NET cryptography
+  without BouncyCastle.
+- **Archiving and e-invoices:** PDF/A, PDF/UA and ZUGFeRD / Factur-X / XRechnung hybrid invoices.
+- **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) and the
+  [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
+
 > Status: **0.3.0** – first stable release: all planned feature areas are implemented and tested (254 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
@@ -117,9 +126,17 @@ Notes:
 - [Accessibility / PDF/UA](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/accessibility.md) – tagged PDF, PDF/UA, checker
 - [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md) – embedded files, ZUGFeRD / Factur-X
 - [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, Code 128, EAN
-- [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md)
+- [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md) and [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
 - [Architecture](https://github.com/Mibuw/miPDFlib/blob/main/docs/ARCHITECTURE.md) – internal structure for contributors
 - [Project plan](https://github.com/Mibuw/miPDFlib/blob/main/docs/PLAN.md) and [progress](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md)
+
+## Articles
+
+- [miPDFlib or aiPDFlib? A PDF library built from specifications – with AI](https://www.mitterbucher.com/en/articles/mipdflib-aipdflib/)
+  ([German](https://www.mitterbucher.com/artikel/mipdflib-kipdflib/)) – how the library was planned, built and tested
+- [iText or Syncfusion PDF? A practical comparison for forms and digital signatures in .NET](https://www.mitterbucher.com/en/articles/itext-vs-syncfusion-pdf/)
+  ([German](https://www.mitterbucher.com/artikel/itext-vs-syncfusion-pdf/)) – now including miPDFlib
+- [Project page](https://www.mitterbucher.com/mipdflib.html)
 
 ## Installation
 

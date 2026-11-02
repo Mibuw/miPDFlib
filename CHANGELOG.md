@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Docs: comparison with iText and Syncfusion PDF (`docs/COMPARISON.md`), "Why miPDFlib?" and article links in both
+  readmes, more descriptive package description.
+
 ## 0.3.0
 
 - First stable (non-prerelease) release: installs without `--prerelease`. Same code as 0.2.8-alpha. Releases follow

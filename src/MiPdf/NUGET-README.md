@@ -16,6 +16,15 @@ dotnet add package miPDFlib
 The namespace is `MiPdf` (`using MiPdf;`). Versions up to 0.2.3-alpha were published under the package ID `MiPdf`,
 which is deprecated; switch the package reference to `miPDFlib`, no code changes are needed.
 
+**Why miPDFlib?**
+
+- **Apache-2.0:** free in closed commercial products - no AGPL obligations, no revenue limits, no licence key.
+- **eIDAS-ready signatures:** PAdES B-B to B-LTA, HSM/cloud signers and two-step signing, built on .NET cryptography
+  without BouncyCastle.
+- **Archiving and e-invoices:** PDF/A, PDF/UA and ZUGFeRD / Factur-X / XRechnung hybrid invoices.
+- **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
+  and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
+
 > **Versioning:** all planned feature areas are implemented and tested. Releases follow Semantic Versioning; until 1.0
 > the public API may still change between minor versions (see the [changelog](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)).
 
@@ -83,7 +92,9 @@ byte[] signed = PdfSigner.Sign(File.ReadAllBytes("hello.pdf"), CertificateSigner
 - [Accessibility / PDF/UA](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/accessibility.md): tagged PDF, PDF/UA, checker
 - [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md): embedded files, ZUGFeRD / Factur-X
 - [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md): QR, EPC payment codes, Data Matrix, Code 128, EAN
-- [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md)
+- [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md) and [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
+- Articles: [miPDFlib or aiPDFlib?](https://www.mitterbucher.com/en/articles/mipdflib-aipdflib/) (how it was built) and
+  [iText or Syncfusion PDF?](https://www.mitterbucher.com/en/articles/itext-vs-syncfusion-pdf/) (now including miPDFlib)
 - [Office documents to PDF](https://github.com/Mibuw/miPDFlib#office-documents-word-excel-powerpoint): recommended conversion with LibreOffice via Gotenberg
 
 ## License
