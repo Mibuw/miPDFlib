@@ -84,7 +84,7 @@ public sealed class PdfFormXObject : IResourceContainer
 
     internal void SetContent(byte[] content) => Stream.SetBytes(content);
 
-    internal byte[] GetContent() => Stream.RawBytes.Length == 0 ? Array.Empty<byte>() : Stream.GetBytes();
+    internal byte[] GetContent() => Stream.RawLength == 0 ? Array.Empty<byte>() : Stream.GetBytes();
 
     /// <summary>
     /// Registers <paramref name="resource"/> in the <paramref name="category"/> sub-dictionary of <see cref="Resources"/>

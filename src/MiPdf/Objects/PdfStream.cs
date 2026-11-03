@@ -9,7 +9,11 @@ namespace MiPdf.Objects;
 /// </summary>
 public sealed class PdfStream : PdfDictionary
 {
-    private byte[] _raw = Array.Empty<byte>();
+    private byte[]? _raw = Array.Empty<byte>();
+
+    // encoded data of a stream read from a file: a slice of the file data, copied only when RawBytes is used,
+    // so that saving, merging and copying pages do not duplicate large streams (images, fonts)
+    private ReadOnlyMemory<byte> _source;
 
     /// <summary>Creates an empty stream without data.</summary>
     public PdfStream() { }
@@ -17,23 +21,41 @@ public sealed class PdfStream : PdfDictionary
     /// <summary>Creates a stream from decoded data, optionally Flate-compressing it.</summary>
     public PdfStream(byte[] data, bool compress = true) => SetBytes(data, compress);
 
-    internal PdfStream(PdfDictionary dictionary, byte[] raw)
+    internal PdfStream(PdfDictionary dictionary, ReadOnlyMemory<byte> raw)
     {
         foreach (var (k, v) in dictionary) this[k] = v;
-        _raw = raw;
+        _raw = null;
+        _source = raw;
     }
 
     /// <inheritdoc/>
     public override PdfObjectType ObjectType => PdfObjectType.Stream;
 
     /// <summary>The encoded stream data.</summary>
-    public byte[] RawBytes => _raw;
+    public byte[] RawBytes
+    {
+        get
+        {
+            if (_raw == null)
+            {
+                _raw = _source.ToArray();
+                _source = default;
+            }
+            return _raw;
+        }
+    }
+
+    /// <summary>The encoded data without copying it out of the file data.</summary>
+    internal ReadOnlyMemory<byte> RawData => _raw ?? _source;
+
+    /// <summary>The length of the encoded data.</summary>
+    internal int RawLength => _raw?.Length ?? _source.Length;
 
     /// <summary>
     /// Returns the decoded data. Image-specific filters (DCT, JPX, JBIG2, CCITT) are not decoded;
     /// data encoded with those is returned as-is after all preceding generic filters.
     /// </summary>
-    public byte[] GetBytes() => StreamFilters.Decode(_raw, this, out _);
+    public byte[] GetBytes() => StreamFilters.Decode(RawBytes, this, out _);
 
     /// <summary>Replaces the stream data; with <paramref name="compress"/> the data is Flate-encoded.</summary>
     public void SetBytes(byte[] data, bool compress = true)
@@ -50,6 +72,7 @@ public sealed class PdfStream : PdfDictionary
             _raw = data;
             Remove(PdfName.Filter);
         }
+        _source = default;
         Set(PdfName.Length, _raw.Length);
     }
 
@@ -57,7 +80,20 @@ public sealed class PdfStream : PdfDictionary
     public void SetRawBytes(byte[] raw)
     {
         _raw = raw ?? throw new ArgumentNullException(nameof(raw));
+        _source = default;
         Set(PdfName.Length, _raw.Length);
+    }
+
+    /// <summary>Takes the encoded data of <paramref name="other"/>; data still in the file is shared, not copied.</summary>
+    internal void CopyRawDataFrom(PdfStream other)
+    {
+        if (other._raw != null) SetRawBytes((byte[])other._raw.Clone());
+        else
+        {
+            _raw = null;
+            _source = other._source;
+            Set(PdfName.Length, _source.Length);
+        }
     }
 
     /// <summary>Returns the filter names in order of application.</summary>
@@ -68,7 +104,8 @@ public sealed class PdfStream : PdfDictionary
     {
         var copy = new PdfStream();
         CopyEntriesTo(copy);
-        copy._raw = (byte[])_raw.Clone();
+        copy._raw = _raw == null ? null : (byte[])_raw.Clone();
+        copy._source = _source;
         return copy;
     }
 }

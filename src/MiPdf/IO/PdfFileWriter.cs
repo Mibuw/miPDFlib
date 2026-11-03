@@ -89,7 +89,7 @@ internal sealed class PdfFileWriter
         if (_options.CompressUncompressedStreams)
         {
             foreach (var obj in order)
-                if (obj is PdfStream s && s.GetFilters().Count == 0 && s.RawBytes.Length > 64 && !IsMetadata(s))
+                if (obj is PdfStream s && s.GetFilters().Count == 0 && s.RawLength > 64 && !IsMetadata(s))
                     s.SetBytes(s.RawBytes, compress: true);
         }
 
@@ -261,13 +261,27 @@ internal sealed class PdfFileWriter
 
     // ---------------------------------------------------------------- incremental save
 
-    public void WriteIncremental(Stream stream)
+    /// <summary>The bytes written before the update: the original data, plus a line break if it does not end with one.</summary>
+    public static int IncrementalPrefixLength(PdfObjectStore store) => store.OriginalData.Length + (NeedsLineBreak(store.OriginalData) ? 1 : 0);
+
+    private static bool NeedsLineBreak(byte[] original) => original.Length > 0 && original[^1] != '\n' && original[^1] != '\r';
+
+    /// <summary>
+    /// Writes the original data followed by the update; with <paramref name="updateOnly"/> only the update is written
+    /// (offsets still count from the start of the original data, see <see cref="IncrementalPrefixLength"/>).
+    /// </summary>
+    public void WriteIncremental(Stream stream, bool updateOnly = false)
     {
         if (!_store.IsFromFile) throw new PdfException("Incremental saving requires a document opened from a file.");
         var original = _store.OriginalData;
-        var output = new PdfOutput(stream);
-        output.Write(original);
-        if (original.Length > 0 && original[^1] != '\n' && original[^1] != '\r') output.WriteByte((byte)'\n');
+        PdfOutput output;
+        if (updateOnly) output = new PdfOutput(stream, IncrementalPrefixLength(_store));
+        else
+        {
+            output = new PdfOutput(stream);
+            output.Write(original);
+            if (NeedsLineBreak(original)) output.WriteByte((byte)'\n');
+        }
 
         int encryptNumber = _store.Trailer[PdfName.Encrypt] is PdfReference er ? er.ObjectNumber : -1;
         var directStreams = new Dictionary<PdfStream, PdfReference>(ReferenceEqualityComparer.Instance);
@@ -360,7 +374,7 @@ internal sealed class PdfFileWriter
             if (!changed)
             {
                 var original = _store.LoadOriginal(number);
-                changed = original == null || !Serialize(plain, number, current).AsSpan().SequenceEqual(Serialize(plain, number, original));
+                changed = original == null || !SerializesEqual(plain, number, current, original);
             }
             if (changed) result.Add(number);
         }
@@ -399,10 +413,21 @@ internal sealed class PdfFileWriter
         }
     }
 
-    private static byte[] Serialize(PdfObjectSerializer serializer, int number, PdfObject obj)
+    private static bool SerializesEqual(PdfObjectSerializer serializer, int number, PdfObject current, PdfObject original)
+    {
+        // streams: compare the dictionaries and the data directly instead of serializing (possibly large) data twice
+        if (current is PdfStream s && original is PdfStream o)
+            return s.RawData.Span.SequenceEqual(o.RawData.Span) &&
+                   Serialize(serializer, number, s, dictionaryOnly: true).AsSpan().SequenceEqual(Serialize(serializer, number, o, dictionaryOnly: true));
+        return Serialize(serializer, number, current).AsSpan().SequenceEqual(Serialize(serializer, number, original));
+    }
+
+    private static byte[] Serialize(PdfObjectSerializer serializer, int number, PdfObject obj, bool dictionaryOnly = false)
     {
         using var ms = new MemoryStream();
-        serializer.WriteIndirect(new PdfOutput(ms), number, 0, obj);
+        var output = new PdfOutput(ms);
+        if (dictionaryOnly) serializer.WriteStreamDictionary((PdfStream)obj, output);
+        else serializer.WriteIndirect(output, number, 0, obj);
         return ms.ToArray();
     }
 

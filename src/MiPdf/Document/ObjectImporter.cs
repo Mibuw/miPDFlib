@@ -99,7 +99,7 @@ internal sealed class ObjectImporter
             if (key == PdfName.Length) continue;
             copy[key] = Import(value);
         }
-        copy.SetRawBytes((byte[])s.RawBytes.Clone());
+        copy.CopyRawDataFrom(s);
         return copy;
     }
 }

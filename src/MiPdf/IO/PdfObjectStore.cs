@@ -309,7 +309,7 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver
             if (e > position && _data[e - 1] == '\r') e--;
             length = e - position;
         }
-        var raw = _data.AsSpan(position, length).ToArray();
+        var raw = _data.AsMemory(position, length);
         end = position + length;
         var lexer = new PdfLexer(_data, end);
         if (lexer.Next() && lexer.IsKeyword("endstream")) end = lexer.Position;

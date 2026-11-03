@@ -117,7 +117,7 @@ public static class PdfSigner
             if (cms.Length <= prepared.ContainerSize)
             {
                 var warnings = tsError != null ? new[] { "Time-stamp failed, signed without time-stamp: " + tsError } : Array.Empty<string>();
-                return new PdfSigningResult(Embed(prepared, cms), prepared.FieldName, cms, timestamped ? PadesLevel.BT : PadesLevel.BB, warnings);
+                return new PdfSigningResult(Embed(prepared, cms, inPlace: true), prepared.FieldName, cms, timestamped ? PadesLevel.BT : PadesLevel.BB, warnings);
             }
             if (options.SignatureSize > 0)
                 throw new PdfException($"The signature ({cms.Length} bytes) does not fit into the reserved space ({prepared.ContainerSize} bytes).");
@@ -171,7 +171,7 @@ public static class PdfSigner
         {
             var prepared = Prepare(pdf, options, PdfName.Get("DocTimeStamp"), "ETSI.RFC3161", size, null, DateTimeOffset.Now);
             var token = tsa.GetTimestampToken(prepared.GetDocumentDigest(), options.DigestAlgorithm);
-            if (token.Length <= prepared.ContainerSize) return Embed(prepared, token);
+            if (token.Length <= prepared.ContainerSize) return Embed(prepared, token, inPlace: true);
             size = token.Length + 2048;
         }
         throw new PdfException("Could not embed the time-stamp token.");
@@ -323,11 +323,14 @@ public static class PdfSigner
         return new PreparedSignature(bytes, fieldName, byteRange, digest);
     }
 
-    private static byte[] Embed(PreparedSignature prepared, byte[] container)
+    /// <param name="prepared">The prepared document.</param>
+    /// <param name="container">The CMS container.</param>
+    /// <param name="inPlace">Writes into the prepared data instead of a copy (for prepared documents that are not handed out).</param>
+    private static byte[] Embed(PreparedSignature prepared, byte[] container, bool inPlace = false)
     {
         if (container.Length > prepared.ContainerSize)
             throw new PdfException($"The signature container ({container.Length} bytes) exceeds the reserved space ({prepared.ContainerSize} bytes).");
-        var result = (byte[])prepared.PreparedPdf.Clone();
+        var result = inPlace ? prepared.PreparedPdf : (byte[])prepared.PreparedPdf.Clone();
         var hex = Encoding.ASCII.GetBytes(Convert.ToHexString(container));
         hex.CopyTo(result, (int)prepared.ByteRange[1] + 1);
         return result;

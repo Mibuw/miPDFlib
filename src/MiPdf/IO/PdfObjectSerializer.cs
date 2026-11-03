@@ -15,12 +15,13 @@ internal interface IObjectEncryptor
 internal sealed class PdfOutput
 {
     private readonly Stream _stream;
-    private readonly long _start;
 
-    public PdfOutput(Stream stream)
+    /// <param name="stream">The target stream.</param>
+    /// <param name="startPosition">The file offset of the first byte written (for writing an incremental update separately).</param>
+    public PdfOutput(Stream stream, long startPosition = 0)
     {
         _stream = stream;
-        _start = stream.CanSeek ? stream.Position : 0;
+        Position = startPosition;
     }
 
     public long Position { get; private set; }
@@ -90,11 +91,12 @@ internal sealed class PdfObjectSerializer
         output.Write($"{number} {generation} obj\n");
         if (obj is PdfStream stream)
         {
-            byte[] data = stream.RawBytes;
+            // unchanged stream data is written straight from the file data
+            var data = stream.RawData;
             if (Encryptor != null && !(IsUnencryptedObject?.Invoke(number) ?? false) && !IsXrefStream(stream))
-                data = Encryptor.EncryptStream(data, number, generation, stream);
+                data = Encryptor.EncryptStream(stream.RawBytes, number, generation, stream);
             WriteDictionaryBody(stream, output, data.Length);
-            output.Write("\nstream\n").Write(data).Write("\nendstream");
+            output.Write("\nstream\n").Write(data.Span).Write("\nendstream");
         }
         else
         {
@@ -103,6 +105,9 @@ internal sealed class PdfObjectSerializer
         output.Write("\nendobj\n");
         _encryptCurrent = false;
     }
+
+    /// <summary>Writes the dictionary of a stream (with its /Length) without the data.</summary>
+    public void WriteStreamDictionary(PdfStream stream, PdfOutput output) => WriteDictionaryBody(stream, output, stream.RawLength);
 
     private static bool IsXrefStream(PdfStream s) => s.GetName(PdfName.Type) == PdfName.XRef;
 
@@ -139,8 +144,8 @@ internal sealed class PdfObjectSerializer
             case PdfStream stream:
                 if (debug)
                 {
-                    WriteDictionaryBody(stream, output, stream.RawBytes.Length, debug);
-                    output.Write($" stream[{stream.RawBytes.Length} bytes]");
+                    WriteDictionaryBody(stream, output, stream.RawLength, debug);
+                    output.Write($" stream[{stream.RawLength} bytes]");
                 }
                 else if (IndirectStream != null)
                 {

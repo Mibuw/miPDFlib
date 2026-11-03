@@ -316,6 +316,7 @@ internal sealed class GlyphCollector
         var decoder = GetDecoder(gs.Font);
         if (decoder == null) return;
         string fontName = gs.Font?.GetName(PdfName.BaseFont)?.Value ?? "";
+        if (fontName.Contains('+')) fontName = fontName[(fontName.IndexOf('+') + 1)..]; // subset prefix
         foreach (var glyph in decoder.Decode(bytes))
         {
             double tx = (glyph.Width * gs.FontSize + gs.CharSpacing + (glyph.IsSingleByteSpace ? gs.WordSpacing : 0)) * gs.HorizontalScale;
@@ -344,11 +345,8 @@ internal sealed class GlyphCollector
             {
                 // bounding box: baseline from start to end, ascent 0.8 em, descent 0.2 em
                 double ax = -dirY * size, ay = dirX * size;
-                var pts = new[]
-                {
-                    (start.X - ax * 0.2, start.Y - ay * 0.2), (end.X - ax * 0.2, end.Y - ay * 0.2),
-                    (start.X + ax * 0.8, start.Y + ay * 0.8), (end.X + ax * 0.8, end.Y + ay * 0.8),
-                };
+                double x0 = start.X - ax * 0.2, x1 = end.X - ax * 0.2, x2 = start.X + ax * 0.8, x3 = end.X + ax * 0.8;
+                double y0 = start.Y - ay * 0.2, y1 = end.Y - ay * 0.2, y2 = start.Y + ay * 0.8, y3 = end.Y + ay * 0.8;
                 _glyphs.Add(new TextGlyph
                 {
                     Text = glyph.Text,
@@ -356,8 +354,9 @@ internal sealed class GlyphCollector
                     DirX = dirX, DirY = dirY,
                     FontSize = size,
                     SpaceWidth = decoder.SpaceWidth * size * gs.HorizontalScale,
-                    FontName = fontName.Contains('+') ? fontName[(fontName.IndexOf('+') + 1)..] : fontName,
-                    Bounds = new PdfRectangle(pts.Min(p => p.Item1), pts.Min(p => p.Item2), pts.Max(p => p.Item1), pts.Max(p => p.Item2)),
+                    FontName = fontName,
+                    Bounds = new PdfRectangle(Math.Min(Math.Min(x0, x1), Math.Min(x2, x3)), Math.Min(Math.Min(y0, y1), Math.Min(y2, y3)),
+                        Math.Max(Math.Max(x0, x1), Math.Max(x2, x3)), Math.Max(Math.Max(y0, y1), Math.Max(y2, y3))),
                     Order = _glyphs.Count,
                 });
             }

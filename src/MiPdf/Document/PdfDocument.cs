@@ -67,12 +67,24 @@ public sealed partial class PdfDocument : IDisposable
     /// </summary>
     public static PdfDocument Open(Stream stream, string? password = null)
     {
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        return Open(ms.ToArray(), password);
+        ArgumentNullException.ThrowIfNull(stream);
+        long remaining = stream.CanSeek ? stream.Length - stream.Position : -1;
+        if (remaining is >= 0 and <= int.MaxValue)
+        {
+            // read once into an array of the final size
+            var data = new byte[remaining];
+            stream.ReadExactly(data);
+            return Open(data, password);
+        }
+        using var buffer = new ChunkedBufferStream();
+        stream.CopyTo(buffer);
+        return Open(buffer.ToArray(), password);
     }
 
-    /// <summary>Opens a document from its bytes. The array must not be modified while the document is in use.</summary>
+    /// <summary>
+    /// Opens a document from its bytes. The array is used directly, not copied: it must not be modified while the
+    /// document is in use, nor while objects copied from it into other documents are (stream data is shared).
+    /// </summary>
     public static PdfDocument Open(byte[] data, string? password = null)
     {
         ArgumentNullException.ThrowIfNull(data);
@@ -247,12 +259,27 @@ public sealed partial class PdfDocument : IDisposable
 
     // ------------------------------------------------------------------ saving
 
-    /// <summary>Saves the document to a file.</summary>
+    /// <summary>
+    /// Saves the document to a file. The document is written to a temporary file in the same directory, which then
+    /// replaces the target: the target may be the file the document was opened from, and a failed save leaves an
+    /// existing file unchanged.
+    /// </summary>
     public void Save(string path, PdfSaveOptions? options = null)
     {
-        // write into memory first: the target may be the file the document was opened from
-        var bytes = ToArray(options);
-        File.WriteAllBytes(path, bytes);
+        var target = Path.GetFullPath(path);
+        var temp = Path.Combine(Path.GetDirectoryName(target)!, $".{Path.GetFileName(target)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            using (var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1 << 16))
+                Save(stream, options);
+            File.Move(temp, target, overwrite: true);
+        }
+        catch
+        {
+            try { File.Delete(temp); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            throw;
+        }
     }
 
     /// <summary>Saves the document to a stream.</summary>
@@ -269,9 +296,24 @@ public sealed partial class PdfDocument : IDisposable
     /// <summary>Saves the document and returns the bytes.</summary>
     public byte[] ToArray(PdfSaveOptions? options = null)
     {
-        using var ms = new MemoryStream();
-        Save(ms, options);
-        return ms.ToArray();
+        options ??= new PdfSaveOptions();
+        if (options.Incremental && Store.IsFromFile)
+        {
+            // the original data and the update are copied once into an array of the final size
+            PrepareForSave(options);
+            using var update = new ChunkedBufferStream();
+            new PdfFileWriter(Store, options, CreateEncryptor(options)).WriteIncremental(update, updateOnly: true);
+            var original = Store.OriginalData;
+            int prefix = PdfFileWriter.IncrementalPrefixLength(Store);
+            var result = new byte[prefix + update.Length];
+            original.CopyTo(result, 0);
+            if (prefix > original.Length) result[original.Length] = (byte)'\n';
+            update.CopyTo(result.AsSpan(prefix));
+            return result;
+        }
+        using var buffer = new ChunkedBufferStream();
+        Save(buffer, options);
+        return buffer.ToArray();
     }
 
     private void PrepareForSave(PdfSaveOptions options)

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Performance: large documents need far less memory. Stream data of opened files is no longer copied (it is shared
+  with the file data until it is changed), `Save(path)` writes directly to a temporary file that then replaces the
+  target, and `ToArray()` no longer copies the output repeatedly while it grows. For a 300 MB file with images the
+  peak memory drops from 1.2 GB to 330 MB for an incremental save, from 1.6 GB to 330 MB for a full save and from
+  3.4 GB to 630 MB for merging it with itself; signing needs 1.2 GB instead of 1.5 GB.
+- `Save(path)` leaves an existing file unchanged if saving fails (it used to be truncated).
+- `PdfDocument.Open(Stream)` reads seekable streams once into an array of the final size.
+- Text extraction allocates a third less memory and is faster.
+- Benchmarks: `benchmarks/MiPdf.Benchmarks` measures time and memory for large documents.
+
 ## 0.5.0
 
 - Signatures: `PdfSignatureValidator` evaluates the stored revocation data – OCSP responses and CRLs from the
