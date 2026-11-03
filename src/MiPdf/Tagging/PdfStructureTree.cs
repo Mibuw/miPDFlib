@@ -9,6 +9,36 @@ public static class StructureType
     public const string Document = "Document";
     /// <summary>"Part": a large division of a document, e.g. a chapter group.</summary>
     public const string Part = "Part";
+    /// <summary>"Art": an article, a self-contained body of text.</summary>
+    public const string Article = "Art";
+    /// <summary>"Index": a sequence of index entries with references.</summary>
+    public const string Index = "Index";
+    /// <summary>"NonStruct": a grouping element without structural meaning (its children are kept).</summary>
+    public const string NonStruct = "NonStruct";
+    /// <summary>"Private": content specific to the producing application.</summary>
+    public const string Private = "Private";
+    /// <summary>"H": a heading without a level.</summary>
+    public const string H = "H";
+    /// <summary>"Reference": a citation to content elsewhere in the document.</summary>
+    public const string Reference = "Reference";
+    /// <summary>"BibEntry": a bibliography entry.</summary>
+    public const string BibEntry = "BibEntry";
+    /// <summary>"Code": computer program text.</summary>
+    public const string Code = "Code";
+    /// <summary>"Ruby": a ruby annotation (small text next to base text, e.g. pronunciation).</summary>
+    public const string Ruby = "Ruby";
+    /// <summary>"RB": the base text of a ruby annotation.</summary>
+    public const string RubyBase = "RB";
+    /// <summary>"RT": the ruby text.</summary>
+    public const string RubyText = "RT";
+    /// <summary>"RP": ruby punctuation around the ruby text.</summary>
+    public const string RubyPunctuation = "RP";
+    /// <summary>"Warichu": a comment or annotation set in smaller text on two lines within a line.</summary>
+    public const string Warichu = "Warichu";
+    /// <summary>"WT": the text of a warichu.</summary>
+    public const string WarichuText = "WT";
+    /// <summary>"WP": warichu punctuation.</summary>
+    public const string WarichuPunctuation = "WP";
     /// <summary>"Sect": a section, a general container element.</summary>
     public const string Sect = "Sect";
     /// <summary>"Div": a generic block-level grouping element.</summary>
@@ -76,10 +106,10 @@ public static class StructureType
 
     internal static readonly HashSet<string> All = new()
     {
-        Document, Part, "Art", Sect, Div, BlockQuote, Caption, TableOfContents, TableOfContentsItem, "Index", "NonStruct", "Private",
-        Paragraph, "H", H1, H2, H3, H4, H5, H6, List, ListItem, Label, ListBody, Table, TableRow, TableHeaderCell, TableDataCell,
-        TableHead, TableBody, TableFoot, Span, Quote, Note, "Reference", "BibEntry", "Code", Link, Annotation, "Ruby", "RB", "RT",
-        "RP", "Warichu", "WT", "WP", Figure, Formula, Form,
+        Document, Part, Article, Sect, Div, BlockQuote, Caption, TableOfContents, TableOfContentsItem, Index, NonStruct, Private,
+        Paragraph, H, H1, H2, H3, H4, H5, H6, List, ListItem, Label, ListBody, Table, TableRow, TableHeaderCell, TableDataCell,
+        TableHead, TableBody, TableFoot, Span, Quote, Note, Reference, BibEntry, Code, Link, Annotation, Ruby, RubyBase, RubyText,
+        RubyPunctuation, Warichu, WarichuText, WarichuPunctuation, Figure, Formula, Form,
     };
 
     /// <summary>Returns "H1".."H6" for a heading level.</summary>

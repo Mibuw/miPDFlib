@@ -29,10 +29,12 @@ public sealed class ContentOperation
 public static class ContentParser
 {
     /// <summary>
-    /// Parses decoded content stream bytes into operations. The sequence is evaluated lazily and ends silently at the
-    /// first syntax error.
+    /// Parses decoded content stream bytes into operations. The sequence is evaluated lazily. Malformed syntax is read
+    /// tolerantly, as viewers do (unknown tokens become operators, unterminated strings, arrays and dictionaries end at
+    /// the end of the data). Operands that cannot be parsed at all (nested deeper than the parser allows) end the
+    /// sequence there, or throw a <see cref="PdfParseException"/> if <paramref name="strict"/> is true.
     /// </summary>
-    public static IEnumerable<ContentOperation> Parse(byte[] content)
+    public static IEnumerable<ContentOperation> Parse(byte[] content, bool strict = false)
     {
         var lexer = new PdfLexer(content);
         var parser = new PdfObjectParser(lexer);
@@ -59,7 +61,7 @@ public static class ContentParser
             {
                 operand = parser.ParseCurrent(0);
             }
-            catch (PdfParseException)
+            catch (PdfParseException) when (!strict)
             {
                 yield break;
             }

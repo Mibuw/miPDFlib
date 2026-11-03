@@ -99,7 +99,7 @@ no longer contains an interactive form if all fields were flattened.
 |---|---|
 | Remove a field | `form.RemoveField(field)` |
 | Read-only / required | `field.ReadOnly = true; field.Required = true;` |
-| Tooltip | `field.Tooltip = "..."` |
+| Tooltip | `field.ToolTip = "..."` |
 | All values | `form.GetValues()` |
 | Widgets (position, page) | `field.Widgets[i].Rect`, `.Page` |
 

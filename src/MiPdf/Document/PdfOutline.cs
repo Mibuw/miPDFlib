@@ -199,7 +199,7 @@ public sealed partial class PdfDocument
             var root = new PdfDictionary(PdfName.Outlines);
             var r = AddObject(root);
             catalog[PdfName.Outlines] = r;
-            catalog[PdfName.Get("PageMode")] = PdfName.Get("UseOutlines");
+            PageMode = PdfPageMode.UseOutlines;
             return new PdfOutline(this, root, r);
         }
     }

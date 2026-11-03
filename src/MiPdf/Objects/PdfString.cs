@@ -35,9 +35,13 @@ public sealed class PdfString : PdfObject
     public string Text => DecodeText(Bytes);
 
     /// <summary>Creates a text string (PDFDocEncoding if possible, otherwise UTF-16BE with BOM).</summary>
+    [Obsolete("Use the constructor new PdfString(text).")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static PdfString FromText(string text) => new(text);
 
     /// <summary>Creates a string from raw bytes; see <see cref="PdfString(byte[], bool)"/>.</summary>
+    [Obsolete("Use the constructor new PdfString(bytes, hex).")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static PdfString FromBytes(byte[] bytes, bool hex = false) => new(bytes, hex);
 
     /// <summary>Encodes text as a PDF text string: PDFDocEncoding if all characters can be encoded, otherwise UTF-16BE with byte order mark.</summary>

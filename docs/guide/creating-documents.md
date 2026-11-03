@@ -18,7 +18,8 @@ doc.Save("hello.pdf");
 ```
 
 Coordinates are PDF user space: points (1/72 inch), origin at the **bottom-left** corner of the page.
-`PageSize` contains A3, A4, A5, Letter, Legal, `Landscape(...)` and `FromMillimeters(...)`.
+`PageSize` contains the ISO sizes A0–A6, B4 and B5, the North American sizes Letter, Legal, Tabloid, Ledger and
+Executive, `Landscape(...)` (width and height swapped) and `FromMillimeters(...)`.
 
 ## Fonts
 
@@ -126,6 +127,9 @@ list.AddItem("Second item").Add(new ListElement(ListStyle.LowerAlpha) { Font = f
 list.AddItem(new Paragraph("Paragraph"), new ImageElement(image, 100));   // any content
 layout.Add(list);
 ```
+
+Styles: `Bullet`, `Dash`, `Decimal` (1.), `LowerAlpha` (a.), `UpperAlpha` (A.), `LowerRoman` (i.), `UpperRoman` (I.) and
+`None`. Other labels come from `LabelFormatter`, e.g. `n => $"{(char)('a' + n - 1)})"` for "a)".
 
 ### Row spans and long rows
 

@@ -108,13 +108,18 @@ public sealed class PdfArray : PdfObject, IList<PdfObject>
     /// <summary>Removes all elements.</summary>
     public void Clear() => _items.Clear();
 
-    /// <summary>True if the array contains <paramref name="item"/> (compared with <see cref="object.Equals(object)"/>; references are not resolved).</summary>
+    /// <summary>
+    /// True if the array contains <paramref name="item"/>. Numbers, names, strings, booleans, null and references are
+    /// compared by value, arrays, dictionaries and streams by reference (the same instance); references are not
+    /// resolved.
+    /// </summary>
     public bool Contains(PdfObject item) => _items.Contains(item);
 
     /// <summary>Copies the raw elements to <paramref name="array"/>, starting at <paramref name="arrayIndex"/>.</summary>
     public void CopyTo(PdfObject[] array, int arrayIndex) => _items.CopyTo(array, arrayIndex);
 
-    /// <summary>Returns the 0-based index of <paramref name="item"/>, or -1 if it is not in the array.</summary>
+    /// <summary>Returns the 0-based index of <paramref name="item"/>, or -1 if it is not in the array (compared like
+    /// <see cref="Contains"/>).</summary>
     public int IndexOf(PdfObject item) => _items.IndexOf(item);
 
     /// <summary>Inserts an element at the 0-based <paramref name="index"/>; <c>null</c> is stored as <see cref="PdfNull.Instance"/>.</summary>

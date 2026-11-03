@@ -37,8 +37,9 @@ public enum TextAlignment
     /// <summary>Aligned to the right edge.</summary>
     Right,
     /// <summary>
-    /// Justified to both edges (except the last line of a paragraph) by the layout engine;
-    /// single-line methods such as <see cref="PdfCanvas.DrawText"/> treat it like <see cref="Left"/>.
+    /// Justified to both edges, except the last line of a paragraph (layout engine and
+    /// <see cref="PdfCanvas.DrawTextBox"/>); single-line methods such as <see cref="PdfCanvas.DrawText"/> treat it like
+    /// <see cref="Left"/>. Form fields do not support it.
     /// </summary>
     Justify,
 }
@@ -87,6 +88,7 @@ public sealed class PdfCanvas : IDisposable
     private FontResource? _currentFont;
     private PdfName? _currentFontName;
     private double _currentFontSize;
+    private readonly Stack<(FontResource?, PdfName?, double)> _savedFonts = new();
     private bool _flushed;
 
     internal PdfCanvas(PdfPage page, bool background)
@@ -128,13 +130,18 @@ public sealed class PdfCanvas : IDisposable
     // ------------------------------------------------------------------ graphics state
 
     /// <summary>Saves the current graphics state (q). Pair every call with <see cref="RestoreState"/>.</summary>
-    public PdfCanvas SaveState() => WriteRaw("q");
+    public PdfCanvas SaveState()
+    {
+        _savedFonts.Push((_currentFont, _currentFontName, _currentFontSize));
+        return WriteRaw("q");
+    }
 
-    /// <summary>Restores the graphics state saved by the matching <see cref="SaveState"/> (Q). The current font must be set again afterwards.</summary>
+    /// <summary>Restores the graphics state saved by the matching <see cref="SaveState"/> (Q), including the current
+    /// font.</summary>
     public PdfCanvas RestoreState()
     {
-        _currentFont = null;
-        _currentFontName = null;
+        if (_savedFonts.TryPop(out var saved)) (_currentFont, _currentFontName, _currentFontSize) = saved;
+        else (_currentFont, _currentFontName) = (null, null);
         return WriteRaw("Q");
     }
 
@@ -169,12 +176,18 @@ public sealed class PdfCanvas : IDisposable
     /// <summary>Sets the miter limit (M): the maximum ratio of miter length to line width before a miter join is beveled.</summary>
     public PdfCanvas SetMiterLimit(double limit) => Op("M", limit);
 
-    /// <summary>Sets a dash pattern, e.g. <c>SetDashPattern(3, 2)</c> for 3 on / 2 off.</summary>
+    /// <summary>
+    /// Sets a dash pattern (d) starting at its beginning: every argument is a length in points, alternating dash and
+    /// gap. <c>SetDashPattern(3, 2)</c> draws 3 on / 2 off. To start elsewhere in the pattern use
+    /// <see cref="SetDashPattern(double[], double)"/>.
+    /// </summary>
     public PdfCanvas SetDashPattern(params double[] pattern) => SetDashPattern(pattern, 0);
 
     /// <summary>
-    /// Sets a dash pattern (d): alternating dash and gap lengths in points; <paramref name="phase"/> is the distance
-    /// into the pattern at which the dashing starts.
+    /// Sets a dash pattern (d) with a phase: <paramref name="pattern"/> holds the alternating dash and gap lengths in
+    /// points; <paramref name="phase"/> is the distance into the pattern at which the dashing starts. Unlike
+    /// <c>SetDashPattern(3, 2)</c>, <c>SetDashPattern(new[] { 3.0 }, 2)</c> is the pattern [3] (3 on / 3 off) started
+    /// 2 points into it.
     /// </summary>
     public PdfCanvas SetDashPattern(double[] pattern, double phase)
     {
@@ -458,12 +471,13 @@ public sealed class PdfCanvas : IDisposable
 
     /// <summary>
     /// Draws text wrapped into <paramref name="box"/> with horizontal and vertical alignment. Line breaks ("\n") are
-    /// honored; text that does not fit is clipped at the box. Returns the canvas.
+    /// honored; text that does not fit is clipped at the box. <see cref="TextAlignment.Justify"/> stretches every line
+    /// except the last one of a paragraph to the width of the box. Returns the canvas.
     /// </summary>
     public PdfCanvas DrawTextBox(string text, PdfFont font, double fontSize, PdfRectangle box, TextAlignment alignment = TextAlignment.Left,
         Layout.VerticalAlignment verticalAlignment = Layout.VerticalAlignment.Top, PdfColor? color = null, double lineSpacing = 1.15)
     {
-        var lines = Layout.TextLayout.BreakLines(text, font, fontSize, box.Width);
+        var lines = Layout.TextLayout.BreakLines(new Layout.Paragraph(text, font, fontSize), box.Width);
         double lineHeight = font.GetLineHeight(fontSize) * lineSpacing;
         double total = lines.Count * lineHeight;
         double offset = verticalAlignment switch
@@ -478,7 +492,7 @@ public sealed class PdfCanvas : IDisposable
         if (color is { } c) SetFillColor(c);
         for (int i = 0; i < lines.Count; i++)
         {
-            string line = lines[i];
+            string line = string.Concat(lines[i].Pieces.Select(p => p.Text)).TrimEnd();
             if (i > 0 && baseline + font.GetDescent(fontSize) < box.Bottom - 0.01) break; // only complete lines
             double width = font.GetTextWidth(line, fontSize);
             double x = alignment switch
@@ -487,7 +501,9 @@ public sealed class PdfCanvas : IDisposable
                 TextAlignment.Right => box.Right - width,
                 _ => box.Left,
             };
-            BeginText().SetFont(font, fontSize).SetTextPosition(x, baseline).ShowText(line).EndText();
+            int spaces = alignment == TextAlignment.Justify && !lines[i].EndsParagraph ? line.Count(ch => ch == ' ') : 0;
+            double extraPerSpace = spaces > 0 ? (box.Width - width) / spaces : 0;
+            BeginText().SetFont(font, fontSize).SetTextPosition(x, baseline).ShowTextWithWordSpacing(line, extraPerSpace).EndText();
             baseline -= lineHeight;
         }
         return RestoreState();

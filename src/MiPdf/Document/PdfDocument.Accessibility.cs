@@ -72,9 +72,7 @@ public sealed partial class PdfDocument
     {
         if (_uaConformance == null) return;
         var tree = EnableTagging();
-        var prefs = Catalog.GetDictionary(PdfName.Get("ViewerPreferences"));
-        if (prefs == null) Catalog[PdfName.Get("ViewerPreferences")] = prefs = new PdfDictionary();
-        prefs.Set(PdfName.Get("DisplayDocTitle"), true);
+        ViewerPreferences.DisplayDocTitle = true;
         foreach (var page in Pages)
         {
             var annotations = page.Annotations;

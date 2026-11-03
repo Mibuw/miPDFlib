@@ -15,7 +15,7 @@ public enum ListStyle
     /// <summary>1. 2. 3.</summary>
     Decimal,
 
-    /// <summary>a) b) c)</summary>
+    /// <summary>a. b. c. (for "a)" use <see cref="ListElement.LabelFormatter"/>)</summary>
     LowerAlpha,
 
     /// <summary>A. B. C.</summary>
@@ -131,7 +131,7 @@ public sealed class ListElement : LayoutElement
             ListStyle.Bullet => "•",
             ListStyle.Dash => "–",
             ListStyle.Decimal => number + ".",
-            ListStyle.LowerAlpha => Alpha(number).ToLowerInvariant() + ")",
+            ListStyle.LowerAlpha => Alpha(number).ToLowerInvariant() + ".",
             ListStyle.UpperAlpha => Alpha(number) + ".",
             ListStyle.LowerRoman => Roman(number).ToLowerInvariant() + ".",
             ListStyle.UpperRoman => Roman(number) + ".",

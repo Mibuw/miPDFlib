@@ -14,25 +14,25 @@ namespace MiPdf.Redaction;
 public sealed class RedactionOptions
 {
     /// <summary>Color of the boxes drawn over redacted areas (default black); null draws nothing.</summary>
-    public PdfColor? FillColor { get; init; } = PdfColor.Black;
+    public PdfColor? FillColor { get; set; } = PdfColor.Black;
 
     /// <summary>Optional text drawn into each box (e.g. "REDACTED").</summary>
-    public string? OverlayText { get; init; }
+    public string? OverlayText { get; set; }
 
     /// <summary>Font of the <see cref="OverlayText"/> (default Helvetica); the size is fitted to each box.</summary>
-    public PdfFont OverlayFont { get; init; } = PdfStandardFont.Helvetica;
+    public PdfFont OverlayFont { get; set; } = PdfStandardFont.Helvetica;
 
     /// <summary>Color of the <see cref="OverlayText"/> (default white).</summary>
-    public PdfColor OverlayTextColor { get; init; } = PdfColor.White;
+    public PdfColor OverlayTextColor { get; set; } = PdfColor.White;
 
     /// <summary>Remove annotations and form fields that intersect a redacted area (default true).</summary>
-    public bool RemoveAnnotations { get; init; } = true;
+    public bool RemoveAnnotations { get; set; } = true;
 
     /// <summary>Remove vector graphics (paths) that lie completely inside a redacted area (default true).</summary>
-    public bool RemoveVectorGraphics { get; init; } = true;
+    public bool RemoveVectorGraphics { get; set; } = true;
 
     /// <summary>A glyph is removed when this share of its box overlaps a redacted area (default 0.3).</summary>
-    public double GlyphOverlapThreshold { get; init; } = 0.3;
+    public double GlyphOverlapThreshold { get; set; } = 0.3;
 
     internal RedactionOptions WithOverlayText(string? overlayText) => overlayText == OverlayText ? this : new RedactionOptions
     {
@@ -65,7 +65,11 @@ public sealed class RedactionResult
     public int AnnotationsRemoved { get; internal set; }
 
     /// <summary>Messages about content that could not be redacted as intended, e.g. images that had to be removed completely.</summary>
-    public List<string> Warnings { get; } = new();
+    public IReadOnlyList<string> Warnings => _warnings;
+
+    private readonly List<string> _warnings = new();
+
+    internal void AddWarning(string warning) => _warnings.Add(warning);
 
     internal void Add(RedactionResult other)
     {
@@ -74,7 +78,7 @@ public sealed class RedactionResult
         ImagesModified += other.ImagesModified;
         PathsRemoved += other.PathsRemoved;
         AnnotationsRemoved += other.AnnotationsRemoved;
-        Warnings.AddRange(other.Warnings);
+        _warnings.AddRange(other.Warnings);
     }
 
     /// <summary>Returns the counters as a single line, for logging.</summary>
@@ -556,7 +560,7 @@ internal sealed class ContentRedactor
             if (blanked == null)
             {
                 _result.ImagesRemoved++;
-                _result.Warnings.Add($"Image /{name.Value} could not be decoded for partial redaction and was removed completely.");
+                _result.AddWarning($"Image /{name.Value} could not be decoded for partial redaction and was removed completely.");
                 return null;
             }
             _result.ImagesModified++;

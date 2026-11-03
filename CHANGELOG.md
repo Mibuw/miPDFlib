@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
 
 - Performance: large documents need far less memory. Stream data of opened files is no longer copied (it is shared
   with the file data until it is changed), `Save(path)` writes directly to a temporary file that then replaces the
@@ -22,6 +22,42 @@
 - `PdfDocument.Open(Stream)` reads seekable streams once into an array of the final size.
 - Text extraction allocates a third less memory and is faster.
 - Benchmarks: `benchmarks/MiPdf.Benchmarks` measures time and memory for large documents.
+- Page labels (#10): `doc.PageLabels.Add(startPage, PdfPageLabelStyle.LowerRoman, prefix, startNumber)` and
+  `doc.GetPageLabel(n)` write and read /PageLabels (number trees with /Kids are read).
+- Viewer settings (#8): `doc.PageLayout`, `doc.PageMode` and `doc.ViewerPreferences` (HideToolbar, HideMenubar,
+  HideWindowUI, FitWindow, CenterWindow, DisplayDocTitle).
+- Page sizes (#7): `PageSize.A0`, `A1`, `A2`, `A6`, `B4`, `B5`, `Tabloid`, `Ledger`, `Executive`.
+- Samples (#9): redacting an IBAN and splitting/extracting pages.
+- `PdfCanvas.DrawTextBox` justifies text with `TextAlignment.Justify`; `PdfColor.Lime`; `StructureType` constants for
+  all standard structure types (`Article`, `Code`, `Reference`, `Index`, `H`, Ruby and Warichu types, ...);
+  `ContentParser.Parse(content, strict: true)` throws instead of ending silently; `Spacer.Height`;
+  `PdfWidget.IsHidden` is settable.
+
+### API cleanup before 1.0 (#13)
+
+Changes that can affect existing code:
+
+- `PdfChoiceField.Value` returns the first selected value instead of all values joined with ", ", so it round-trips;
+  use `SelectedValues` for all of them (also for `PdfAcroForm.GetValues`).
+- `PdfTextField.Alignment = TextAlignment.Justify` throws instead of silently writing left alignment.
+- `PdfCanvas.RestoreState()` restores the font that was current at the matching `SaveState()` (it used to forget the
+  font, so text after a `DrawText` call needed `SetFont` again).
+- `PdfFormXObject.Matrix` is a `Graphics.Matrix?` instead of `double[]?`.
+- `PageSize.Landscape` keeps the lower-left corner of rectangles that do not start at (0, 0).
+- `PdfPage.TrimBox`, `BleedBox` and `ArtBox` default to the crop box (ISO 32000) instead of returning null; they are
+  no longer nullable.
+- `PdfNumber.LongValue` and `IntValue` round a real number like the constructor does instead of truncating it.
+- `ListStyle.LowerAlpha` renders "a." like the other numbered styles (it rendered "a)"; use `LabelFormatter` for that).
+- `Barcode.TotalHeightModules` was removed from linear barcodes (it was always 0); `MatrixBarcode.TotalHeightModules`
+  stays.
+- `RedactionResult.Warnings` is an `IReadOnlyList<string>`; `RedactionOptions` properties are settable like the
+  other options classes.
+- Obsolete (still working): `PdfFormField.Tooltip` (use `ToolTip`), `PdfString.FromText` and `FromBytes` (use the
+  constructors).
+- Documented: field flags set on a field no longer inherit from the parent; `SetDashPattern(3, 2)` versus
+  `SetDashPattern(new[] { 3.0 }, 2)`; `PdfColor` factories (`Rgb` 0..1, `FromRgb` 0..255) and `PdfColor.Green` (CSS
+  green); `PdfArray.Contains` compares arrays and dictionaries by reference; `CertificateSigner.SignHash` ignores the
+  RSA padding for EC keys.
 
 ## 0.5.0
 

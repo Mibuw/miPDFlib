@@ -75,8 +75,12 @@ public sealed class PdfWidget
             ? n.Keys.Select(k => k.Value).Where(k => k != "Off").ToList()
             : Array.Empty<string>();
 
-    /// <summary>True if the annotation flag Hidden (/F bit 2) is set.</summary>
-    public bool IsHidden => (Dictionary.GetInt(PdfName.F) & 2) != 0;
+    /// <summary>The annotation flag Hidden (/F bit 2): the widget is neither shown nor printed.</summary>
+    public bool IsHidden
+    {
+        get => (Dictionary.GetInt(PdfName.F) & 2) != 0;
+        set => Dictionary.Set(PdfName.F, value ? Dictionary.GetInt(PdfName.F) | 2 : Dictionary.GetInt(PdfName.F) & ~2);
+    }
 
     /// <summary>The field this widget belongs to.</summary>
     internal PdfFormField? Field { get; set; }
@@ -196,7 +200,11 @@ public abstract class PdfFormField
     /// <summary>"Tx", "Btn", "Ch" or "Sig".</summary>
     public string FieldType => GetInheritable(PdfName.FT) is PdfName n ? n.Value : "";
 
-    /// <summary>The field flags (/Ff, inherited from parent fields if not set); setting writes them to this field.</summary>
+    /// <summary>
+    /// The field flags (/Ff, inherited from the parent fields if this field has none). Setting writes the complete flags
+    /// to this field, so it no longer inherits them; the parent and the other fields of the parent are not changed.
+    /// The same applies to <see cref="ReadOnly"/> and <see cref="Required"/>.
+    /// </summary>
     public FieldFlags Flags
     {
         get => (FieldFlags)((GetInheritable(PdfName.Ff) as PdfNumber)?.IntValue ?? 0);
@@ -217,7 +225,9 @@ public abstract class PdfFormField
         set => Flags = value ? Flags | FieldFlags.Required : Flags & ~FieldFlags.Required;
     }
 
-    /// <summary>Tooltip / alternate name (/TU).</summary>
+    /// <summary>Same as <see cref="ToolTip"/>.</summary>
+    [Obsolete("Use ToolTip.")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public string? Tooltip
     {
         get => Dictionary.GetText(PdfName.Get("TU"));
@@ -283,7 +293,8 @@ public sealed class PdfTextField : PdfFormField
         set => Dictionary.Set(PdfName.Get("MaxLen"), value);
     }
 
-    /// <summary>Text alignment (/Q): left, center or right.</summary>
+    /// <summary>Text alignment (/Q): left, center or right. Form fields cannot be justified; setting
+    /// <see cref="TextAlignment.Justify"/> throws an <see cref="ArgumentException"/>.</summary>
     public TextAlignment Alignment
     {
         get => ((GetInheritable(PdfName.Q) as PdfNumber)?.IntValue ?? Form.Dictionary.GetInt(PdfName.Q)) switch
@@ -292,7 +303,13 @@ public sealed class PdfTextField : PdfFormField
             2 => TextAlignment.Right,
             _ => TextAlignment.Left,
         };
-        set => Dictionary.Set(PdfName.Q, value switch { TextAlignment.Center => 1, TextAlignment.Right => 2, _ => 0 });
+        set => Dictionary.Set(PdfName.Q, value switch
+        {
+            TextAlignment.Left => 0,
+            TextAlignment.Center => 1,
+            TextAlignment.Right => 2,
+            _ => throw new ArgumentException("Form fields can only be aligned left, center or right.", nameof(value)),
+        });
     }
 
     /// <summary>
@@ -443,12 +460,13 @@ public sealed class PdfChoiceField : PdfFormField
     };
 
     /// <summary>
-    /// The selected value; several selected values are returned comma-separated. Setting it selects a single option
-    /// (export value or display text, see <see cref="SetSelection"/>); null clears the selection.
+    /// The selected export value, the first one if several are selected (see <see cref="SelectedValues"/>); null if
+    /// nothing is selected. Setting it selects a single option (export value or display text, see
+    /// <see cref="SetSelection"/>); null clears the selection.
     /// </summary>
     public override string? Value
     {
-        get => base.Value;
+        get => SelectedValues.Count > 0 ? SelectedValues[0] : null;
         set => SetSelection(value == null ? Array.Empty<string>() : new[] { value });
     }
 

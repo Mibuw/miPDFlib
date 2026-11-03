@@ -116,9 +116,9 @@ internal static class AppearanceGenerator
         var xobject = new PdfFormXObject(document, new PdfRectangle(0, 0, width, height));
         xobject.Matrix = rotation switch
         {
-            90 => new double[] { 0, 1, -1, 0, 0, 0 },
-            180 => new double[] { -1, 0, 0, -1, 0, 0 },
-            270 => new double[] { 0, -1, 1, 0, 0, 0 },
+            90 => new Graphics.Matrix(0, 1, -1, 0, 0, 0),
+            180 => new Graphics.Matrix(-1, 0, 0, -1, 0, 0),
+            270 => new Graphics.Matrix(0, -1, 1, 0, 0, 0),
             _ => null,
         };
         return xobject;

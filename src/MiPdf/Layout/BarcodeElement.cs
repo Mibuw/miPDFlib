@@ -36,12 +36,12 @@ public sealed class BarcodeElement : LayoutElement
 
     internal override LayoutBox Prepare(double available)
     {
-        bool matrix = Barcode.TotalHeightModules > 0;
-        double w = Width ?? (matrix ? 72 : Barcode.TotalWidthModules);
-        double h = Height ?? (matrix ? w * Barcode.TotalHeightModules / Barcode.TotalWidthModules : 40);
+        var matrix = Barcode as MatrixBarcode;
+        double w = Width ?? (matrix != null ? 72 : Barcode.TotalWidthModules);
+        double h = Height ?? (matrix != null ? w * matrix.TotalHeightModules / matrix.TotalWidthModules : 40);
         if (w > available)
         {
-            if (matrix) h *= available / w;
+            if (matrix != null) h *= available / w;
             w = available;
         }
         return new Box(this, w, h, available);

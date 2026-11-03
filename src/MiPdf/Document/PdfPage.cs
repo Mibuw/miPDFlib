@@ -64,25 +64,28 @@ public sealed partial class PdfPage : IResourceContainer
         set => Dictionary[PdfName.CropBox] = PdfArray.FromRectangle(value);
     }
 
-    /// <summary>The trim box (intended size of the finished page), or null if not set. Not inherited; <c>null</c> removes the entry.</summary>
-    public PdfRectangle? TrimBox
+    /// <summary>The trim box (intended size of the finished page); the <see cref="CropBox"/> if not set (ISO 32000-1, 14.11.2). Not inherited. Whether the
+    /// page defines it: <c>page.Dictionary.ContainsKey(PdfName.TrimBox)</c>; remove it with <c>page.Dictionary.Remove</c>.</summary>
+    public PdfRectangle TrimBox
     {
-        get => Dictionary.GetRectangle(PdfName.TrimBox);
-        set => Dictionary[PdfName.TrimBox] = value is { } r ? PdfArray.FromRectangle(r) : null;
+        get => Dictionary.GetRectangle(PdfName.TrimBox) ?? CropBox;
+        set => Dictionary[PdfName.TrimBox] = PdfArray.FromRectangle(value);
     }
 
-    /// <summary>The bleed box (clipping region for production output), or null if not set. Not inherited; <c>null</c> removes the entry.</summary>
-    public PdfRectangle? BleedBox
+    /// <summary>The bleed box (clipping region for production output); the <see cref="CropBox"/> if not set (ISO 32000-1, 14.11.2). Not inherited. Whether the
+    /// page defines it: <c>page.Dictionary.ContainsKey(PdfName.BleedBox)</c>; remove it with <c>page.Dictionary.Remove</c>.</summary>
+    public PdfRectangle BleedBox
     {
-        get => Dictionary.GetRectangle(PdfName.BleedBox);
-        set => Dictionary[PdfName.BleedBox] = value is { } r ? PdfArray.FromRectangle(r) : null;
+        get => Dictionary.GetRectangle(PdfName.BleedBox) ?? CropBox;
+        set => Dictionary[PdfName.BleedBox] = PdfArray.FromRectangle(value);
     }
 
-    /// <summary>The art box (extent of the meaningful content), or null if not set. Not inherited; <c>null</c> removes the entry.</summary>
-    public PdfRectangle? ArtBox
+    /// <summary>The art box (extent of the meaningful content); the <see cref="CropBox"/> if not set (ISO 32000-1, 14.11.2). Not inherited. Whether the
+    /// page defines it: <c>page.Dictionary.ContainsKey(PdfName.ArtBox)</c>; remove it with <c>page.Dictionary.Remove</c>.</summary>
+    public PdfRectangle ArtBox
     {
-        get => Dictionary.GetRectangle(PdfName.ArtBox);
-        set => Dictionary[PdfName.ArtBox] = value is { } r ? PdfArray.FromRectangle(r) : null;
+        get => Dictionary.GetRectangle(PdfName.ArtBox) ?? CropBox;
+        set => Dictionary[PdfName.ArtBox] = PdfArray.FromRectangle(value);
     }
 
     private static PdfRectangle Intersect(PdfRectangle a, PdfRectangle b)

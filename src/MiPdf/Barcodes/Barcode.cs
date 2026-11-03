@@ -26,9 +26,6 @@ public abstract class Barcode
     /// <summary>Total width in modules including the quiet zones.</summary>
     public abstract int TotalWidthModules { get; }
 
-    /// <summary>Total height in modules including the quiet zones (2D codes), or 0 for linear barcodes.</summary>
-    public abstract int TotalHeightModules { get; }
-
     /// <summary>
     /// Draws the barcode into the rectangle with the bottom-left corner (<paramref name="x"/>, <paramref name="y"/>).
     /// The quiet zone is part of the rectangle. 2D codes keep square modules and are centered.
@@ -39,7 +36,7 @@ public abstract class Barcode
     public PdfRectangle DrawWithModuleSize(PdfCanvas canvas, double x, double y, double moduleSize, double? height = null)
     {
         double w = TotalWidthModules * moduleSize;
-        double h = height ?? (TotalHeightModules > 0 ? TotalHeightModules * moduleSize : w * 0.3);
+        double h = height ?? (this is MatrixBarcode matrix ? matrix.TotalHeightModules * moduleSize : w * 0.3);
         Draw(canvas, x, y, w, h);
         return new PdfRectangle(x, y, x + w, y + h);
     }
@@ -74,7 +71,7 @@ public class MatrixBarcode : Barcode
     public override int TotalWidthModules => Columns + 2 * QuietZone;
 
     /// <summary>Total height in modules: <see cref="Rows"/> plus the quiet zone on both sides.</summary>
-    public override int TotalHeightModules => Rows + 2 * QuietZone;
+    public int TotalHeightModules => Rows + 2 * QuietZone;
 
     /// <summary>
     /// Draws the code with square modules, as large as fits into the rectangle with the bottom-left corner
@@ -141,9 +138,6 @@ public class LinearBarcode : Barcode
 
     /// <summary>Total width in modules: the number of <see cref="Modules"/> plus the quiet zone on both sides.</summary>
     public override int TotalWidthModules => _modules.Length + 2 * QuietZone;
-
-    /// <summary>Always 0: linear barcodes have no height in modules.</summary>
-    public override int TotalHeightModules => 0;
 
     /// <summary>The text printed below the bars.</summary>
     public string HumanReadableText { get; }

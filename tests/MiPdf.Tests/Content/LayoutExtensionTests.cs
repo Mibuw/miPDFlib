@@ -28,7 +28,7 @@ public class LayoutExtensionTests
             layout.Add(new ListElement(ListStyle.UpperRoman) { StartNumber = 4 }.AddItems("vier", "fünf"));
         });
         var lines = doc.GetPage(1).ExtractText().Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
-        Assert.Equal(new[] { "1. Erster", "2. Zweiter", "a) innen a", "b) innen b", "3. Dritter", "IV. vier", "V. fünf" }, lines);
+        Assert.Equal(new[] { "1. Erster", "2. Zweiter", "a. innen a", "b. innen b", "3. Dritter", "IV. vier", "V. fünf" }, lines);
         var words = PdfTextExtractor.ExtractWords(doc.GetPage(1));
         double outer = words.First(w => w.Text == "Erster").Bounds.Left, inner = words.First(w => w.Text == "innen").Bounds.Left;
         Assert.True(inner > outer + 10); // nested list is indented
@@ -41,7 +41,7 @@ public class LayoutExtensionTests
         var list = new ListElement(ListStyle.UpperRoman);
         Assert.Equal("XIV.", list.GetLabel(13));
         list.Style = ListStyle.LowerAlpha;
-        Assert.Equal("aa)", list.GetLabel(26));
+        Assert.Equal("aa.", list.GetLabel(26));
         list.LabelFormatter = n => $"§ {n}";
         Assert.Equal("§ 3", list.GetLabel(2));
     }

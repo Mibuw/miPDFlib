@@ -58,7 +58,8 @@ public sealed partial class PdfAcroForm
         field.Value = value;
     }
 
-    /// <summary>Returns all field values as name → value.</summary>
+    /// <summary>Returns all field values as name → <see cref="PdfFormField.Value"/> (for choice fields with several
+    /// selected options the first one; see <see cref="PdfChoiceField.SelectedValues"/>).</summary>
     public IReadOnlyDictionary<string, string?> GetValues() =>
         Fields.GroupBy(f => f.FullName).ToDictionary(g => g.Key, g => g.First().Value);
 

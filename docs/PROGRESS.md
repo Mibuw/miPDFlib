@@ -36,8 +36,9 @@ Last update: 2026-11-03
 | 27 API reference | ✅ DocFX site on GitHub Pages (https://mibuw.github.io/miPDFlib/), rebuilt on every push to main |
 | 28 API review fixes | ✅ done (289 tests; redaction overlay texts per mark, field locks of encrypted documents, CMYK outline colors, time-stamp password no longer readable) |
 | 29 Memory for large files | ✅ done (320 tests; shared stream data, saving without in-memory copies, signing and validation from the digest of the byte ranges, reading on demand from the file with 64-bit offsets: a 2.5 GB file is opened with 35 MB and saved/signed/validated with under 50 MB, see `benchmarks/`; EU DSS: RSA, PSS, ECDSA, PKCS#7, B-T and `SignFile` valid) |
+| 30 API cleanup and small features (0.6.0) | ✅ done (340 tests; issues #7–#10 and #13: page labels, viewer settings, page sizes, redaction and split samples, consistent API before 1.0) |
 
-Current state: 320 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 340 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 

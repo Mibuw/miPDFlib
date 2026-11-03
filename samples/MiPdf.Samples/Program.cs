@@ -2,6 +2,7 @@
 // Every sample writes a PDF into the output directory (default: ./samples-output).
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 using MiPdf;
 using MiPdf.Barcodes;
 using MiPdf.Fonts;
@@ -10,8 +11,10 @@ using MiPdf.Graphics;
 using MiPdf.Invoicing;
 using MiPdf.IO;
 using MiPdf.Layout;
+using MiPdf.Redaction;
 using MiPdf.Security;
 using MiPdf.Signatures;
+using MiPdf.Text;
 
 string output = args.Length > 0 ? args[0] : "samples-output";
 Directory.CreateDirectory(output);
@@ -25,6 +28,8 @@ Encrypt(Out("01-invoice.pdf"), Out("05-encrypted.pdf"));
 Sign(Out("01-invoice.pdf"), Out("06-signed.pdf"));
 Accessible(Out("07-accessible.pdf"));
 ZugferdInvoice(Out("08-zugferd-invoice.pdf"));
+Redact(Out("01-invoice.pdf"), Out("09-redacted.pdf"));
+SplitAndExtract(Out("02-merged-stamped.pdf"), output);
 Console.WriteLine($"Samples written to {Path.GetFullPath(output)}");
 
 // 1. Generate a multi-page invoice with the flow layout
@@ -56,7 +61,8 @@ static void Invoice(string path)
         table.AddCell(new Cell("Total", colSpan: 3) { Font = bold, TextAlignment = TextAlignment.Right });
         table.AddCell(new Cell($"{sum:N2} €") { Font = bold, TextAlignment = TextAlignment.Right });
         layout.Add(table);
-        layout.Add(new Paragraph("Payable within 14 days without deduction.") { Alignment = TextAlignment.Justify, SpacingAfter = 8 });
+        layout.Add(new Paragraph("Payable within 14 days without deduction.") { Alignment = TextAlignment.Justify, SpacingAfter = 4 });
+        layout.Add(new Paragraph("Bank account: miPDFlib Samples Ltd., IBAN AT61 1904 3002 3457 3201") { SpacingAfter = 8 });
         // payment QR code ("Zahlen mit Code" / GiroCode)
         layout.Add(new BarcodeElement(EpcQrCode.Create(new EpcPayment
         {
@@ -212,4 +218,31 @@ static void ZugferdInvoice(string path)
     var findings = FacturX.CheckConsistency(check);
     Console.WriteLine($"ZUGFeRD: profile {FacturX.GetProfile(check)}, PDF/A issues {check.CheckPdfA(MiPdf.PdfA.PdfAConformance.PdfA3B).Count}, " +
         $"consistency {(findings.Count == 0 ? "ok" : string.Join("; ", findings))}");
+}
+
+// 9. Remove the IBAN permanently (the text is gone, not only covered). The payment QR code still encodes it:
+//    redact its area with page.Redact(...) as well if the document is passed on.
+static void Redact(string source, string path)
+{
+    using var doc = PdfDocument.Open(source);
+    var iban = new Regex(@"[A-Z]{2}\d{2}(?: ?\d{4}){4} ?\d{0,2}");
+    var result = doc.RedactText(iban, new RedactionOptions { OverlayText = "IBAN removed" });
+    doc.Save(path);
+
+    using var check = PdfDocument.Open(path);
+    bool gone = !iban.IsMatch(PdfTextExtractor.ExtractText(check));
+    Console.WriteLine($"Redaction: {result.GlyphsRemoved} glyphs removed, IBAN {(gone ? "no longer in the text" : "STILL PRESENT")}");
+    if (!gone) throw new InvalidOperationException("The IBAN was not removed.");
+}
+
+// 10. Split a document into single pages and extract selected pages
+static void SplitAndExtract(string source, string output)
+{
+    using var doc = PdfDocument.Open(source);
+    int n = 0;
+    foreach (var part in doc.Split(pagesPerDocument: 1))
+        using (part) part.Save(Path.Combine(output, $"10-page-{++n}.pdf"));
+    using var lastPages = doc.ExtractPages(new[] { doc.PageCount - 1, doc.PageCount }.Where(p => p >= 1).Distinct());
+    lastPages.Save(Path.Combine(output, "10-last-pages.pdf"));
+    Console.WriteLine($"Split: {n} single-page documents, extracted {lastPages.PageCount} pages");
 }

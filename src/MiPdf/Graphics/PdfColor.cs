@@ -13,7 +13,12 @@ public enum PdfColorSpace
     Cmyk,
 }
 
-/// <summary>A device color (gray, RGB or CMYK). Components are in the range 0..1.</summary>
+/// <summary>
+/// A device color (gray, RGB or CMYK). Components are stored in the range 0..1. <see cref="Gray"/>, <see cref="Rgb"/>
+/// and <see cref="Cmyk"/> take components in that range; the <c>From...</c> methods convert other notations:
+/// <see cref="FromRgb"/> 8-bit values (0..255) and <see cref="FromHex"/> hex strings such as "#1F4E79".
+/// The named colors follow the CSS color names.
+/// </summary>
 public readonly record struct PdfColor
 {
     private PdfColor(PdfColorSpace space, double c1, double c2 = 0, double c3 = 0, double c4 = 0)
@@ -69,8 +74,10 @@ public readonly record struct PdfColor
     public static readonly PdfColor DarkGray = Gray(0.4);
     /// <summary>Red (RGB 1, 0, 0).</summary>
     public static readonly PdfColor Red = Rgb(1, 0, 0);
-    /// <summary>Green (RGB 0, 0.5, 0).</summary>
+    /// <summary>Green as in CSS (RGB 0, 0.5, 0); for full green use <see cref="Lime"/>.</summary>
     public static readonly PdfColor Green = Rgb(0, 0.5, 0);
+    /// <summary>Full green (RGB 0, 1, 0), named lime as in CSS.</summary>
+    public static readonly PdfColor Lime = Rgb(0, 1, 0);
     /// <summary>Blue (RGB 0, 0, 1).</summary>
     public static readonly PdfColor Blue = Rgb(0, 0, 1);
     /// <summary>Yellow (RGB 1, 1, 0).</summary>

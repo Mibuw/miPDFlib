@@ -60,11 +60,12 @@ public sealed class PdfFormXObject : IResourceContainer
     /// <summary>Height of <see cref="BBox"/> in points.</summary>
     public double Height => BBox.Height;
 
-    /// <summary>Optional transformation matrix [a b c d e f].</summary>
-    public double[]? Matrix
+    /// <summary>Optional transformation from form space to user space (/Matrix); null if missing or malformed (the
+    /// identity matrix applies then). Setting null removes the entry.</summary>
+    public Matrix? Matrix
     {
-        get => Stream.GetArray(PdfName.Get("Matrix"))?.ToDoubleArray();
-        set => Stream[PdfName.Get("Matrix")] = value != null ? PdfArray.FromNumbers(value) : null;
+        get => Stream.GetArray(PdfName.Get("Matrix"))?.ToDoubleArray() is { Length: 6 } m ? new Matrix(m[0], m[1], m[2], m[3], m[4], m[5]) : null;
+        set => Stream[PdfName.Get("Matrix")] = value is { } m ? PdfArray.FromNumbers(m.A, m.B, m.C, m.D, m.E, m.F) : null;
     }
 
     /// <summary>The resource dictionary of the XObject; created if missing.</summary>

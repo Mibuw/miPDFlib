@@ -67,7 +67,7 @@ public sealed class PdfNumber : PdfObject
     public PdfNumber(double value)
     {
         _real = value;
-        _integer = double.IsFinite(value) ? (long)Math.Round(value) : 0;
+        _integer = double.IsFinite(value) ? (long)Math.Round(Math.Clamp(value, -9e18, 9e18)) : 0;
         IsInteger = false;
     }
 
@@ -80,10 +80,11 @@ public sealed class PdfNumber : PdfObject
     /// <summary>The value as <see cref="double"/>.</summary>
     public double Value => _real;
 
-    /// <summary>The value as <see cref="long"/>; a real number is truncated toward zero.</summary>
-    public long LongValue => IsInteger ? _integer : (long)_real;
+    /// <summary>The value as <see cref="long"/>; a real number is rounded to the nearest integer (as by the
+    /// constructor).</summary>
+    public long LongValue => _integer;
 
-    /// <summary>The value as <see cref="int"/>, truncated like <see cref="LongValue"/> and clamped to the <see cref="int"/> range.</summary>
+    /// <summary>The value as <see cref="int"/>, rounded like <see cref="LongValue"/> and clamped to the <see cref="int"/> range.</summary>
     public int IntValue => (int)Math.Clamp(LongValue, int.MinValue, int.MaxValue);
 
     /// <summary>Returns this instance (the object is immutable).</summary>

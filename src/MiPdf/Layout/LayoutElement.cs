@@ -63,10 +63,14 @@ internal abstract class LayoutBox
 /// <summary>Vertical empty space.</summary>
 public sealed class Spacer : LayoutElement
 {
-    /// <summary>Creates a spacer of <paramref name="height"/> points (stored as <see cref="LayoutElement.SpacingBefore"/>).</summary>
-    public Spacer(double height) => SpacingBefore = height;
+    /// <summary>Creates a spacer of <paramref name="height"/> points.</summary>
+    public Spacer(double height) => Height = height;
 
-    internal override LayoutBox Prepare(double width) => new Box(SpacingBefore + SpacingAfter);
+    /// <summary>The vertical space in points (added to <see cref="LayoutElement.SpacingBefore"/> and
+    /// <see cref="LayoutElement.SpacingAfter"/>, which are 0 by default).</summary>
+    public double Height { get; set; }
+
+    internal override LayoutBox Prepare(double width) => new Box(SpacingBefore + Height + SpacingAfter);
 
     private sealed class Box(double height) : LayoutBox
     {

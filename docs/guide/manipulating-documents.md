@@ -138,6 +138,35 @@ foreach (var item in doc.Outlines.Children)
     Console.WriteLine($"{item.Title} -> page {item.PageNumber}");
 ```
 
+Creating the bookmark tree also sets the page mode to show the bookmarks panel.
+
+## Page labels
+
+Page labels are the logical page numbers viewers show, for example "i, ii, iii" for a preface followed by "1, 2, 3":
+
+```csharp
+doc.PageLabels.Add(startPage: 1, PdfPageLabelStyle.LowerRoman);
+doc.PageLabels.Add(startPage: 5, PdfPageLabelStyle.Decimal);
+doc.PageLabels.Add(startPage: 40, PdfPageLabelStyle.UpperLetters, prefix: "Appendix ");
+string label = doc.GetPageLabel(7);   // "3"
+```
+
+A range lasts until the next one; pages without labels get their page number. Labels belong to page positions:
+removing, inserting, importing or merging pages does not shift them.
+
+## Viewer settings
+
+How a viewer shows the document when it is opened:
+
+```csharp
+doc.PageLayout = PdfPageLayout.TwoColumnLeft;   // SinglePage (default), OneColumn, TwoPageLeft, ...
+doc.PageMode = PdfPageMode.UseThumbs;           // UseNone (default), UseOutlines, FullScreen, UseAttachments, ...
+doc.ViewerPreferences.HideToolbar = true;       // also HideMenubar, HideWindowUI, FitWindow, CenterWindow,
+doc.ViewerPreferences.DisplayDocTitle = true;   //   DisplayDocTitle (set automatically for PDF/UA)
+```
+
+Opened documents return their settings; missing entries read as the PDF defaults.
+
 ## Links and notes
 
 ```csharp

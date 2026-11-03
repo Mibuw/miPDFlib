@@ -68,7 +68,10 @@ public sealed class CertificateSigner : IExternalSigner
     /// <exception cref="PdfException">The key is neither RSA nor ECDSA.</exception>
     public byte[] SignHash(byte[] hash, HashAlgorithmName hashAlgorithm) => SignHash(hash, hashAlgorithm, RSASignaturePadding.Pkcs1);
 
-    /// <summary>Signs with the given RSA padding (ignored for EC keys).</summary>
+    /// <summary>
+    /// Signs a hash with the given RSA padding (PKCS#1 v1.5 or PSS). EC keys have no padding: for them the argument is
+    /// ignored and the signature is IEEE P1363 (r || s), as by <see cref="SignHash(byte[], HashAlgorithmName)"/>.
+    /// </summary>
     public byte[] SignHash(byte[] hash, HashAlgorithmName hashAlgorithm, RSASignaturePadding padding)
     {
         using (var rsa = Certificate.GetRSAPrivateKey())
