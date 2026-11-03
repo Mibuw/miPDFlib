@@ -35,9 +35,9 @@ Last update: 2026-11-03
 | 26 Form data exchange | ✅ done (286 tests; FDF and XFDF export/import with hierarchical names, multiple selections, unknown-field and error reporting; XFDF without DTD processing) |
 | 27 API reference | ✅ DocFX site on GitHub Pages (https://mibuw.github.io/miPDFlib/), rebuilt on every push to main |
 | 28 API review fixes | ✅ done (289 tests; redaction overlay texts per mark, field locks of encrypted documents, CMYK outline colors, time-stamp password no longer readable) |
-| 29 Memory for large files | ✅ step 1 done (295 tests; shared stream data, saving without in-memory copies; peak memory about the file size for open/save, see `benchmarks/`) |
+| 29 Memory for large files | ✅ step 1 done (306 tests; shared stream data, saving without in-memory copies, signing and validation from the digest of the byte ranges; peak memory about the file size for open/save/validate, twice for signing `byte[]`, see `benchmarks/`; EU DSS: RSA, PSS, ECDSA, PKCS#7, B-T valid) |
 
-Current state: 295 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 306 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -52,9 +52,8 @@ Current state: 295 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 ## Roadmap
 
 1. External validation: Adobe Acrobat; signatures from certificates of EU trusted list CAs with EU DSS.
-2. Performance/memory for very large files, step 2: memory-mapped reading instead of loading the file into memory
-   (files over 2 GB, 64-bit offsets in lexer and parser), signing and validating from a digest instead of a copy of
-   the signed bytes (today signing needs about 4× the file size, validation 3×).
+2. Performance/memory for very large files, step 2: reading from the file instead of loading it into memory
+   (files over 2 GB, 64-bit offsets in lexer and parser), signing and validating files and streams.
 3. PDF/A-4, PDF/UA-2 and the PDF 2.0 structure namespaces.
 
 Known gaps: no full evaluation of permitted changes after signing (DocMDP; for FieldMDP the values of locked fields are compared); the tagged structure is not taken

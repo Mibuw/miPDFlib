@@ -243,9 +243,9 @@ public static class PdfSignatureValidator
             errors.Add("Invalid /ByteRange.");
             return new SignatureValidationResult { FieldName = fieldName, SubFilter = subFilter, Errors = errors, SigningTime = claimed };
         }
-        var data = new byte[br[1] + br[3]];
-        file.AsSpan(0, (int)br[1]).CopyTo(data);
-        file.AsSpan((int)br[2], (int)br[3]).CopyTo(data.AsSpan((int)br[1]));
+        // the signed data are the two ranges; they are hashed in place, without copying them
+        var first = file.AsSpan(0, (int)br[1]);
+        var second = file.AsSpan((int)br[2], (int)br[3]);
         // the excluded range must be exactly the /Contents hex string
         if (br[2] - br[1] != sig.GetString(PdfName.Contents)!.Bytes.Length * 2 + 2 || file[br[1]] != '<' || file[br[2] - 1] != '>')
             errors.Add("The byte range does not exclude exactly the signature contents.");
@@ -261,29 +261,27 @@ public static class PdfSignatureValidator
             if (subFilter == "ETSI.RFC3161")
             {
                 if (!Rfc3161TimestampToken.TryDecode(contents, out var token, out _)) throw new CryptographicException("Invalid time-stamp token.");
-                integrity = token.VerifySignatureForData(data, out signer);
+                var hashAlgorithm = CmsVerifier.DigestName(token.TokenInfo.HashAlgorithmId.Value)
+                    ?? throw new CryptographicException($"Unsupported digest algorithm {token.TokenInfo.HashAlgorithmId.Value}.");
+                integrity = token.VerifySignatureForHash(CmsVerifier.Hash(hashAlgorithm, first, second), token.TokenInfo.HashAlgorithmId, out signer);
                 embedded.AddRange(token.AsSignedCms().Certificates);
                 timestamp = token.TokenInfo.Timestamp;
                 if (!integrity) errors.Add("The time-stamp does not match the document.");
             }
             else
             {
-                SignedCms cms;
-                if (subFilter == "adbe.pkcs7.sha1")
-                {
-                    cms = new SignedCms();
-                    cms.Decode(contents);
-                    if (!cms.ContentInfo.Content.AsSpan().SequenceEqual(SHA1.HashData(data))) errors.Add("Document digest mismatch.");
-                }
-                else
-                {
-                    cms = new SignedCms(new ContentInfo(data), detached: true);
-                    cms.Decode(contents);
-                }
+                var cms = new SignedCms();
+                cms.Decode(contents);
                 var signerInfo = cms.SignerInfos[0];
                 signer = signerInfo.Certificate;
                 embedded.AddRange(cms.Certificates);
-                signerInfo.CheckSignature(verifySignatureOnly: true); // checks message digest and signature value
+                if (subFilter == "adbe.pkcs7.sha1")
+                {
+                    // the SHA-1 digest of the document is the signed content
+                    if (!cms.ContentInfo.Content.AsSpan().SequenceEqual(CmsVerifier.Hash(HashAlgorithmName.SHA1, first, second))) errors.Add("Document digest mismatch.");
+                    signerInfo.CheckSignature(verifySignatureOnly: true);
+                }
+                else CmsVerifier.Verify(cms, contents, first, second); // message digest and signature value
                 integrity = errors.Count == 0;
                 foreach (var attr in signerInfo.SignedAttributes)
                     if (attr.Oid.Value == "1.2.840.113549.1.9.5" && attr.Values.Count > 0)

@@ -121,7 +121,7 @@ public static class CmsUtil
         return null;
     }
 
-    private static ReadOnlyMemory<byte> ReadFirstSignerInfo(byte[] cms, out List<ReadOnlyMemory<byte>> signedDataElements, out List<ReadOnlyMemory<byte>> otherSignerInfos)
+    internal static ReadOnlyMemory<byte> ReadFirstSignerInfo(byte[] cms, out List<ReadOnlyMemory<byte>> signedDataElements, out List<ReadOnlyMemory<byte>> otherSignerInfos)
     {
         try
         {

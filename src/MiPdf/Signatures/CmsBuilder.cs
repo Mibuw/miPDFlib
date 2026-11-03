@@ -1,6 +1,5 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
-using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 
 namespace MiPdf.Signatures;
@@ -29,60 +28,33 @@ internal static class CmsBuilder
         _ => throw new PdfException($"Unsupported digest algorithm {name.Name}."),
     };
 
-    public static byte[] Sign(byte[] content, IExternalSigner signer, PdfSignatureOptions options, DateTimeOffset signingTime) =>
-        Sign(content, signer, options, signingTime, out _, out _);
-
-    public static byte[] Sign(byte[] content, IExternalSigner signer, PdfSignatureOptions options, DateTimeOffset signingTime,
+    /// <summary>
+    /// Creates the detached CMS from the digest of the signed byte ranges, so the document itself is never needed in
+    /// one piece: signed attributes over the digest, the signature value from <paramref name="signer"/>, then the
+    /// unsigned attributes and the optional signature time-stamp.
+    /// </summary>
+    public static byte[] SignDigest(byte[] documentDigest, IExternalSigner signer, PdfSignatureOptions options, DateTimeOffset signingTime,
         out bool timestamped, out string? timestampError)
     {
         timestampError = null;
-        var cms = new SignedCms(new ContentInfo(content), detached: true);
         var certificate = signer.Certificate;
-        CmsSigner cmsSigner;
-        AsymmetricAlgorithm? facade = null;
-        if (signer is CertificateSigner && certificate.HasPrivateKey)
-        {
-            cmsSigner = new CmsSigner(SubjectIdentifierType.IssuerAndSerialNumber, certificate);
-        }
-        else
-        {
-            facade = certificate.GetRSAPublicKey() is { } rsa
-                ? new ExternalRsa(signer, rsa)
-                : certificate.GetECDsaPublicKey() is { } ec
-                    ? new ExternalECDsa(signer, ec, options.DigestAlgorithm)
-                    : throw new PdfException("Unsupported key type (supported: RSA, ECDSA).");
-            cmsSigner = new CmsSigner(SubjectIdentifierType.IssuerAndSerialNumber, LoadCertificate(certificate.RawData), facade);
-        }
-        try
-        {
-            cmsSigner.DigestAlgorithm = new Oid(DigestOid(options.DigestAlgorithm));
-            if (options.RsaPadding != RSASignaturePadding.Pkcs1)
-            {
-                using var rsaKey = certificate.GetRSAPublicKey();
-                if (rsaKey != null) cmsSigner.SignaturePadding = options.RsaPadding;
-            }
-            cmsSigner.IncludeOption = X509IncludeOption.EndCertOnly;
-            foreach (var c in signer.CertificateChain)
-                if (c.Thumbprint != certificate.Thumbprint) cmsSigner.Certificates.Add(c);
-            // signing-certificate-v2 binds the certificate to the signature (also recommended for PKCS#7 signatures)
-            cmsSigner.SignedAttributes.Add(new AsnEncodedData(OidSigningCertificateV2, SigningCertificateV2(certificate)));
-            if (options.Format == PdfSignatureFormat.Pkcs7Detached)
-                cmsSigner.SignedAttributes.Add(new Pkcs9SigningTime(signingTime.UtcDateTime));
-            foreach (var attribute in options.AdditionalSignedAttributes) cmsSigner.SignedAttributes.Add(attribute);
-            foreach (var attribute in options.AdditionalUnsignedAttributes) cmsSigner.UnsignedAttributes.Add(attribute);
-            cms.ComputeSignature(cmsSigner, silent: true);
-        }
-        finally
-        {
-            facade?.Dispose();
-        }
+        var digest = options.DigestAlgorithm;
+        DigestOid(digest); // rejects unsupported algorithms before anything is signed
+        var attributes = CmsUtil.CreateSignedAttributes(documentDigest, certificate, options.Format, signingTime, options.AdditionalSignedAttributes);
+        var hash = Hash(digest, attributes);
+        bool isRsa;
+        using (var rsa = certificate.GetRSAPublicKey()) isRsa = rsa != null;
+        var signature = isRsa ? signer.SignHash(hash, digest, options.RsaPadding) : signer.SignHash(hash, digest);
+        var cms = CmsUtil.AssembleSignedData(attributes, signature, certificate, signer.CertificateChain, digest, isRsa ? options.RsaPadding : null);
+        foreach (var attribute in options.AdditionalUnsignedAttributes)
+            cms = CmsUtil.AddUnsignedAttribute(cms, attribute.Oid!.Value!, attribute.RawData);
 
         timestamped = false;
         if (options.TimestampClient != null)
         {
             try
             {
-                AddSignatureTimestamp(cms, options.TimestampClient, options.DigestAlgorithm);
+                cms = CmsUtil.AddSignatureTimestamp(cms, options.TimestampClient, digest);
                 timestamped = true;
             }
             catch (Exception ex) when (options.TimestampOptional && ex is not OutOfMemoryException)
@@ -90,7 +62,7 @@ internal static class CmsBuilder
                 timestampError = ex.Message;
             }
         }
-        return cms.Encode();
+        return cms;
     }
 
     internal static X509Certificate2 LoadCertificate(byte[] raw)
@@ -100,15 +72,6 @@ internal static class CmsBuilder
 #else
         return new X509Certificate2(raw);
 #endif
-    }
-
-    /// <summary>Adds a signature time-stamp (unsigned attribute) over the signature value.</summary>
-    public static void AddSignatureTimestamp(SignedCms cms, ITimestampClient tsa, HashAlgorithmName hashAlgorithm)
-    {
-        var signerInfo = cms.SignerInfos[0];
-        var hash = Hash(hashAlgorithm, signerInfo.GetSignature());
-        var token = tsa.GetTimestampToken(hash, hashAlgorithm);
-        signerInfo.AddUnsignedAttribute(new AsnEncodedData(OidTimestampToken, token));
     }
 
     /// <summary>ESS signing-certificate-v2 attribute value (RFC 5035) with SHA-256 cert hash and issuer/serial.</summary>

@@ -27,9 +27,11 @@ Peak working set in MB, .NET 8, Windows 11. "Before" is release 0.5.0.
 | text of all pages | – | – | 275 | 278 |
 | incremental save | 1,228 | 328 | 71 | 43 |
 | full save | 1,602 | 329 | 135 | 107 |
-| sign (`byte[]` in and out) | 1,536 | 1,236 | 131 | 130 |
-| validate the signature | 934 | 933 | 114 | 114 |
+| sign (`byte[]` in and out) | 1,536 | 635 | 131 | 110 |
+| validate the signature | 934 | 332 | 114 | 95 |
 | merge the file with itself | 3,350 | 631 | 316 | 246 |
 
-Opening reads the whole file into memory; objects are loaded lazily, so only what is used is parsed. Signing and
-validation still copy the signed byte ranges for `SignedCms`; see the roadmap in [docs/PROGRESS.md](../docs/PROGRESS.md).
+Opening reads the whole file into memory; objects are loaded lazily, so only what is used is parsed. Signing a
+`byte[]` needs the input and the signed output; signatures are created and verified from the digest of the signed
+byte ranges, without copying them. See the roadmap in [docs/PROGRESS.md](../docs/PROGRESS.md) for reading files
+without loading them.

@@ -6,7 +6,12 @@
   with the file data until it is changed), `Save(path)` writes directly to a temporary file that then replaces the
   target, and `ToArray()` no longer copies the output repeatedly while it grows. For a 300 MB file with images the
   peak memory drops from 1.2 GB to 330 MB for an incremental save, from 1.6 GB to 330 MB for a full save and from
-  3.4 GB to 630 MB for merging it with itself; signing needs 1.2 GB instead of 1.5 GB.
+  3.4 GB to 630 MB for merging it with itself.
+- Signatures are created and verified from the digest of the signed byte ranges instead of a copy of them: signing
+  the 300 MB file needs 635 MB instead of 1.5 GB (input and output), validating 330 MB instead of 930 MB. The CMS is
+  assembled directly (signed attributes, signature value, unsigned attributes, time-stamp) instead of with
+  `SignedCms`; the structure is unchanged (verified with EU DSS for RSA, RSASSA-PSS, ECDSA, PKCS#7 and B-T). The
+  validator checks the message digest and the signature value itself (RSA PKCS#1 v1.5 and PSS, ECDSA).
 - `Save(path)` leaves an existing file unchanged if saving fails (it used to be truncated).
 - `PdfDocument.Open(Stream)` reads seekable streams once into an array of the final size.
 - Text extraction allocates a third less memory and is faster.

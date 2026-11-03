@@ -46,7 +46,14 @@ public sealed class PreparedSignature
     }
 
     /// <summary>The digest of the signed bytes (to be signed by an external CMS service).</summary>
-    public byte[] GetDocumentDigest() => CmsBuilder.Hash(DigestAlgorithm, GetSignedData());
+    public byte[] GetDocumentDigest()
+    {
+        // both ranges are hashed in place, without copying them
+        using var hash = IncrementalHash.CreateHash(DigestAlgorithm);
+        hash.AppendData(PreparedPdf, 0, (int)ByteRange[1]);
+        hash.AppendData(PreparedPdf, (int)ByteRange[2], (int)ByteRange[3]);
+        return hash.GetHashAndReset();
+    }
 }
 
 /// <summary>Result of <see cref="PdfSigner.SignDetailed(byte[], IExternalSigner, PdfSignatureOptions?)"/>.</summary>
@@ -113,7 +120,7 @@ public static class PdfSigner
         {
             var subFilter = options.Format == PdfSignatureFormat.PAdES ? "ETSI.CAdES.detached" : "adbe.pkcs7.detached";
             var prepared = Prepare(pdf, options, PdfName.Sig, subFilter, size, signer.Certificate, signingTime);
-            var cms = CmsBuilder.Sign(prepared.GetSignedData(), signer, options, signingTime, out bool timestamped, out string? tsError);
+            var cms = CmsBuilder.SignDigest(prepared.GetDocumentDigest(), signer, options, signingTime, out bool timestamped, out string? tsError);
             if (cms.Length <= prepared.ContainerSize)
             {
                 var warnings = tsError != null ? new[] { "Time-stamp failed, signed without time-stamp: " + tsError } : Array.Empty<string>();
