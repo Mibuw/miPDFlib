@@ -1,7 +1,8 @@
 # Digital signatures
 
 Signatures are always added as an **incremental update**: the original bytes stay untouched, so existing
-signatures remain valid. The CMS container is created with `System.Security.Cryptography.Pkcs` (Microsoft).
+signatures remain valid. The CMS container is assembled from the digest of the signed byte ranges (the document is
+never copied for signing); certificates, keys and time-stamps use the .NET cryptography APIs.
 
 ## Signing with a certificate file
 
@@ -25,6 +26,12 @@ File.WriteAllBytes("contract-signed.pdf", signed);
 
 Overloads accept an `X509Certificate2` with private key (from the Windows certificate store, a smart card
 CSP/KSP, ...) or a `PdfDocument`.
+
+Large files are signed from file to file without loading them; the output may be the input file:
+
+```csharp
+PdfSigningResult result = PdfSigner.SignFile("archive.pdf", "archive-signed.pdf", signer, options);
+```
 
 | Option | Description |
 |---|---|
@@ -212,9 +219,12 @@ foreach (var r in PdfSignatureValidator.Validate(File.ReadAllBytes("signed.pdf")
 }
 ```
 
+`PdfSignatureValidator.Validate("signed.pdf")` reads the file on demand and hashes the signed byte ranges from it, for
+files of any size.
+
 | Property | Meaning |
 |---|---|
-| `IsIntegrityValid` | signed bytes unchanged, message digest and signature value correct, byte range excludes exactly the container |
+| `IsIntegrityValid` | signed bytes unchanged, message digest and signature value correct (RSA PKCS#1 v1.5 and PSS, ECDSA), byte range excludes exactly the container |
 | `CoversWholeDocument` | no incremental updates after this signature; otherwise `GetSignedRevision` returns the signed version |
 | `TimestampTime` | verified signature time-stamp or document time-stamp |
 | `IsCertificateTrusted` | chain built against the system store or `TrustedRoots` (when `CheckCertificateChain` is set) |

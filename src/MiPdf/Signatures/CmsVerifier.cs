@@ -29,27 +29,18 @@ internal static class CmsVerifier
         _ => null,
     };
 
-    /// <summary>Hashes two byte ranges as one message.</summary>
-    public static byte[] Hash(HashAlgorithmName algorithm, ReadOnlySpan<byte> first, ReadOnlySpan<byte> second)
-    {
-        using var hash = IncrementalHash.CreateHash(algorithm);
-        hash.AppendData(first);
-        hash.AppendData(second);
-        return hash.GetHashAndReset();
-    }
-
     /// <summary>
     /// Verifies the first SignerInfo of <paramref name="cms"/> (decoded from <paramref name="encoded"/>) for detached
-    /// content given as two byte ranges.
+    /// content; <paramref name="digest"/> returns the digest of the content for an algorithm.
     /// </summary>
     /// <exception cref="CryptographicException">The signature does not match the data or cannot be verified.</exception>
-    public static void Verify(SignedCms cms, byte[] encoded, ReadOnlySpan<byte> first, ReadOnlySpan<byte> second)
+    public static void Verify(SignedCms cms, byte[] encoded, Func<HashAlgorithmName, byte[]> digest)
     {
         var signerInfo = cms.SignerInfos[0];
         var digestAlgorithm = DigestName(signerInfo.DigestAlgorithm.Value)
             ?? throw new CryptographicException($"Unsupported digest algorithm {signerInfo.DigestAlgorithm.Value}.");
         var certificate = signerInfo.Certificate ?? throw new CryptographicException("The signer certificate is not included.");
-        var documentDigest = Hash(digestAlgorithm, first, second);
+        var documentDigest = digest(digestAlgorithm);
 
         var (signedAttributes, signatureAlgorithm, signature) = ReadSignerInfo(encoded);
         byte[] signedHash;

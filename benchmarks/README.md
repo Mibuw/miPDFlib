@@ -33,5 +33,23 @@ Peak working set in MB, .NET 8, Windows 11. "Before" is release 0.5.0.
 
 Opening reads the whole file into memory; objects are loaded lazily, so only what is used is parsed. Signing a
 `byte[]` needs the input and the signed output; signatures are created and verified from the digest of the signed
-byte ranges, without copying them. See the roadmap in [docs/PROGRESS.md](../docs/PROGRESS.md) for reading files
-without loading them.
+byte ranges, without copying them.
+
+## Files larger than 2 GB
+
+```
+dotnet run -c Release --project benchmarks/MiPdf.Benchmarks -- huge <directory>
+```
+
+creates `huge.pdf` (850 pages with a 3 MB image each, 2.5 GB) and runs the scenarios that read from the file
+(`PdfOpenOptions.ReadFromFile`, automatic above 2 GB). Peak working set in MB; before, such files could not be
+opened at all:
+
+| Scenario | huge.pdf (2,550 MB) |
+|---|---:|
+| open + page count | 35 |
+| text of page 1 | 37 |
+| incremental save to a file | 30 |
+| full save to a file | 47 |
+| `PdfSigner.SignFile` | 48 |
+| `PdfSignatureValidator.Validate(path)` | 41 |

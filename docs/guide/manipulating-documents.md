@@ -13,6 +13,26 @@ doc.Save("output.pdf");
 Damaged files (wrong xref offsets, missing trailer, wrong stream lengths) are repaired automatically;
 `doc.WasRepaired` tells whether this happened.
 
+### Large files
+
+By default the file is read into memory; objects are parsed only when they are used. With `ReadFromFile` the
+objects are read from the file when needed instead, so memory stays small whatever the file size (files larger than
+2 GB are always read this way):
+
+```csharp
+using var doc = PdfDocument.Open("scan-archive.pdf", new PdfOpenOptions { ReadFromFile = true });
+doc.Info.Title = "Archive 2026";
+doc.Save("scan-archive.pdf", new PdfSaveOptions { Incremental = true });  // saving over the own file works
+```
+
+The file stays open for reading until the document is disposed. Saving copies unchanged streams (images, fonts)
+straight from the file. Pages imported into another document read their data from this file, so keep the source
+open until the target is saved. For signing and validating large files without loading them see
+`PdfSigner.SignFile` and `PdfSignatureValidator.Validate(path)` in the [signatures guide](signatures.md).
+
+Measured with a 2.5 GB file: opening needs about 35 MB, saving and signing under 50 MB
+([benchmarks](https://github.com/Mibuw/miPDFlib/blob/main/benchmarks/README.md)).
+
 ### Save options
 
 ```csharp

@@ -43,6 +43,17 @@ internal sealed class PdfOutput
         return this;
     }
 
+    /// <summary>Copies encoded stream data that is still in a file.</summary>
+    public PdfOutput Write(FileRegion region) => Write(region.File, region.Offset, region.Length);
+
+    /// <summary>Copies a range of file data.</summary>
+    public PdfOutput Write(PdfFileData file, long offset, long length)
+    {
+        file.CopyTo(_stream, offset, length);
+        Position += length;
+        return this;
+    }
+
     public PdfOutput WriteByte(byte b)
     {
         _stream.WriteByte(b);
@@ -91,12 +102,20 @@ internal sealed class PdfObjectSerializer
         output.Write($"{number} {generation} obj\n");
         if (obj is PdfStream stream)
         {
-            // unchanged stream data is written straight from the file data
-            var data = stream.RawData;
             if (Encryptor != null && !(IsUnencryptedObject?.Invoke(number) ?? false) && !IsXrefStream(stream))
-                data = Encryptor.EncryptStream(stream.RawBytes, number, generation, stream);
-            WriteDictionaryBody(stream, output, data.Length);
-            output.Write("\nstream\n").Write(data.Span).Write("\nendstream");
+            {
+                var data = Encryptor.EncryptStream(stream.RawBytes, number, generation, stream);
+                WriteDictionaryBody(stream, output, data.Length);
+                output.Write("\nstream\n").Write(data).Write("\nendstream");
+            }
+            else
+            {
+                // unchanged stream data is written straight from the file data
+                WriteDictionaryBody(stream, output, stream.RawLength);
+                output.Write("\nstream\n");
+                stream.WriteRawTo(output);
+                output.Write("\nendstream");
+            }
         }
         else
         {

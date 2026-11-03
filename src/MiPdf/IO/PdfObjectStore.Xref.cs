@@ -42,11 +42,12 @@ internal sealed partial class PdfObjectStore
 
     private long FindStartXref()
     {
-        int searchStart = Math.Max(0, _data.Length - 4096);
-        int idx = _data.AsSpan(searchStart).LastIndexOf("startxref"u8);
+        long searchStart = Math.Max(0, _file.Length - 4096);
+        var window = _file.GetWindow(searchStart, 4096);
+        int idx = window.Buffer.AsSpan(window.Start, window.End - window.Start).LastIndexOf("startxref"u8);
         if (idx < 0) return -1;
-        var lexer = new PdfLexer(_data, searchStart + idx + 9);
-        return lexer.Next() && lexer.Kind == TokenKind.Integer ? lexer.IntValue : -1;
+        long position = window.Base + window.Start + idx + 9;
+        return ParseAt(position, (lexer, _) => lexer.Next() && lexer.Kind == TokenKind.Integer ? lexer.IntValue : -1, 256);
     }
 
     /// <summary>True if startxref points to an xref section only when counted from the %PDF- header.</summary>
@@ -58,11 +59,13 @@ internal sealed partial class PdfObjectStore
 
     private bool IsXrefAt(long offset)
     {
-        if (offset < 0 || offset >= _data.Length) return false;
-        var lexer = new PdfLexer(_data, (int)offset);
-        if (!lexer.Next()) return false;
-        if (lexer.IsKeyword("xref")) return true;
-        return lexer.Kind == TokenKind.Integer && lexer.Next() && lexer.Kind == TokenKind.Integer && lexer.Next() && lexer.IsKeyword("obj");
+        if (offset < 0 || offset >= _file.Length) return false;
+        return ParseAt(offset, (lexer, _) =>
+        {
+            if (!lexer.Next()) return false;
+            if (lexer.IsKeyword("xref")) return true;
+            return lexer.Kind == TokenKind.Integer && lexer.Next() && lexer.Kind == TokenKind.Integer && lexer.Next() && lexer.IsKeyword("obj");
+        }, 256);
     }
 
     /// <summary>Reads one xref section (table or stream). Offsets may be relative to the header.</summary>
@@ -70,19 +73,23 @@ internal sealed partial class PdfObjectStore
     {
         foreach (long candidate in new[] { offset, offset + HeaderOffset })
         {
-            if (candidate < 0 || candidate >= _data.Length) continue;
-            var lexer = new PdfLexer(_data, (int)candidate);
-            if (!lexer.Next()) continue;
-            if (lexer.IsKeyword("xref"))
+            if (candidate < 0 || candidate >= _file.Length) continue;
+            var first = ParseAt(candidate, (lexer, _) => lexer.Next() ? (lexer.IsKeyword("xref"), lexer.Kind == TokenKind.Integer) : (false, false), 256);
+            if (first.Item1)
             {
                 if (isFirst) UsesXrefStreams = false;
                 offset = candidate;
-                var trailer = ReadXrefTable(lexer, section);
+                var (trailer, entries) = ParseAt(candidate, (lexer, _) =>
+                {
+                    lexer.Next(); // xref
+                    return ReadXrefTable(lexer, section);
+                });
+                foreach (var (number, entry) in entries) AddEntry(number, entry);
                 if (trailer.GetLong(PdfName.XRefStm, -1) is var stm and >= 0)
                     ReadXrefStream(stm, section, hybrid: true);
                 return trailer;
             }
-            if (lexer.Kind == TokenKind.Integer)
+            if (first.Item2)
             {
                 var dict = ReadXrefStream(candidate, section, hybrid: false);
                 if (dict != null)
@@ -96,8 +103,10 @@ internal sealed partial class PdfObjectStore
         return null;
     }
 
-    private PdfDictionary ReadXrefTable(PdfLexer lexer, int section)
+    /// <summary>Parses an xref table after the <c>xref</c> keyword; the entries are returned, not added (the parse may be repeated).</summary>
+    private (PdfDictionary Trailer, List<(int Number, XrefEntry Entry)> Entries) ReadXrefTable(PdfLexer lexer, int section)
     {
+        var entries = new List<(int, XrefEntry)>();
         while (true)
         {
             int save = lexer.Position;
@@ -126,18 +135,18 @@ internal sealed partial class PdfObjectStore
                     start = 0;
                     number = 0;
                 }
-                AddEntry((int)number, new XrefEntry
+                entries.Add(((int)number, new XrefEntry
                 {
                     Type = inUse ? XrefEntryType.InUse : XrefEntryType.Free,
                     Offset = entryOffset,
                     Generation = gen,
                     Section = section,
-                });
+                }));
             }
         }
         var parser = new PdfObjectParser(lexer, GetReference);
         var trailer = parser.ParseObject() as PdfDictionary ?? throw new PdfParseException("Invalid trailer", lexer.TokenStart);
-        return trailer;
+        return (trailer, entries);
     }
 
     private void AddEntry(int number, XrefEntry entry, bool hybrid = false)

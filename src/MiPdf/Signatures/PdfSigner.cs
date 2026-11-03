@@ -68,7 +68,7 @@ public sealed class PdfSigningResult
         Warnings = warnings;
     }
 
-    /// <summary>The signed document.</summary>
+    /// <summary>The signed document; empty for <see cref="PdfSigner.SignFile(string, string, IExternalSigner, PdfSignatureOptions?)"/>, which writes it to the output file.</summary>
     public byte[] Pdf { get; }
 
     /// <summary>Name of the signature field that was signed (<see cref="PdfSignatureOptions.FieldName"/> or a generated name such as "Signature1").</summary>
@@ -136,6 +136,82 @@ public static class PdfSigner
     /// <summary>Signs a <see cref="PdfDocument"/> (it is saved first) and returns the signed bytes.</summary>
     public static byte[] Sign(PdfDocument document, IExternalSigner signer, PdfSignatureOptions? options = null) =>
         Sign(document.ToArray(), signer, options);
+
+    /// <summary>Signs a file with a certificate that has a private key; see <see cref="SignFile(string, string, IExternalSigner, PdfSignatureOptions?)"/>.</summary>
+    public static PdfSigningResult SignFile(string inputPath, string outputPath, X509Certificate2 certificate, PdfSignatureOptions? options = null,
+        IEnumerable<X509Certificate2>? chain = null) =>
+        SignFile(inputPath, outputPath, new CertificateSigner(certificate, chain), options);
+
+    /// <summary>
+    /// Signs a file and writes the signed document to <paramref name="outputPath"/>, which may be the input file. The
+    /// document is read on demand and the signed byte ranges are hashed from the file, so files of any size (also larger
+    /// than 2 GB) are signed with little memory. <see cref="PdfSigningResult.Pdf"/> is empty; the signed document is
+    /// the output file. Damaged documents are not repaired: save them with a full save first.
+    /// </summary>
+    /// <exception cref="PdfException">The document is damaged, or the signature does not fit into the reserved space.</exception>
+    public static PdfSigningResult SignFile(string inputPath, string outputPath, IExternalSigner signer, PdfSignatureOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(inputPath);
+        ArgumentNullException.ThrowIfNull(outputPath);
+        options ??= new PdfSignatureOptions();
+        var signingTime = options.SigningTime ?? DateTimeOffset.Now;
+        int size = options.SignatureSize > 0 ? options.SignatureSize : EstimateSize(signer, options);
+        var subFilter = options.Format == PdfSignatureFormat.PAdES ? "ETSI.CAdES.detached" : "adbe.pkcs7.detached";
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            using var doc = PdfDocument.Open(inputPath, new PdfOpenOptions { Password = options.Password, ReadFromFile = true });
+            if (doc.WasRepaired) throw new PdfException("The document is damaged; save it (full save) before signing.");
+            string fieldName = AddSignature(doc, options, PdfName.Sig, subFilter, size, signer.Certificate, signingTime);
+
+            // only the update is held in memory; the original data stays in the file
+            using var buffer = new ChunkedBufferStream();
+            doc.WriteIncrementalUpdate(buffer, SigningSaveOptions());
+            var update = buffer.ToArray();
+            var file = doc.Store.File;
+            long prefix = PdfFileWriter.IncrementalPrefixLength(doc.Store);
+            var byteRange = PatchByteRange(update, 0, size, prefix);
+            int contentsStart = (int)(byteRange[1] - prefix), contentsEnd = (int)(byteRange[2] - prefix);
+
+            byte[] digest;
+            using (var hash = IncrementalHash.CreateHash(options.DigestAlgorithm))
+            {
+                file.AppendTo(hash, 0, file.Length);
+                if (prefix > file.Length) hash.AppendData("\n"u8);
+                hash.AppendData(update, 0, contentsStart);
+                hash.AppendData(update, contentsEnd, update.Length - contentsEnd);
+                digest = hash.GetHashAndReset();
+            }
+            var cms = CmsBuilder.SignDigest(digest, signer, options, signingTime, out bool timestamped, out string? tsError);
+            if (cms.Length <= size)
+            {
+                Encoding.ASCII.GetBytes(Convert.ToHexString(cms)).CopyTo(update, contentsStart + 1);
+                var target = Path.GetFullPath(outputPath);
+                var temp = Path.Combine(Path.GetDirectoryName(target)!, $".{Path.GetFileName(target)}.{Guid.NewGuid():N}.tmp");
+                try
+                {
+                    using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1 << 16))
+                    {
+                        file.CopyTo(output, 0, file.Length);
+                        if (prefix > file.Length) output.WriteByte((byte)'\n');
+                        output.Write(update);
+                    }
+                    PdfDocument.ReplaceFile(temp, target, file.FilePath);
+                }
+                catch
+                {
+                    try { File.Delete(temp); }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+                    throw;
+                }
+                var warnings = tsError != null ? new[] { "Time-stamp failed, signed without time-stamp: " + tsError } : Array.Empty<string>();
+                return new PdfSigningResult(Array.Empty<byte>(), fieldName, cms, timestamped ? PadesLevel.BT : PadesLevel.BB, warnings);
+            }
+            if (options.SignatureSize > 0)
+                throw new PdfException($"The signature ({cms.Length} bytes) does not fit into the reserved space ({size} bytes).");
+            size = cms.Length + 4096;
+        }
+        throw new PdfException("Could not determine the signature size.");
+    }
 
     /// <summary>
     /// Step 1 of a deferred signature: prepares the document and returns the data to sign. Send
@@ -207,6 +283,19 @@ public static class PdfSigner
             pdf = doc.ToArray();
             doc = PdfDocument.Open(pdf, options.Password);
         }
+        string fieldName = AddSignature(doc, options, type, subFilter, containerSize, certificate, signingTime);
+        // the update is appended to the PDF data (without data before the %PDF- header, if any)
+        var bytes = doc.ToArray(SigningSaveOptions());
+        return new PreparedSignature(bytes, fieldName, PatchByteRange(bytes, (int)doc.Store.File.Length, containerSize, 0), options.DigestAlgorithm);
+    }
+
+    /// <summary>The document information stays unchanged when signing: a signature is not an edit of the content.</summary>
+    private static PdfSaveOptions SigningSaveOptions() => new() { Incremental = true, UpdateModificationDate = false, UpdateProducer = false };
+
+    /// <summary>Adds the signature field (if needed) and the signature dictionary with placeholders; returns the field name.</summary>
+    private static string AddSignature(PdfDocument doc, PdfSignatureOptions options, PdfName type, string subFilter, int containerSize,
+        X509Certificate2? certificate, DateTimeOffset signingTime)
+    {
         var form = doc.GetOrCreateForm();
         form.Dictionary.Set(PdfName.SigFlags, 3); // signatures exist, append only
 
@@ -288,10 +377,7 @@ public static class PdfSigner
                 : string.IsNullOrEmpty(signerName) ? "Digital signature" : "Digital signature of " + signerName);
         }
 
-        // the update is appended to the PDF data (without data before the %PDF- header, if any)
-        // the document information stays unchanged: a signature is not an edit of the content
-        var bytes = doc.ToArray(new PdfSaveOptions { Incremental = true, UpdateModificationDate = false, UpdateProducer = false });
-        return LocatePlaceholders(bytes, doc.Store.OriginalData.Length, containerSize, fieldName, options.DigestAlgorithm);
+        return fieldName;
     }
 
     /// <summary>Keeps tagged (PDF/UA) documents accessible: description, tab order and a Form structure element.</summary>
@@ -313,21 +399,26 @@ public static class PdfSigner
             if (form.GetField(prefix + i) == null) return prefix + i;
     }
 
-    private static PreparedSignature LocatePlaceholders(byte[] bytes, int searchFrom, int containerSize, string fieldName, HashAlgorithmName digest)
+    /// <summary>
+    /// Finds the placeholders in <paramref name="data"/> (from <paramref name="searchFrom"/>), writes the /ByteRange and
+    /// returns it. <paramref name="baseOffset"/> is the file offset of <c>data[0]</c> (the length of the original data
+    /// when only the update is in memory).
+    /// </summary>
+    private static long[] PatchByteRange(byte[] data, int searchFrom, int containerSize, long baseOffset)
     {
-        var text = Encoding.Latin1.GetString(bytes, searchFrom, bytes.Length - searchFrom);
+        var text = Encoding.Latin1.GetString(data, searchFrom, data.Length - searchFrom);
         string contentsPattern = "<" + new string('0', containerSize * 2) + ">";
         int contents = text.IndexOf(contentsPattern, StringComparison.Ordinal);
         string rangePattern = $"[0 {ByteRangePlaceholder} {ByteRangePlaceholder} {ByteRangePlaceholder}]";
         int range = text.IndexOf(rangePattern, StringComparison.Ordinal);
         if (contents < 0 || range < 0) throw new PdfException("Signature placeholders not found in the prepared document.");
-        long start = searchFrom + contents;
+        long start = baseOffset + searchFrom + contents;
         long end = start + contentsPattern.Length;
-        var byteRange = new[] { 0, start, end, bytes.Length - end };
+        var byteRange = new[] { 0, start, end, baseOffset + data.Length - end };
         var replacement = $"[0 {byteRange[1]} {byteRange[2]} {byteRange[3]}";
         replacement = replacement.PadRight(rangePattern.Length - 1) + "]";
-        Encoding.ASCII.GetBytes(replacement).CopyTo(bytes, searchFrom + range);
-        return new PreparedSignature(bytes, fieldName, byteRange, digest);
+        Encoding.ASCII.GetBytes(replacement).CopyTo(data, searchFrom + range);
+        return byteRange;
     }
 
     /// <param name="prepared">The prepared document.</param>

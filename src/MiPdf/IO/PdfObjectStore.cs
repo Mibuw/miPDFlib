@@ -31,9 +31,12 @@ internal interface IObjectDecryptor
 /// Holds all indirect objects of a document: lazily loaded objects from the original file and
 /// objects added or replaced in memory. Implements reference resolution.
 /// </summary>
-internal sealed partial class PdfObjectStore : IPdfObjectResolver
+internal sealed partial class PdfObjectStore : IPdfObjectResolver, IDisposable
 {
-    private readonly byte[] _data;
+    private const int InitialWindow = 4096; // most objects are smaller; larger ones grow the window
+    private const int MaxWindow = int.MaxValue - 1024;
+
+    private readonly PdfFileData _file;
     private readonly Dictionary<int, XrefEntry> _xref = new();
     private readonly Dictionary<int, PdfObject> _objects = new();
     private readonly Dictionary<int, int> _generations = new();
@@ -49,14 +52,14 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver
     /// <summary>Creates an empty store for a new document.</summary>
     public PdfObjectStore()
     {
-        _data = Array.Empty<byte>();
+        _file = PdfFileData.Empty;
         Trailer = new PdfDictionary();
     }
 
-    /// <summary>Opens an existing file.</summary>
-    public PdfObjectStore(byte[] data)
+    /// <summary>Opens an existing file (in memory or read on demand).</summary>
+    public PdfObjectStore(PdfFileData file)
     {
-        _data = data;
+        _file = file;
         Trailer = new PdfDictionary();
         HeaderOffset = FindHeader(out var version);
         Version = version;
@@ -64,7 +67,7 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver
         {
             // data before %PDF- is not part of the PDF (e.g. print job control data, PDF 2.0 7.5.2) and all
             // offsets count from the header: continue with the PDF data only
-            _data = data.AsSpan(HeaderOffset).ToArray();
+            _file = file.Slice(HeaderOffset, file.Length - HeaderOffset);
             HeaderOffset = 0;
         }
         try
@@ -83,9 +86,13 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver
         }
     }
 
-    public byte[] OriginalData => _data;
+    /// <summary>The data of the original file (without data before the header if offsets count from the header).</summary>
+    public PdfFileData File => _file;
 
-    public bool IsFromFile => _data.Length > 0;
+    public bool IsFromFile => _file.Length > 0;
+
+    /// <summary>Closes the file of documents that are read on demand.</summary>
+    public void Dispose() => _file.Dispose();
 
     public int HeaderOffset { get; }
 
@@ -260,67 +267,106 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver
         }
     }
 
-    private sealed record IndirectObject(int Number, int Generation, PdfObject Object, int EndPosition);
+    private sealed record IndirectObject(int Number, int Generation, PdfObject Object, long EndPosition);
+
+    private sealed record ParsedHeader(int Number, int Generation, PdfObject Object, long AfterObject, long StreamStart);
+
+    /// <summary>
+    /// Parses at a file offset. Data in memory is parsed in place; data read from a file is parsed in a window that is
+    /// enlarged (and the parse repeated) as long as the parse reaches the end of the window before the end of the file.
+    /// <paramref name="parse"/> must not change the store: it may run more than once.
+    /// </summary>
+    private T ParseAt<T>(long offset, Func<PdfLexer, FileWindow, T> parse, int initialWindow = InitialWindow)
+    {
+        int size = _file.WindowLimit ?? initialWindow;
+        while (true)
+        {
+            var window = _file.GetWindow(offset, size);
+            var lexer = new PdfLexer(window.Buffer, window.Start, window.End - window.Start);
+            bool canGrow = !window.ReachesEnd && size < MaxWindow;
+            try
+            {
+                var result = parse(lexer, window);
+                if (!canGrow || !lexer.HitEnd) return result;
+            }
+            catch (Exception ex) when (canGrow && lexer.HitEnd && ex is PdfParseException or IndexOutOfRangeException or ArgumentOutOfRangeException)
+            {
+                // the object continues after the window
+            }
+            size = (int)Math.Min((long)size * 4, MaxWindow);
+        }
+    }
 
     /// <summary>Reads <c>n g obj ... endobj</c> at the given offset.</summary>
     private IndirectObject? ReadIndirectObjectAt(long offset, int expectedNumber, bool decrypt)
     {
-        if (offset < 0 || offset >= _data.Length) return null;
-        var lexer = new PdfLexer(_data, (int)offset);
-        if (!lexer.Next() || lexer.Kind != TokenKind.Integer) return null;
-        int number = (int)lexer.IntValue;
-        if (!lexer.Next() || lexer.Kind != TokenKind.Integer) return null;
-        int generation = (int)lexer.IntValue;
-        if (!lexer.Next() || !lexer.IsKeyword("obj")) return null;
-        if (expectedNumber >= 0 && number != expectedNumber) return null;
-
-        var parser = new PdfObjectParser(lexer, GetReference);
-        var obj = parser.ParseObject() ?? PdfNull.Instance;
-        int afterObject = lexer.Position;
-        if (lexer.Next() && lexer.IsKeyword("stream") && obj is PdfDictionary dict)
+        if (offset < 0 || offset >= _file.Length) return null;
+        var parsed = ParseAt(offset, (lexer, window) =>
         {
-            var stream = ReadStreamData(dict, lexer.Position, out int end);
-            if (decrypt && Decryptor != null && number != EncryptObjectNumber && !stream.IsType(PdfName.XRef))
-                stream.SetRawBytes(Decryptor.DecryptStream(stream.RawBytes, number, generation, stream));
+            if (!lexer.Next() || lexer.Kind != TokenKind.Integer) return null;
+            int number = (int)lexer.IntValue;
+            if (!lexer.Next() || lexer.Kind != TokenKind.Integer) return null;
+            int generation = (int)lexer.IntValue;
+            if (!lexer.Next() || !lexer.IsKeyword("obj")) return null;
+            if (expectedNumber >= 0 && number != expectedNumber) return null;
+
+            var parser = new PdfObjectParser(lexer, GetReference);
+            var obj = parser.ParseObject() ?? PdfNull.Instance;
+            long afterObject = window.Base + lexer.Position;
+            long streamStart = lexer.Next() && lexer.IsKeyword("stream") && obj is PdfDictionary ? window.Base + lexer.Position : -1;
+            return new ParsedHeader(number, generation, obj, afterObject, streamStart);
+        });
+        if (parsed == null) return null;
+
+        var obj = parsed.Object;
+        long end = parsed.AfterObject;
+        if (parsed.StreamStart >= 0)
+        {
+            var stream = ReadStreamData((PdfDictionary)obj, parsed.StreamStart, out end);
+            if (decrypt && Decryptor != null && parsed.Number != EncryptObjectNumber && !stream.IsType(PdfName.XRef))
+                stream.SetRawBytes(Decryptor.DecryptStream(stream.RawBytes, parsed.Number, parsed.Generation, stream));
             obj = stream;
-            afterObject = end;
         }
-        if (decrypt && Decryptor != null && number != EncryptObjectNumber)
-            DecryptStrings(obj, number, generation);
-        return new IndirectObject(number, generation, obj, afterObject);
+        if (decrypt && Decryptor != null && parsed.Number != EncryptObjectNumber)
+            DecryptStrings(obj, parsed.Number, parsed.Generation);
+        return new IndirectObject(parsed.Number, parsed.Generation, obj, end);
     }
 
-    private PdfStream ReadStreamData(PdfDictionary dict, int position, out int end)
+    private PdfStream ReadStreamData(PdfDictionary dict, long position, out long end)
     {
         // the "stream" keyword is followed by CRLF or LF (tolerate a lone CR)
-        if (position < _data.Length && _data[position] == '\r') position++;
-        if (position < _data.Length && _data[position] == '\n') position++;
-        int length = -1;
+        if (_file.ReadByte(position) == '\r') position++;
+        if (_file.ReadByte(position) == '\n') position++;
+        long length = -1;
         var lengthObj = dict[PdfName.Length];
-        if (lengthObj is PdfNumber n) length = n.IntValue;
-        else if (lengthObj is PdfReference r && r.Resolve() is PdfNumber rn) length = rn.IntValue;
+        if (lengthObj is PdfNumber n) length = n.LongValue;
+        else if (lengthObj is PdfReference r && r.Resolve() is PdfNumber rn) length = rn.LongValue;
 
-        if (length < 0 || position + length > _data.Length || !IsAtEndStream(position + length))
+        if (length < 0 || position + length > _file.Length || !IsAtEndStream(position + length))
         {
-            int idx = new PdfLexer(_data).IndexOf("endstream"u8, position);
-            if (idx < 0) idx = _data.Length;
-            int e = idx;
-            if (e > position && _data[e - 1] == '\n') e--;
-            if (e > position && _data[e - 1] == '\r') e--;
+            long idx = _file.IndexOf("endstream"u8, position);
+            if (idx < 0) idx = _file.Length;
+            long e = idx;
+            if (e > position && _file.ReadByte(e - 1) == '\n') e--;
+            if (e > position && _file.ReadByte(e - 1) == '\r') e--;
             length = e - position;
         }
-        var raw = _data.AsMemory(position, length);
-        end = position + length;
-        var lexer = new PdfLexer(_data, end);
-        if (lexer.Next() && lexer.IsKeyword("endstream")) end = lexer.Position;
-        return new PdfStream(dict, raw);
+        if (length > int.MaxValue) throw new PdfParseException("Stream data larger than 2 GB", position);
+        long dataEnd = position + length;
+        end = ParseAt(dataEnd, (lexer, window) => lexer.Next() && lexer.IsKeyword("endstream") ? window.Base + lexer.Position : dataEnd, 256);
+        // data in memory is shared, data in a file is read when it is needed
+        return _file.TryGetMemory(position, (int)length) is { } memory
+            ? new PdfStream(dict, memory)
+            : new PdfStream(dict, new FileRegion(_file, position, (int)length));
     }
 
-    private bool IsAtEndStream(int position)
+    private bool IsAtEndStream(long position)
     {
-        int p = position;
-        while (p < _data.Length && PdfLexer.IsWhitespace(_data[p])) p++;
-        var rest = _data.AsSpan(p);
+        var window = _file.GetWindow(position, 512);
+        var rest = window.Buffer.AsSpan(window.Start, window.End - window.Start);
+        int p = 0;
+        while (p < rest.Length && PdfLexer.IsWhitespace(rest[p])) p++;
+        rest = rest[p..];
         return rest.StartsWith("endstream"u8) || rest.StartsWith("endobj"u8);
     }
 
@@ -395,13 +441,14 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver
     private int FindHeader(out string version)
     {
         version = "1.7";
-        int limit = Math.Min(_data.Length, 1024);
-        int idx = _data.AsSpan(0, limit).IndexOf("%PDF-"u8);
+        var window = _file.GetWindow(0, 1100);
+        var head = window.Buffer.AsSpan(window.Start, Math.Min(window.End - window.Start, 1100));
+        int idx = head[..Math.Min(head.Length, 1024)].IndexOf("%PDF-"u8);
         if (idx < 0) return 0;
         int p = idx + 5;
         int start = p;
-        while (p < _data.Length && (char.IsAsciiDigit((char)_data[p]) || _data[p] == '.')) p++;
-        if (p > start) version = System.Text.Encoding.ASCII.GetString(_data, start, p - start);
+        while (p < head.Length && (char.IsAsciiDigit((char)head[p]) || head[p] == '.')) p++;
+        if (p > start) version = System.Text.Encoding.ASCII.GetString(head[start..p]);
         return idx;
     }
 }

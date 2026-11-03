@@ -37,7 +37,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 
 | Area | Highlights |
 |---|---|
-| **Core** | tolerant parser (xref tables/streams, object streams, automatic repair), lazy loading, full and **incremental** saving, compact output with object streams |
+| **Core** | tolerant parser (xref tables/streams, object streams, automatic repair), lazy loading, full and **incremental** saving, compact output with object streams, files of any size read on demand (also > 2 GB) |
 | **Creating content** | canvas (paths, colors RGB/CMYK/gray, transparency, transformations), standard 14 fonts, **TrueType/OpenType embedding with subsetting** (full Unicode), JPEG/PNG images incl. alpha |
 | **Layout** | paragraphs with mixed formatting, justification, kerning and hyphenation; lists (nested, numbered); tables with repeated headers, column and row spans and rows split across pages; images, barcodes, automatic page breaks, header/footer with "page x of y" |
 | **Manipulation** | merge, split, import/reorder/rotate/delete pages, page templates (letterheads), watermarks, bookmarks, links, **annotations** (highlight/underline/strike-out, free text, stamps, ink, shapes, file attachments, flattening) |

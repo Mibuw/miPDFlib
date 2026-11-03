@@ -262,9 +262,9 @@ internal sealed class PdfFileWriter
     // ---------------------------------------------------------------- incremental save
 
     /// <summary>The bytes written before the update: the original data, plus a line break if it does not end with one.</summary>
-    public static int IncrementalPrefixLength(PdfObjectStore store) => store.OriginalData.Length + (NeedsLineBreak(store.OriginalData) ? 1 : 0);
+    public static long IncrementalPrefixLength(PdfObjectStore store) => store.File.Length + (NeedsLineBreak(store.File) ? 1 : 0);
 
-    private static bool NeedsLineBreak(byte[] original) => original.Length > 0 && original[^1] != '\n' && original[^1] != '\r';
+    public static bool NeedsLineBreak(PdfFileData original) => original.ReadByte(original.Length - 1) is >= 0 and not ('\n' or '\r');
 
     /// <summary>
     /// Writes the original data followed by the update; with <paramref name="updateOnly"/> only the update is written
@@ -273,13 +273,13 @@ internal sealed class PdfFileWriter
     public void WriteIncremental(Stream stream, bool updateOnly = false)
     {
         if (!_store.IsFromFile) throw new PdfException("Incremental saving requires a document opened from a file.");
-        var original = _store.OriginalData;
+        var original = _store.File;
         PdfOutput output;
         if (updateOnly) output = new PdfOutput(stream, IncrementalPrefixLength(_store));
         else
         {
             output = new PdfOutput(stream);
-            output.Write(original);
+            output.Write(original, 0, original.Length);
             if (NeedsLineBreak(original)) output.WriteByte((byte)'\n');
         }
 
@@ -417,7 +417,7 @@ internal sealed class PdfFileWriter
     {
         // streams: compare the dictionaries and the data directly instead of serializing (possibly large) data twice
         if (current is PdfStream s && original is PdfStream o)
-            return s.RawData.Span.SequenceEqual(o.RawData.Span) &&
+            return s.RawDataEquals(o) &&
                    Serialize(serializer, number, s, dictionaryOnly: true).AsSpan().SequenceEqual(Serialize(serializer, number, o, dictionaryOnly: true));
         return Serialize(serializer, number, current).AsSpan().SequenceEqual(Serialize(serializer, number, original));
     }

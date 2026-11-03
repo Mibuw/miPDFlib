@@ -53,6 +53,12 @@ internal sealed class PdfLexer
     /// <summary>Bytes of string tokens.</summary>
     public byte[] Bytes { get; private set; } = Array.Empty<byte>();
 
+    /// <summary>
+    /// True once a token ended at the end of the data (or the end was reached): when the data is a window of a larger
+    /// file, the token may continue after the window.
+    /// </summary>
+    public bool HitEnd { get; private set; }
+
     public static bool IsWhitespace(int c) => c is 0 or 9 or 10 or 12 or 13 or 32;
 
     public static bool IsDelimiter(int c) => c is '(' or ')' or '<' or '>' or '[' or ']' or '{' or '}' or '/' or '%';
@@ -79,6 +85,13 @@ internal sealed class PdfLexer
 
     /// <summary>Reads the next token. Returns false at end of data.</summary>
     public bool Next()
+    {
+        bool result = ReadToken();
+        if (Position >= _end) HitEnd = true;
+        return result;
+    }
+
+    private bool ReadToken()
     {
         SkipWhitespaceAndComments();
         TokenStart = Position;

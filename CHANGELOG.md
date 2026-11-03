@@ -12,6 +12,12 @@
   assembled directly (signed attributes, signature value, unsigned attributes, time-stamp) instead of with
   `SignedCms`; the structure is unchanged (verified with EU DSS for RSA, RSASSA-PSS, ECDSA, PKCS#7 and B-T). The
   validator checks the message digest and the signature value itself (RSA PKCS#1 v1.5 and PSS, ECDSA).
+- Large files: `PdfDocument.Open(path, new PdfOpenOptions { ReadFromFile = true })` reads objects from the file when
+  they are needed instead of loading the file into memory; files larger than 2 GB (which could not be opened before)
+  are always read this way. The file stays open until the document is disposed; saving over the own file works.
+  `PdfSigner.SignFile(input, output, ...)` and `PdfSignatureValidator.Validate(path)` sign and validate files without
+  loading them. A 2.5 GB file is opened with about 35 MB, saved and signed with under 50 MB.
+- `PdfDocument.Dispose` closes the file of a document read on demand (it did nothing before).
 - `Save(path)` leaves an existing file unchanged if saving fails (it used to be truncated).
 - `PdfDocument.Open(Stream)` reads seekable streams once into an array of the final size.
 - Text extraction allocates a third less memory and is faster.

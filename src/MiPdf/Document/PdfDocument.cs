@@ -58,8 +58,30 @@ public sealed partial class PdfDocument : IDisposable
         return doc;
     }
 
-    /// <summary>Opens a document from a file; the whole file is read into memory. See <see cref="Open(byte[], string)"/>.</summary>
-    public static PdfDocument Open(string path, string? password = null) => Open(File.ReadAllBytes(path), password);
+    /// <summary>
+    /// Opens a document from a file; the whole file is read into memory (files larger than 2 GB are read on demand, see
+    /// <see cref="PdfOpenOptions.ReadFromFile"/>). See <see cref="Open(byte[], string)"/>.
+    /// </summary>
+    public static PdfDocument Open(string path, string? password = null) => Open(path, new PdfOpenOptions { Password = password });
+
+    /// <summary>Opens a document from a file, in memory or read on demand (<see cref="PdfOpenOptions.ReadFromFile"/>).</summary>
+    public static PdfDocument Open(string path, PdfOpenOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(options);
+        if (!options.ReadFromFile && new FileInfo(path).Length <= Array.MaxLength)
+            return Open(File.ReadAllBytes(path), options.Password);
+        var file = PdfFileData.OpenFile(path);
+        try
+        {
+            return Open(file, options.Password);
+        }
+        catch
+        {
+            file.Dispose();
+            throw;
+        }
+    }
 
     /// <summary>
     /// Opens a document from a stream, which is read from its current position to the end into memory.
@@ -88,6 +110,11 @@ public sealed partial class PdfDocument : IDisposable
     public static PdfDocument Open(byte[] data, string? password = null)
     {
         ArgumentNullException.ThrowIfNull(data);
+        return Open(PdfFileData.FromArray(data), password);
+    }
+
+    internal static PdfDocument Open(PdfFileData data, string? password)
+    {
         try
         {
             var doc = new PdfDocument(new PdfObjectStore(data));
@@ -272,7 +299,7 @@ public sealed partial class PdfDocument : IDisposable
         {
             using (var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1 << 16))
                 Save(stream, options);
-            File.Move(temp, target, overwrite: true);
+            ReplaceFile(temp, target, Store.File.FilePath);
         }
         catch
         {
@@ -280,6 +307,35 @@ public sealed partial class PdfDocument : IDisposable
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
             throw;
         }
+    }
+
+    /// <summary>
+    /// Moves <paramref name="temp"/> to <paramref name="target"/>. If the target is the file a document reads on demand
+    /// (<paramref name="openFile"/>), Windows does not allow replacing it: it is renamed and deleted instead, the open
+    /// handle keeps reading the old data until it is closed.
+    /// </summary>
+    internal static void ReplaceFile(string temp, string target, string? openFile)
+    {
+        bool isOpenFile = openFile != null && string.Equals(Path.GetFullPath(openFile), target,
+            OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        if (!isOpenFile || !OperatingSystem.IsWindows())
+        {
+            File.Move(temp, target, overwrite: true);
+            return;
+        }
+        var old = Path.Combine(Path.GetDirectoryName(target)!, $".{Path.GetFileName(target)}.{Guid.NewGuid():N}.old");
+        File.Move(target, old);
+        try
+        {
+            File.Move(temp, target);
+        }
+        catch
+        {
+            File.Move(old, target);
+            throw;
+        }
+        try { File.Delete(old); } // removed when the document closes its handle
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
     }
 
     /// <summary>Saves the document to a stream.</summary>
@@ -300,20 +356,32 @@ public sealed partial class PdfDocument : IDisposable
         if (options.Incremental && Store.IsFromFile)
         {
             // the original data and the update are copied once into an array of the final size
-            PrepareForSave(options);
             using var update = new ChunkedBufferStream();
-            new PdfFileWriter(Store, options, CreateEncryptor(options)).WriteIncremental(update, updateOnly: true);
-            var original = Store.OriginalData;
-            int prefix = PdfFileWriter.IncrementalPrefixLength(Store);
+            WriteIncrementalUpdate(update, options);
+            var original = Store.File;
+            long prefix = PdfFileWriter.IncrementalPrefixLength(Store);
+            if (prefix + update.Length > Array.MaxLength)
+                throw new PdfException("The document is too large for a byte array; save it to a file or stream.");
             var result = new byte[prefix + update.Length];
-            original.CopyTo(result, 0);
+            original.Read(0, result.AsSpan(0, (int)original.Length));
             if (prefix > original.Length) result[original.Length] = (byte)'\n';
-            update.CopyTo(result.AsSpan(prefix));
+            update.CopyTo(result.AsSpan((int)prefix));
             return result;
         }
         using var buffer = new ChunkedBufferStream();
         Save(buffer, options);
         return buffer.ToArray();
+    }
+
+    /// <summary>
+    /// Writes only the incremental update (an incremental save without the original data before it); offsets count from
+    /// the start of the original data plus <see cref="PdfFileWriter.IncrementalPrefixLength"/>.
+    /// </summary>
+    internal void WriteIncrementalUpdate(Stream stream, PdfSaveOptions options)
+    {
+        if (!options.Incremental) throw new ArgumentException("The options must be for an incremental save.", nameof(options));
+        PrepareForSave(options);
+        new PdfFileWriter(Store, options, CreateEncryptor(options)).WriteIncremental(stream, updateOnly: true);
     }
 
     private void PrepareForSave(PdfSaveOptions options)
@@ -334,9 +402,6 @@ public sealed partial class PdfDocument : IDisposable
     /// <summary>Hooks for features that need to finalize objects before writing (forms, signatures, ...).</summary>
     partial void OnBeforeSave(PdfSaveOptions options);
 
-    /// <summary>Releases the document. All data is held in memory, so this currently does nothing.</summary>
-    public void Dispose()
-    {
-        // all data is held in memory; nothing to release yet. Kept for API stability (future file-backed reading).
-    }
+    /// <summary>Releases the document: closes the file of a document that is read on demand (<see cref="PdfOpenOptions.ReadFromFile"/>).</summary>
+    public void Dispose() => Store.Dispose();
 }

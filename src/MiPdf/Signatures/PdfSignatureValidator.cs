@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using MiPdf.Forms;
+using MiPdf.IO;
 using MiPdf.Objects;
 
 namespace MiPdf.Signatures;
@@ -139,6 +140,19 @@ public static class PdfSignatureValidator
     }
 
     /// <summary>
+    /// Verifies all signatures and document time-stamps of a PDF file. The file is read on demand and the signed byte
+    /// ranges are hashed from it, so files of any size (also larger than 2 GB) are validated with little memory.
+    /// </summary>
+    /// <param name="path">The PDF file.</param>
+    /// <param name="options">Validation options (default: no certificate chain check).</param>
+    /// <param name="password">Password for encrypted documents.</param>
+    public static IReadOnlyList<SignatureValidationResult> Validate(string path, SignatureValidationOptions? options = null, string? password = null)
+    {
+        using var document = PdfDocument.Open(path, new PdfOpenOptions { Password = password, ReadFromFile = true });
+        return Validate(document, options, password);
+    }
+
+    /// <summary>
     /// Verifies all signatures and document time-stamps of an opened document against the file it was opened from
     /// (unsaved changes are not considered). Returns one result per signed signature field.
     /// </summary>
@@ -151,7 +165,7 @@ public static class PdfSignatureValidator
         var results = new List<SignatureValidationResult>();
         var form = document.GetForm();
         if (form == null) return results;
-        byte[] file = document.Store.OriginalData;
+        var file = document.Store.File;
         foreach (var field in form.Fields.OfType<PdfSignatureField>())
         {
             if (field.SignatureDictionary is { } sig) results.Add(Verify(field.FullName, sig, file, options));
@@ -217,7 +231,7 @@ public static class PdfSignatureValidator
         }
     }
 
-    private static SignatureValidationResult Verify(string fieldName, PdfDictionary sig, byte[] file, SignatureValidationOptions options)
+    private static SignatureValidationResult Verify(string fieldName, PdfDictionary sig, PdfFileData file, SignatureValidationOptions options)
     {
         var errors = new List<string>();
         string subFilter = sig.GetName(PdfName.SubFilter)?.Value ?? "";
@@ -244,10 +258,16 @@ public static class PdfSignatureValidator
             return new SignatureValidationResult { FieldName = fieldName, SubFilter = subFilter, Errors = errors, SigningTime = claimed };
         }
         // the signed data are the two ranges; they are hashed in place, without copying them
-        var first = file.AsSpan(0, (int)br[1]);
-        var second = file.AsSpan((int)br[2], (int)br[3]);
+        // the signed data are the two ranges; they are hashed in place (or read in blocks), without copying them
+        byte[] Digest(HashAlgorithmName algorithm)
+        {
+            using var hash = IncrementalHash.CreateHash(algorithm);
+            file.AppendTo(hash, 0, br[1]);
+            file.AppendTo(hash, br[2], br[3]);
+            return hash.GetHashAndReset();
+        }
         // the excluded range must be exactly the /Contents hex string
-        if (br[2] - br[1] != sig.GetString(PdfName.Contents)!.Bytes.Length * 2 + 2 || file[br[1]] != '<' || file[br[2] - 1] != '>')
+        if (br[2] - br[1] != sig.GetString(PdfName.Contents)!.Bytes.Length * 2 + 2 || file.ReadByte(br[1]) != '<' || file.ReadByte(br[2] - 1) != '>')
             errors.Add("The byte range does not exclude exactly the signature contents.");
         bool coversWhole = br[2] + br[3] == file.Length || IsOnlyTrailingWhitespace(file, br[2] + br[3]);
 
@@ -263,7 +283,7 @@ public static class PdfSignatureValidator
                 if (!Rfc3161TimestampToken.TryDecode(contents, out var token, out _)) throw new CryptographicException("Invalid time-stamp token.");
                 var hashAlgorithm = CmsVerifier.DigestName(token.TokenInfo.HashAlgorithmId.Value)
                     ?? throw new CryptographicException($"Unsupported digest algorithm {token.TokenInfo.HashAlgorithmId.Value}.");
-                integrity = token.VerifySignatureForHash(CmsVerifier.Hash(hashAlgorithm, first, second), token.TokenInfo.HashAlgorithmId, out signer);
+                integrity = token.VerifySignatureForHash(Digest(hashAlgorithm), token.TokenInfo.HashAlgorithmId, out signer);
                 embedded.AddRange(token.AsSignedCms().Certificates);
                 timestamp = token.TokenInfo.Timestamp;
                 if (!integrity) errors.Add("The time-stamp does not match the document.");
@@ -278,10 +298,10 @@ public static class PdfSignatureValidator
                 if (subFilter == "adbe.pkcs7.sha1")
                 {
                     // the SHA-1 digest of the document is the signed content
-                    if (!cms.ContentInfo.Content.AsSpan().SequenceEqual(CmsVerifier.Hash(HashAlgorithmName.SHA1, first, second))) errors.Add("Document digest mismatch.");
+                    if (!cms.ContentInfo.Content.AsSpan().SequenceEqual(Digest(HashAlgorithmName.SHA1))) errors.Add("Document digest mismatch.");
                     signerInfo.CheckSignature(verifySignatureOnly: true);
                 }
-                else CmsVerifier.Verify(cms, contents, first, second); // message digest and signature value
+                else CmsVerifier.Verify(cms, contents, Digest); // message digest and signature value
                 integrity = errors.Count == 0;
                 foreach (var attr in signerInfo.SignedAttributes)
                     if (attr.Oid.Value == "1.2.840.113549.1.9.5" && attr.Values.Count > 0)
@@ -328,12 +348,13 @@ public static class PdfSignatureValidator
     }
 
     /// <summary>Compares the locked fields of the signed revision with the current document.</summary>
-    private static IReadOnlyList<string> FindModifiedLockedFields(PdfAcroForm current, byte[] file, SignatureValidationResult result, string? password)
+    private static IReadOnlyList<string> FindModifiedLockedFields(PdfAcroForm current, PdfFileData file, SignatureValidationResult result, string? password)
     {
         PdfAcroForm? signed;
         try
         {
-            signed = PdfDocument.Open(file.AsSpan(0, (int)result.SignedRevisionLength).ToArray(), password).GetForm();
+            // a view of the signed revision, not a copy
+            signed = PdfDocument.Open(file.Slice(0, result.SignedRevisionLength), password).GetForm();
         }
         catch (PdfException)
         {
@@ -353,10 +374,11 @@ public static class PdfSignatureValidator
         return modified;
     }
 
-    private static bool IsOnlyTrailingWhitespace(byte[] file, long from)
+    private static bool IsOnlyTrailingWhitespace(PdfFileData file, long from)
     {
-        for (long i = from; i < file.Length; i++)
-            if (!IO.PdfLexer.IsWhitespace(file[i])) return false;
+        if (file.Length - from > 4096) return false;
+        foreach (byte b in file.ReadBytes(from, (int)(file.Length - from)))
+            if (!PdfLexer.IsWhitespace(b)) return false;
         return true;
     }
 
