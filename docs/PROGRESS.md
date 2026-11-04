@@ -53,11 +53,19 @@ Current state: 359 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Roadmap
 
-1. Release 1.0.0.
+1.0.0 is released. Planned for 1.x (all without breaking changes):
 
-Known gaps: no full evaluation of permitted changes after signing (DocMDP; for FieldMDP the values of locked fields are compared); the tagged structure is not taken
-over when importing pages; no text shaping (Arabic/Indic scripts, ligatures); hyphenation patterns are not bundled
-(load them from hyph-utf8).
+1. Evaluation of permitted changes after signing (DocMDP): report whether later revisions only contain changes
+   the certification level allows (form filling, annotations, signatures).
+2. Keep the tagged structure when importing pages (merge, split, extract), so that PDF/UA documents stay
+   accessible.
+3. Certificate (public-key) encryption and optional content (reading and switching layers).
+4. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
+
+Larger, separate topics, decided on user demand: rendering pages to images and printing; text shaping for
+complex scripts (Arabic, Indic) and ligatures.
+
+Known gaps: see the roadmap above; in addition, hyphenation patterns are not bundled (load them from hyph-utf8).
 
 ## Verification tools
 
