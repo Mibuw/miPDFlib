@@ -52,6 +52,7 @@ public sealed class PageContext
 public sealed class LayoutDocument : IDisposable
 {
     private readonly List<PdfPage> _pages = new();
+    private readonly List<(int Level, PdfOutline Bookmark)> _headings = new();
     private PdfCanvas? _canvas;
     private bool _closed;
 
@@ -83,6 +84,12 @@ public sealed class LayoutDocument : IDisposable
 
     /// <summary>Called when a new page is started (e.g. to draw a background or letterhead).</summary>
     public Action<PageContext>? PageStarted { get; set; }
+
+    /// <summary>
+    /// Adds a bookmark for every heading (<see cref="Paragraph.AsHeading"/>), nested by heading level, so that viewers
+    /// show the document outline (default true; accessibility checkers expect bookmarks when there are headings).
+    /// </summary>
+    public bool HeadingBookmarks { get; set; } = true;
 
     /// <summary>
     /// Structure element that receives the tags of added elements when the document is tagged
@@ -139,10 +146,17 @@ public sealed class LayoutDocument : IDisposable
         var area = ContentArea;
         LayoutBox? box = element.Prepare(area.Width);
         bool freshPage = IsPageEmpty();
+        int headingLevel = HeadingBookmarks && element is Paragraph ? HeadingLevel(element.StructureType) : 0;
         while (box != null)
         {
+            double top = CurrentY;
             var rest = box.Render(_canvas!, area.Left, CurrentY, RemainingHeight, freshPage, out double used);
             CurrentY -= used;
+            if (headingLevel > 0 && box is Paragraph.ParagraphBox heading && (rest as Paragraph.ParagraphBox)?.LineCount != heading.LineCount)
+            {
+                AddBookmark((Paragraph)element, heading.Element, headingLevel, top - heading.SpacingBefore); // only once a line is on the page
+                headingLevel = 0;
+            }
             if (rest == null) break;
             if (freshPage && used <= 0) break; // cannot make progress (should not happen)
             NewPage();
@@ -164,6 +178,24 @@ public sealed class LayoutDocument : IDisposable
     }
 
     private bool IsPageEmpty() => Math.Abs(CurrentY - ContentArea.Top) < 0.001;
+
+    private static int HeadingLevel(string? structureType) =>
+        structureType is ['H', _, ..] && int.TryParse(structureType.AsSpan(1), out int level) && level > 0 ? level : 0;
+
+    /// <summary>
+    /// Bookmark for a heading on the current page, below the last bookmark of a higher level. In tagged documents it
+    /// also points to the heading's structure element (structure destination, required by PDF/UA-2).
+    /// </summary>
+    private void AddBookmark(Paragraph heading, Tagging.PdfStructureElement? element, int level, double top)
+    {
+        var title = string.Join(' ', string.Concat(heading.Runs.Select(run => run.Text)).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (title.Length == 0) return;
+        while (_headings.Count > 0 && _headings[^1].Level >= level) _headings.RemoveAt(_headings.Count - 1);
+        var parent = _headings.Count > 0 ? _headings[^1].Bookmark : Document.Outlines;
+        var bookmark = parent.AddChild(title, CurrentPage, top);
+        if (element != null) bookmark.SetStructureDestination(element, top);
+        _headings.Add((level, bookmark));
+    }
 
     /// <summary>Starts a new page.</summary>
     public PdfPage NewPage()

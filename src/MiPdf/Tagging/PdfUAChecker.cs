@@ -74,7 +74,27 @@ public static class PdfUAChecker
                     issues.Add($"{where}: form field without description (/TU).");
                 else if (ua2 && annotation.Subtype == "Widget" && !zeroSize && string.IsNullOrWhiteSpace(annotation.Contents))
                     issues.Add($"{where}: widget annotation without /Contents (required by PDF/UA-2 if the field has no label).");
+                if (ua2 && annotation.Subtype == "Link" && !HasStructureDestination(annotation.Dictionary))
+                    issues.Add($"{where}: link to a page of the document without structure destination (required by PDF/UA-2).");
             }
+        }
+
+        if (ua2)
+        {
+            int bookmarks = 0;
+            var seen = new HashSet<PdfDictionary>(ReferenceEqualityComparer.Instance);
+            var pending = new Stack<PdfDictionary>();
+            if (catalog.GetDictionary(PdfName.Outlines) is { } outlines) pending.Push(outlines);
+            while (pending.Count > 0)
+            {
+                var item = pending.Pop();
+                for (var child = item.Get(PdfName.Get("First"))?.Resolve() as PdfDictionary; child != null && seen.Add(child); child = child.Get(PdfName.Get("Next"))?.Resolve() as PdfDictionary)
+                {
+                    if (!HasStructureDestination(child)) bookmarks++;
+                    pending.Push(child);
+                }
+            }
+            if (bookmarks > 0) issues.Add($"{bookmarks} bookmark(s) without structure destination (/SD, required by PDF/UA-2).");
         }
 
         if (treeRoot != null)
@@ -90,6 +110,23 @@ public static class PdfUAChecker
             CheckStructure(treeRoot.Get(PdfName.K), context, 0);
         }
         return issues;
+    }
+
+    /// <summary>
+    /// True unless the bookmark or link goes to a page of this document with a plain page destination: PDF/UA-2 requires
+    /// structure destinations (/SD of a GoTo action, or a destination whose target is a structure element).
+    /// Named destinations are not resolved.
+    /// </summary>
+    private static bool HasStructureDestination(PdfDictionary item)
+    {
+        var dest = item.Get(PdfName.Dest)?.Resolve();
+        if (dest == null && item.GetDictionary(PdfName.Get("A")) is { } action && action.GetName(PdfName.S)?.Value == "GoTo")
+        {
+            if (action.ContainsKey(PdfName.Get("SD"))) return true;
+            dest = action.Get(PdfName.Get("D"))?.Resolve();
+        }
+        return dest is not PdfArray { Count: > 0 } array || array[0].Resolve() is not PdfDictionary target ||
+               target.GetName(PdfName.Type)?.Value != "Page";
     }
 
     private sealed class StructureContext(PdfDictionary? roleMap, bool ua2, List<string> issues)

@@ -194,6 +194,13 @@ public sealed class Paragraph : LayoutElement
 
         public override double Height => _before + _lines.Sum(l => l.Height) + _after;
 
+        public int LineCount => _lines.Count;
+
+        public double SpacingBefore => _before;
+
+        /// <summary>The structure element the rendered lines were tagged with (tagged documents).</summary>
+        public Tagging.PdfStructureElement? Element { get; private set; }
+
         public override double? FirstBaseline => _lines.Count == 0 ? null
             : _before + (_lines[0].Height - (_lines[0].Ascent - _lines[0].Descent)) / 2 + _lines[0].Ascent;
 
@@ -215,6 +222,7 @@ public sealed class Paragraph : LayoutElement
                 else tag = element ??= parent.AddChild(_p.StructureType ?? Tagging.StructureType.Paragraph);
             }
             if (tag != null) canvas.BeginTag(tag);
+            Element = tag;
             var links = _lines.Take(count).Any(l => l.Pieces.Any(piece => piece.Run.Uri != null)) ? new LinkWriter(canvas, tag) : null;
             double y = top - _before;
             for (int i = 0; i < count; i++)

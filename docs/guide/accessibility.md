@@ -20,7 +20,7 @@ using (var layout = new LayoutDocument(doc))
     layout.Footer = ctx => ctx.Canvas.DrawText($"Page {ctx.PageNumber}", font, 8, ctx.ContentArea.Right, 30,
         alignment: TextAlignment.Right);                   // header/footer become artifacts
     layout.Add(new Paragraph("Invoice", bold, 20).AsHeading(1));
-    layout.Add(new Paragraph("Vielen Dank ...", font, 10));
+    layout.Add(new Paragraph("Thank you ...", font, 10));
     var table = new Table(1, 4, 2) { Font = font, HeaderFont = bold };
     // ... header cells become TH (Scope=Column), body cells TD; repeated headers are artifacts
     layout.Add(table);
@@ -36,7 +36,7 @@ What the layout engine tags automatically:
 
 | Element | Structure | Notes |
 |---|---|---|
-| `Paragraph` | `P` | `AsHeading(n)` or `StructureType = "H2"`, any standard type possible |
+| `Paragraph` | `P` | `AsHeading(n)` or `StructureType = "H2"`, any standard type possible; headings also get bookmarks (`HeadingBookmarks`) |
 | links in a `Paragraph` (`AddLink`, `TextRun.Uri`) | `Link` inside the `P` | linked text and link annotations (one per line) with the text as `/Contents` |
 | `Table` | `Table` → `TR` → `TH`/`TD` | `Scope` and `ColSpan` attributes, one table element across pages |
 | `ListElement` | `L` → `LI` → `Lbl`/`LBody` | `ListNumbering` attribute, nested lists inside `LBody` |
@@ -67,7 +67,9 @@ The same code produces PDF/UA-2. In addition, saving
   role-mapped custom types stay in the PDF 1.7 namespace,
 - gives form fields their description as `/Contents` as well.
 
-The layout engine adds the `ListNumbering` attribute to lists. PDF 2.0 introduces new structure types
+The layout engine adds the `ListNumbering` attribute to lists, and the bookmarks it creates for headings point to the
+heading's structure element (PDF/UA-2 requires structure destinations for bookmarks and links within the document;
+bookmarks added with `doc.Outlines` have page destinations only). PDF 2.0 introduces new structure types
 (`StructureType.Title`, `Aside`, `FENote`, `Sub`, `Emphasis`, `Strong`, `DocumentFragment`); use `FENote` instead of
 `Note`, which PDF/UA-2 does not allow. Skipped heading levels are allowed in PDF/UA-2. The containment rules of
 PDF 2.0 (which element may contain which, ISO 32000-2 Annex L) are not checked by `CheckPdfUA`: for example, inline
@@ -101,7 +103,7 @@ documents can be extended: `EnableTagging()` continues the existing structure tr
 - fonts that are not embedded (also in annotation appearances)
 - figures/formulas without alternate text, skipped heading levels (PDF/UA-1), non-standard types without role mapping
 - PDF/UA-2: the `Document` element in the PDF 2.0 namespace, `ListNumbering` on lists with labels, `Note`, widgets
-  without `/Contents`
+  without `/Contents`, bookmarks and links within the document without structure destination
 - annotations outside the structure tree, missing `/Tabs /S`, links without `/Contents`, form fields without `/TU`
 - encryption that blocks accessibility tools
 

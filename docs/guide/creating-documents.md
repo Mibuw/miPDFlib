@@ -86,7 +86,7 @@ using (var layout = new LayoutDocument(pdf, PageSize.A4, new Thickness(50)))
     layout.Footer = ctx => ctx.Canvas.DrawText($"Page {ctx.PageNumber} of {ctx.TotalPages}",
         PdfStandardFont.Helvetica, 8, ctx.ContentArea.Right, 30, alignment: TextAlignment.Right);
 
-    layout.Add(new Paragraph("Invoice", PdfStandardFont.HelveticaBold, 20) { SpacingAfter = 10 });
+    layout.Add(new Paragraph("Invoice", PdfStandardFont.HelveticaBold, 20) { SpacingAfter = 10 }.AsHeading(1));
 
     var text = new Paragraph { Alignment = TextAlignment.Justify };
     text.Add("Normal text, ");
@@ -118,6 +118,7 @@ pdf.Save("invoice.pdf");
 
 `TextLayout.BreakLines(text, font, size, width)` and `TextLayout.MeasureHeight(...)` are available for
 custom layouts. Headers/footers are rendered when the layout is closed, so `TotalPages` is known.
+Headings (`AsHeading(level)`) get bookmarks nested by level; set `layout.HeadingBookmarks = false` to turn this off.
 
 ### Lists
 

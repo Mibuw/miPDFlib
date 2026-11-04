@@ -13,6 +13,10 @@
 - Links in running text: `paragraph.AddLink("text", "https://...")` or `TextRun.Uri` place a link annotation over the
   text on every line it covers (also in table cells); in tagged documents the text and the annotations form a `Link`
   element inside the paragraph, as PDF/UA requires.
+- Headings of the layout engine (`AsHeading`) get bookmarks nested by level, as accessibility checkers (PAC) expect
+  for documents with headings (`LayoutDocument.HeadingBookmarks`, default true). Documents with headings now open
+  with the bookmarks panel. In tagged documents the bookmarks point to the heading's structure element (structure
+  destination, required by PDF/UA-2); `CheckPdfUA` reports bookmarks and internal links without one in PDF/UA-2.
 - `doc.Info` of documents without a document information dictionary (PDF 2.0, PDF/A-4) is read from the XMP metadata.
 - Saving an opened PDF/A document also writes changed title, author, subject, keywords and creator into its XMP
   metadata (before, only the dates and the producer were updated, so the information and the XMP metadata differed).

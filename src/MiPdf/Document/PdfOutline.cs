@@ -156,6 +156,25 @@ public sealed class PdfOutline
         if (parentRef != null) new PdfOutline(_document, parent, parentRef).UpdateCounts();
     }
 
+    /// <summary>
+    /// Makes the bookmark target a structure element (PDF 2.0 structure destination, required by PDF/UA-2): a GoTo
+    /// action with /SD and the page destination as /D for older viewers.
+    /// </summary>
+    internal void SetStructureDestination(Tagging.PdfStructureElement element, double? top)
+    {
+        if (Dictionary.Get(PdfName.Dest) is not { } dest) return;
+        var structureDestination = top.HasValue
+            ? new PdfArray(element.Reference, PdfName.Get("XYZ"), PdfNull.Instance, new PdfNumber(top.Value), PdfNull.Instance)
+            : new PdfArray(element.Reference, PdfName.Get("Fit"));
+        Dictionary.Remove(PdfName.Dest);
+        Dictionary[PdfName.Get("A")] = new PdfDictionary
+        {
+            [PdfName.S] = PdfName.Get("GoTo"),
+            [PdfName.Get("D")] = dest,
+            [PdfName.Get("SD")] = structureDestination,
+        };
+    }
+
     internal static PdfArray CreateDestination(PdfPage page, double? top) =>
         top.HasValue
             ? new PdfArray(page.Reference, PdfName.Get("XYZ"), PdfNull.Instance, new PdfNumber(top.Value), PdfNull.Instance)
