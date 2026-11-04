@@ -10,6 +10,9 @@
   numbering and notes, and no longer reports skipped heading levels for PDF/UA-2. Validated with veraPDF.
 - PDF 2.0 structure types: `StructureType.Title`, `Aside`, `FENote`, `Sub`, `Emphasis`, `Strong`, `DocumentFragment`.
 - Lists produced by the layout engine get the `ListNumbering` attribute.
+- Links in running text: `paragraph.AddLink("text", "https://...")` or `TextRun.Uri` place a link annotation over the
+  text on every line it covers (also in table cells); in tagged documents the text and the annotations form a `Link`
+  element inside the paragraph, as PDF/UA requires.
 - `doc.Info` of documents without a document information dictionary (PDF 2.0, PDF/A-4) is read from the XMP metadata.
 - Saving an opened PDF/A document also writes changed title, author, subject, keywords and creator into its XMP
   metadata (before, only the dates and the producer were updated, so the information and the XMP metadata differed).

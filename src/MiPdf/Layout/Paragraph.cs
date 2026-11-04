@@ -32,6 +32,13 @@ public sealed class TextRun
 
     /// <summary>Draw a line through the text.</summary>
     public bool Strikethrough { get; set; }
+
+    /// <summary>
+    /// Web address the text links to ("https://...", "mailto:..."), or null. A link annotation is placed over the text
+    /// on every line it covers, with the text as its description. In tagged documents (PDF/UA) the text and the
+    /// annotations form a <c>Link</c> structure element inside the paragraph.
+    /// </summary>
+    public string? Uri { get; set; }
 }
 
 /// <summary>
@@ -113,6 +120,13 @@ public sealed class Paragraph : LayoutElement
     /// <summary>Adds text with its own font (and optionally size and color); returns the paragraph.</summary>
     public Paragraph Add(string text, PdfFont font, double? fontSize = null, PdfColor? color = null) =>
         Add(new TextRun(text, font, fontSize, color));
+
+    /// <summary>Adds a link: blue, underlined text that opens <paramref name="uri"/> (see <see cref="TextRun.Uri"/>).</summary>
+    public Paragraph AddLink(string text, string uri)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(uri);
+        return Add(new TextRun(text, color: PdfColor.Blue) { Uri = uri, Underline = true });
+    }
 
     // fluent setters
     /// <summary>Sets <see cref="Font"/> and, if given, <see cref="FontSize"/>; returns the paragraph.</summary>
@@ -201,13 +215,15 @@ public sealed class Paragraph : LayoutElement
                 else tag = element ??= parent.AddChild(_p.StructureType ?? Tagging.StructureType.Paragraph);
             }
             if (tag != null) canvas.BeginTag(tag);
+            var links = _lines.Take(count).Any(l => l.Pieces.Any(piece => piece.Run.Uri != null)) ? new LinkWriter(canvas, tag) : null;
             double y = top - _before;
             for (int i = 0; i < count; i++)
             {
-                TextLayout.RenderLine(canvas, _p, _lines[i], x, y, _width);
+                TextLayout.RenderLine(canvas, _p, _lines[i], x, y, _width, links);
                 y -= _lines[i].Height;
             }
             if (tag != null) canvas.EndTag();
+            links?.AddAnnotations();
 
             if (count < _lines.Count)
             {

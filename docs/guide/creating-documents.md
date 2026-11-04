@@ -91,7 +91,8 @@ using (var layout = new LayoutDocument(pdf, PageSize.A4, new Thickness(50)))
     var text = new Paragraph { Alignment = TextAlignment.Justify };
     text.Add("Normal text, ");
     text.Add(new TextRun("bold and underlined", PdfStandardFont.HelveticaBold) { Underline = true });
-    text.Add(", and a\nhard line break.");
+    text.Add(", a ").AddLink("link", "https://example.com");   // blue, underlined, clickable
+    text.Add(" and a\nhard line break.");
     layout.Add(text);
 
     var table = new Table(1, 4, 1) { AlternateRowBackground = PdfColor.Gray(0.95) };

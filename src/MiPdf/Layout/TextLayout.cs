@@ -242,7 +242,7 @@ public static class TextLayout
         if (start < text.Length) yield return text[start..];
     }
 
-    internal static void RenderLine(PdfCanvas canvas, Paragraph p, TextLine line, double x, double top, double totalWidth)
+    internal static void RenderLine(PdfCanvas canvas, Paragraph p, TextLine line, double x, double top, double totalWidth, LinkWriter? links = null)
     {
         double available = totalWidth - p.LeftIndent - p.RightIndent - line.Indent;
         double halfLeading = (line.Height - (line.Ascent - line.Descent)) / 2;
@@ -285,6 +285,8 @@ public static class TextLayout
                 if (line.Pieces[j].IsSpace) spaceCount++;
                 j++;
             }
+            bool linked = links != null && first.Run.Uri != null;
+            if (linked) links!.Begin(first.Run);
             canvas.SaveState().SetFillColor(first.Color).BeginText().SetFont(first.Font, first.FontSize)
                 .SetTextPosition(cursor, baseline).ShowTextWithWordSpacing(text.ToString(), extraPerSpace, p.Kerning).EndText();
             double segmentWidth = width + spaceCount * extraPerSpace;
@@ -303,6 +305,7 @@ public static class TextLayout
                 }
             }
             canvas.RestoreState();
+            if (linked) links!.End(first.Run, new PdfRectangle(cursor, baseline + line.Descent, cursor + segmentWidth, baseline + line.Ascent));
             cursor += segmentWidth;
             i = j;
         }
@@ -310,5 +313,41 @@ public static class TextLayout
 
     private static bool SameFormat(TextPiece a, TextPiece b) =>
         ReferenceEquals(a.Run, b.Run) || (ReferenceEquals(a.Font, b.Font) && a.FontSize == b.FontSize && a.Color == b.Color &&
-                                          a.Run.Underline == b.Run.Underline && a.Run.Strikethrough == b.Run.Strikethrough);
+                                          a.Run.Underline == b.Run.Underline && a.Run.Strikethrough == b.Run.Strikethrough && a.Run.Uri == b.Run.Uri);
+}
+
+/// <summary>
+/// Collects the linked text of a paragraph on one page: tags it as <c>Link</c> element inside the paragraph's element
+/// (tagged documents) and adds the link annotations after the content is drawn.
+/// </summary>
+internal sealed class LinkWriter(PdfCanvas canvas, Tagging.PdfStructureElement? tag)
+{
+    private readonly Dictionary<TextRun, Tagging.PdfStructureElement> _elements = new(ReferenceEqualityComparer.Instance);
+    private readonly List<(PdfRectangle Area, TextRun Run)> _areas = new();
+
+    /// <summary>Called before a linked segment is drawn (outside of text objects and saved graphics states).</summary>
+    public void Begin(TextRun run)
+    {
+        if (tag == null) return;
+        if (!_elements.TryGetValue(run, out var link)) _elements[run] = link = tag.AddChild(Tagging.StructureType.Link);
+        canvas.EndTag().BeginTag(link);
+    }
+
+    /// <summary>Called after a linked segment is drawn, with the area it covers.</summary>
+    public void End(TextRun run, PdfRectangle area)
+    {
+        _areas.Add((area, run));
+        if (tag != null) canvas.EndTag().BeginTag(tag);
+    }
+
+    public void AddAnnotations()
+    {
+        if (canvas.Target is not PdfPage page) return; // no annotations in form XObjects
+        foreach (var (area, run) in _areas)
+        {
+            var annotation = page.AddLink(area, run.Uri!);
+            annotation.Contents = string.IsNullOrWhiteSpace(run.Text) ? run.Uri : run.Text.Trim();
+            if (_elements.TryGetValue(run, out var element)) element.AddAnnotation(annotation, page);
+        }
+    }
 }

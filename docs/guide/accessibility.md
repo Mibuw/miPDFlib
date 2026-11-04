@@ -37,6 +37,7 @@ What the layout engine tags automatically:
 | Element | Structure | Notes |
 |---|---|---|
 | `Paragraph` | `P` | `AsHeading(n)` or `StructureType = "H2"`, any standard type possible |
+| links in a `Paragraph` (`AddLink`, `TextRun.Uri`) | `Link` inside the `P` | linked text and link annotations (one per line) with the text as `/Contents` |
 | `Table` | `Table` → `TR` → `TH`/`TD` | `Scope` and `ColSpan` attributes, one table element across pages |
 | `ListElement` | `L` → `LI` → `Lbl`/`LBody` | `ListNumbering` attribute, nested lists inside `LBody` |
 | `ImageElement`, `BarcodeElement` | `Figure` with `/Alt` and `BBox` | `IsDecorative` → artifact |

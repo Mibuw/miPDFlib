@@ -6,6 +6,9 @@ const MiPdf.Tagging.StructureType.FENote = "FENote" -> string!
 const MiPdf.Tagging.StructureType.Strong = "Strong" -> string!
 const MiPdf.Tagging.StructureType.Sub = "Sub" -> string!
 const MiPdf.Tagging.StructureType.Title = "Title" -> string!
+MiPdf.Layout.Paragraph.AddLink(string! text, string! uri) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.TextRun.Uri.get -> string?
+MiPdf.Layout.TextRun.Uri.set -> void
 MiPdf.PdfA.PdfAConformance.PdfA4 = 5 -> MiPdf.PdfA.PdfAConformance
 MiPdf.PdfA.PdfAConformance.PdfA4F = 6 -> MiPdf.PdfA.PdfAConformance
 MiPdf.PdfUAConformance.PdfUA2 = 1 -> MiPdf.PdfUAConformance

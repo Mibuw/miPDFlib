@@ -37,9 +37,9 @@ Last update: 2026-11-03
 | 28 API review fixes | ✅ done (289 tests; redaction overlay texts per mark, field locks of encrypted documents, CMYK outline colors, time-stamp password no longer readable) |
 | 29 Memory for large files | ✅ done (320 tests; shared stream data, saving without in-memory copies, signing and validation from the digest of the byte ranges, reading on demand from the file with 64-bit offsets: a 2.5 GB file is opened with 35 MB and saved/signed/validated with under 50 MB, see `benchmarks/`; EU DSS: RSA, PSS, ECDSA, PKCS#7, B-T and `SignFile` valid) |
 | 30 API cleanup and small features (0.6.0) | ✅ done (340 tests; issues #7–#10 and #13: page labels, viewer settings, page sizes, redaction and split samples, consistent API before 1.0) |
-| 31 PDF/A-4, PDF/UA-2, API baseline | ✅ done (350 tests; PDF/A-4/4f and PDF/UA-2 with the PDF 2.0 structure namespace, validated with veraPDF also after signing; public API recorded with PublicApiAnalyzers) |
+| 31 PDF/A-4, PDF/UA-2, API baseline | ✅ done (353 tests; PDF/A-4/4f and PDF/UA-2 with the PDF 2.0 structure namespace, validated with veraPDF also after signing; public API recorded with PublicApiAnalyzers; links in running text) |
 
-Current state: 350 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 353 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -53,7 +53,7 @@ Current state: 350 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Roadmap
 
-1. External validation: Adobe Acrobat; signatures from certificates of EU trusted list CAs with EU DSS.
+1. External validation: signatures from certificates of EU trusted list CAs with EU DSS.
 
 Known gaps: no full evaluation of permitted changes after signing (DocMDP; for FieldMDP the values of locked fields are compared); the tagged structure is not taken
 over when importing pages; no text shaping (Arabic/Indic scripts, ligatures); hyphenation patterns are not bundled
@@ -63,6 +63,11 @@ over when importing pages; no text shaping (Arabic/Indic scripts, ligatures); hy
 
 - PDF/A and PDF/UA: [veraPDF](https://verapdf.org) (`--flavour 1b|2b|2u|3u|4|4f|ua1|ua2`). PDF/A-1b/2b/2u/3u/4/4f,
   PDF/UA-1 and PDF/UA-2 pass, also signed and with form fields.
+- Adobe Acrobat: accessibility check without errors (only the manual checks for reading order and color contrast),
+  signatures and time-stamps intact, page labels and viewer settings shown, forms, encryption and redaction correct.
+  Acrobat does not show the PDF/A-4 and PDF/UA-2 identification in its Standards pane (PDF/A-2u and PDF/UA-1 are shown).
+- [PAC](https://pac.pdf-accessibility.org) (PDF/UA-1): the accessible sample passes without findings. PAC reads PDF 1.7
+  only, so PDF/UA-2 is checked with veraPDF.
 - Signatures: [EU DSS](https://github.com/esig/dss) – all variants cryptographically valid, levels B-B/B-T/B-LT/B-LTA
   recognized (INDETERMINATE only for test CAs that are not on EU trusted lists); OpenSSL `cms -verify`.
 - Rendering and syntax: Ghostscript (`-sDEVICE=png16m`, `-sDEVICE=nullpage`).
