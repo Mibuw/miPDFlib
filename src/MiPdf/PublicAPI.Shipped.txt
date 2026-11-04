@@ -1,0 +1,2105 @@
+#nullable enable
+abstract MiPdf.Barcodes.Barcode.Draw(MiPdf.Graphics.PdfCanvas! canvas, double x, double y, double width, double height) -> void
+abstract MiPdf.Barcodes.Barcode.TotalWidthModules.get -> int
+abstract MiPdf.Fonts.PdfFont.Ascent.get -> double
+abstract MiPdf.Fonts.PdfFont.CanDisplay(int codePoint) -> bool
+abstract MiPdf.Fonts.PdfFont.CapHeight.get -> double
+abstract MiPdf.Fonts.PdfFont.Descent.get -> double
+abstract MiPdf.Fonts.PdfFont.GetCharWidth(int codePoint) -> double
+abstract MiPdf.Fonts.PdfFont.Name.get -> string!
+abstract MiPdf.Objects.PdfObject.Clone() -> MiPdf.Objects.PdfObject!
+abstract MiPdf.Objects.PdfObject.ObjectType.get -> MiPdf.Objects.PdfObjectType
+const MiPdf.Invoicing.FacturX.NamespaceUri = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#" -> string!
+const MiPdf.Tagging.StructureType.Annotation = "Annot" -> string!
+const MiPdf.Tagging.StructureType.Article = "Art" -> string!
+const MiPdf.Tagging.StructureType.BibEntry = "BibEntry" -> string!
+const MiPdf.Tagging.StructureType.BlockQuote = "BlockQuote" -> string!
+const MiPdf.Tagging.StructureType.Caption = "Caption" -> string!
+const MiPdf.Tagging.StructureType.Code = "Code" -> string!
+const MiPdf.Tagging.StructureType.Div = "Div" -> string!
+const MiPdf.Tagging.StructureType.Document = "Document" -> string!
+const MiPdf.Tagging.StructureType.Figure = "Figure" -> string!
+const MiPdf.Tagging.StructureType.Form = "Form" -> string!
+const MiPdf.Tagging.StructureType.Formula = "Formula" -> string!
+const MiPdf.Tagging.StructureType.H = "H" -> string!
+const MiPdf.Tagging.StructureType.H1 = "H1" -> string!
+const MiPdf.Tagging.StructureType.H2 = "H2" -> string!
+const MiPdf.Tagging.StructureType.H3 = "H3" -> string!
+const MiPdf.Tagging.StructureType.H4 = "H4" -> string!
+const MiPdf.Tagging.StructureType.H5 = "H5" -> string!
+const MiPdf.Tagging.StructureType.H6 = "H6" -> string!
+const MiPdf.Tagging.StructureType.Index = "Index" -> string!
+const MiPdf.Tagging.StructureType.Label = "Lbl" -> string!
+const MiPdf.Tagging.StructureType.Link = "Link" -> string!
+const MiPdf.Tagging.StructureType.List = "L" -> string!
+const MiPdf.Tagging.StructureType.ListBody = "LBody" -> string!
+const MiPdf.Tagging.StructureType.ListItem = "LI" -> string!
+const MiPdf.Tagging.StructureType.NonStruct = "NonStruct" -> string!
+const MiPdf.Tagging.StructureType.Note = "Note" -> string!
+const MiPdf.Tagging.StructureType.Paragraph = "P" -> string!
+const MiPdf.Tagging.StructureType.Part = "Part" -> string!
+const MiPdf.Tagging.StructureType.Private = "Private" -> string!
+const MiPdf.Tagging.StructureType.Quote = "Quote" -> string!
+const MiPdf.Tagging.StructureType.Reference = "Reference" -> string!
+const MiPdf.Tagging.StructureType.Ruby = "Ruby" -> string!
+const MiPdf.Tagging.StructureType.RubyBase = "RB" -> string!
+const MiPdf.Tagging.StructureType.RubyPunctuation = "RP" -> string!
+const MiPdf.Tagging.StructureType.RubyText = "RT" -> string!
+const MiPdf.Tagging.StructureType.Sect = "Sect" -> string!
+const MiPdf.Tagging.StructureType.Span = "Span" -> string!
+const MiPdf.Tagging.StructureType.Table = "Table" -> string!
+const MiPdf.Tagging.StructureType.TableBody = "TBody" -> string!
+const MiPdf.Tagging.StructureType.TableDataCell = "TD" -> string!
+const MiPdf.Tagging.StructureType.TableFoot = "TFoot" -> string!
+const MiPdf.Tagging.StructureType.TableHead = "THead" -> string!
+const MiPdf.Tagging.StructureType.TableHeaderCell = "TH" -> string!
+const MiPdf.Tagging.StructureType.TableOfContents = "TOC" -> string!
+const MiPdf.Tagging.StructureType.TableOfContentsItem = "TOCI" -> string!
+const MiPdf.Tagging.StructureType.TableRow = "TR" -> string!
+const MiPdf.Tagging.StructureType.Warichu = "Warichu" -> string!
+const MiPdf.Tagging.StructureType.WarichuPunctuation = "WP" -> string!
+const MiPdf.Tagging.StructureType.WarichuText = "WT" -> string!
+MiPdf.AnnotationOptions
+MiPdf.AnnotationOptions.AnnotationOptions() -> void
+MiPdf.AnnotationOptions.Author.get -> string?
+MiPdf.AnnotationOptions.Author.init -> void
+MiPdf.AnnotationOptions.Contents.get -> string?
+MiPdf.AnnotationOptions.Contents.init -> void
+MiPdf.AnnotationOptions.Locked.get -> bool
+MiPdf.AnnotationOptions.Locked.init -> void
+MiPdf.AnnotationOptions.Opacity.get -> double
+MiPdf.AnnotationOptions.Opacity.init -> void
+MiPdf.AttachmentRelationship
+MiPdf.AttachmentRelationship.Alternative = 3 -> MiPdf.AttachmentRelationship
+MiPdf.AttachmentRelationship.Data = 2 -> MiPdf.AttachmentRelationship
+MiPdf.AttachmentRelationship.Source = 1 -> MiPdf.AttachmentRelationship
+MiPdf.AttachmentRelationship.Supplement = 4 -> MiPdf.AttachmentRelationship
+MiPdf.AttachmentRelationship.Unspecified = 0 -> MiPdf.AttachmentRelationship
+MiPdf.Barcodes.Barcode
+MiPdf.Barcodes.Barcode.Background.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Barcodes.Barcode.Background.set -> void
+MiPdf.Barcodes.Barcode.Color.get -> MiPdf.Graphics.PdfColor
+MiPdf.Barcodes.Barcode.Color.set -> void
+MiPdf.Barcodes.Barcode.DrawWithModuleSize(MiPdf.Graphics.PdfCanvas! canvas, double x, double y, double moduleSize, double? height = null) -> MiPdf.PdfRectangle
+MiPdf.Barcodes.Barcode.QuietZone.get -> int
+MiPdf.Barcodes.Barcode.QuietZone.set -> void
+MiPdf.Barcodes.Barcode.Text.get -> string!
+MiPdf.Barcodes.BarcodeCanvasExtensions
+MiPdf.Barcodes.Code128
+MiPdf.Barcodes.Code128.Values.get -> System.Collections.Generic.IReadOnlyList<int>!
+MiPdf.Barcodes.Code39
+MiPdf.Barcodes.DataMatrix
+MiPdf.Barcodes.DataMatrixShape
+MiPdf.Barcodes.DataMatrixShape.Any = 2 -> MiPdf.Barcodes.DataMatrixShape
+MiPdf.Barcodes.DataMatrixShape.Rectangle = 1 -> MiPdf.Barcodes.DataMatrixShape
+MiPdf.Barcodes.DataMatrixShape.Square = 0 -> MiPdf.Barcodes.DataMatrixShape
+MiPdf.Barcodes.Ean
+MiPdf.Barcodes.EpcPayment
+MiPdf.Barcodes.EpcPayment.Amount.get -> decimal?
+MiPdf.Barcodes.EpcPayment.Amount.init -> void
+MiPdf.Barcodes.EpcPayment.Bic.get -> string?
+MiPdf.Barcodes.EpcPayment.Bic.init -> void
+MiPdf.Barcodes.EpcPayment.EpcPayment() -> void
+MiPdf.Barcodes.EpcPayment.Iban.get -> string!
+MiPdf.Barcodes.EpcPayment.Iban.init -> void
+MiPdf.Barcodes.EpcPayment.Information.get -> string?
+MiPdf.Barcodes.EpcPayment.Information.init -> void
+MiPdf.Barcodes.EpcPayment.Name.get -> string!
+MiPdf.Barcodes.EpcPayment.Name.init -> void
+MiPdf.Barcodes.EpcPayment.Purpose.get -> string?
+MiPdf.Barcodes.EpcPayment.Purpose.init -> void
+MiPdf.Barcodes.EpcPayment.Reference.get -> string?
+MiPdf.Barcodes.EpcPayment.Reference.init -> void
+MiPdf.Barcodes.EpcPayment.Text.get -> string?
+MiPdf.Barcodes.EpcPayment.Text.init -> void
+MiPdf.Barcodes.EpcPayment.ToPayload() -> string!
+MiPdf.Barcodes.EpcQrCode
+MiPdf.Barcodes.Interleaved2Of5
+MiPdf.Barcodes.LinearBarcode
+MiPdf.Barcodes.LinearBarcode.Font.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Barcodes.LinearBarcode.Font.set -> void
+MiPdf.Barcodes.LinearBarcode.FontSize.get -> double?
+MiPdf.Barcodes.LinearBarcode.FontSize.set -> void
+MiPdf.Barcodes.LinearBarcode.HumanReadableText.get -> string!
+MiPdf.Barcodes.LinearBarcode.Modules.get -> System.Collections.Generic.IReadOnlyList<bool>!
+MiPdf.Barcodes.LinearBarcode.ShowText.get -> bool
+MiPdf.Barcodes.LinearBarcode.ShowText.set -> void
+MiPdf.Barcodes.MatrixBarcode
+MiPdf.Barcodes.MatrixBarcode.Columns.get -> int
+MiPdf.Barcodes.MatrixBarcode.Rows.get -> int
+MiPdf.Barcodes.MatrixBarcode.this[int row, int column].get -> bool
+MiPdf.Barcodes.MatrixBarcode.TotalHeightModules.get -> int
+MiPdf.Barcodes.QrCode
+MiPdf.Barcodes.QrCode.ErrorCorrection.get -> MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Barcodes.QrCode.Mask.get -> int
+MiPdf.Barcodes.QrCode.Version.get -> int
+MiPdf.Barcodes.QrCodeOptions
+MiPdf.Barcodes.QrCodeOptions.ErrorCorrection.get -> MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Barcodes.QrCodeOptions.ErrorCorrection.set -> void
+MiPdf.Barcodes.QrCodeOptions.Mask.get -> int?
+MiPdf.Barcodes.QrCodeOptions.Mask.set -> void
+MiPdf.Barcodes.QrCodeOptions.MaxVersion.get -> int
+MiPdf.Barcodes.QrCodeOptions.MaxVersion.set -> void
+MiPdf.Barcodes.QrCodeOptions.MinVersion.get -> int
+MiPdf.Barcodes.QrCodeOptions.MinVersion.set -> void
+MiPdf.Barcodes.QrCodeOptions.QrCodeOptions() -> void
+MiPdf.Barcodes.QrCodeOptions.Utf8Eci.get -> bool
+MiPdf.Barcodes.QrCodeOptions.Utf8Eci.set -> void
+MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Barcodes.QrErrorCorrection.H = 3 -> MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Barcodes.QrErrorCorrection.L = 0 -> MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Barcodes.QrErrorCorrection.M = 1 -> MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Barcodes.QrErrorCorrection.Q = 2 -> MiPdf.Barcodes.QrErrorCorrection
+MiPdf.Content.ContentOperation
+MiPdf.Content.ContentOperation.InlineImage.get -> MiPdf.Objects.PdfStream?
+MiPdf.Content.ContentOperation.Operands.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Objects.PdfObject!>!
+MiPdf.Content.ContentOperation.Operator.get -> string!
+MiPdf.Content.ContentParser
+MiPdf.Content.FreeSpaceFinder
+MiPdf.Filters.Ascii85Filter
+MiPdf.Filters.AsciiHexFilter
+MiPdf.Filters.FlateFilter
+MiPdf.Filters.LzwFilter
+MiPdf.Filters.Predictor
+MiPdf.Filters.RunLengthFilter
+MiPdf.Filters.StreamFilters
+MiPdf.Fonts.PdfFont
+MiPdf.Fonts.PdfFont.GetAscent(double fontSize) -> double
+MiPdf.Fonts.PdfFont.GetDescent(double fontSize) -> double
+MiPdf.Fonts.PdfFont.GetLineHeight(double fontSize) -> double
+MiPdf.Fonts.PdfFont.GetTextWidth(string! text, double fontSize) -> double
+MiPdf.Fonts.PdfFont.GetTextWidth(string! text, double fontSize, bool kerning) -> double
+MiPdf.Fonts.PdfFont.PdfFont() -> void
+MiPdf.Fonts.PdfStandardFont
+MiPdf.Fonts.PdfStandardFont.IsSymbolic.get -> bool
+MiPdf.Fonts.PdfTrueTypeFont
+MiPdf.Fonts.PdfTrueTypeFont.FamilyName.get -> string!
+MiPdf.Fonts.PdfTrueTypeFont.IsBold.get -> bool
+MiPdf.Fonts.PdfTrueTypeFont.IsItalic.get -> bool
+MiPdf.Fonts.WinAnsiEncoding
+MiPdf.Forms.CheckBoxStyle
+MiPdf.Forms.CheckBoxStyle.Check = 0 -> MiPdf.Forms.CheckBoxStyle
+MiPdf.Forms.CheckBoxStyle.Circle = 2 -> MiPdf.Forms.CheckBoxStyle
+MiPdf.Forms.CheckBoxStyle.Cross = 1 -> MiPdf.Forms.CheckBoxStyle
+MiPdf.Forms.CheckBoxStyle.Diamond = 4 -> MiPdf.Forms.CheckBoxStyle
+MiPdf.Forms.CheckBoxStyle.Square = 3 -> MiPdf.Forms.CheckBoxStyle
+MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Comb = 16777216 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Combo = 131072 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.DoNotScroll = 8388608 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.DoNotSpellCheck = 4194304 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Edit = 262144 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.FileSelect = 1048576 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Multiline = 4096 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.MultiSelect = 2097152 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.NoExport = 4 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.None = 0 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.NoToggleToOff = 16384 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Password = 8192 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.PushButton = 65536 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Radio = 32768 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.ReadOnly = 1 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Required = 2 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FieldFlags.Sort = 524288 -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.FormDataImportResult
+MiPdf.Forms.FormDataImportResult.Errors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Forms.FormDataImportResult.Errors.init -> void
+MiPdf.Forms.FormDataImportResult.FieldsSet.get -> int
+MiPdf.Forms.FormDataImportResult.FieldsSet.init -> void
+MiPdf.Forms.FormDataImportResult.FormDataImportResult() -> void
+MiPdf.Forms.FormDataImportResult.UnknownFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Forms.FormDataImportResult.UnknownFields.init -> void
+MiPdf.Forms.PdfAcroForm
+MiPdf.Forms.PdfAcroForm.AddCheckBox(MiPdf.PdfPage! page, string! name, MiPdf.PdfRectangle rect, bool isChecked = false, MiPdf.Graphics.PdfColor? border = null, MiPdf.Forms.CheckBoxStyle style = MiPdf.Forms.CheckBoxStyle.Check, double borderWidth = 1, MiPdf.Graphics.PdfColor? background = null) -> MiPdf.Forms.PdfCheckBox!
+MiPdf.Forms.PdfAcroForm.AddComboBox(MiPdf.PdfPage! page, string! name, MiPdf.PdfRectangle rect, System.Collections.Generic.IEnumerable<string!>! options, string? selected = null, bool editable = false, MiPdf.Graphics.PdfColor? border = null, MiPdf.Graphics.PdfColor? background = null, double borderWidth = 1) -> MiPdf.Forms.PdfChoiceField!
+MiPdf.Forms.PdfAcroForm.AddListBox(MiPdf.PdfPage! page, string! name, MiPdf.PdfRectangle rect, System.Collections.Generic.IEnumerable<string!>! options, string? selected = null, bool multiSelect = false, MiPdf.Graphics.PdfColor? border = null, MiPdf.Graphics.PdfColor? background = null, double borderWidth = 1) -> MiPdf.Forms.PdfChoiceField!
+MiPdf.Forms.PdfAcroForm.AddPushButton(MiPdf.PdfPage! page, string! name, MiPdf.PdfRectangle rect, MiPdf.Images.PdfImage? icon = null, string? caption = null, MiPdf.Graphics.PdfColor? border = null, MiPdf.Graphics.PdfColor? background = null) -> MiPdf.Forms.PdfPushButton!
+MiPdf.Forms.PdfAcroForm.AddRadioGroup(MiPdf.PdfPage! page, string! name, System.Collections.Generic.IEnumerable<(string! Value, MiPdf.PdfRectangle Rect)>! options, string? selected = null, MiPdf.Graphics.PdfColor? border = null, MiPdf.Graphics.PdfColor? background = null, double borderWidth = 1) -> MiPdf.Forms.PdfRadioButtonGroup!
+MiPdf.Forms.PdfAcroForm.AddSignatureField(MiPdf.PdfPage! page, string! name, MiPdf.PdfRectangle rect) -> MiPdf.Forms.PdfSignatureField!
+MiPdf.Forms.PdfAcroForm.AddTextField(MiPdf.PdfPage! page, string! name, MiPdf.PdfRectangle rect, string? value = null, double fontSize = 0, bool multiline = false, MiPdf.Graphics.PdfColor? border = null, MiPdf.Graphics.PdfColor? background = null, double borderWidth = 1) -> MiPdf.Forms.PdfTextField!
+MiPdf.Forms.PdfAcroForm.AppearanceFont.get -> MiPdf.Fonts.PdfFont?
+MiPdf.Forms.PdfAcroForm.AppearanceFont.set -> void
+MiPdf.Forms.PdfAcroForm.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.Forms.PdfAcroForm.Document.get -> MiPdf.PdfDocument!
+MiPdf.Forms.PdfAcroForm.ExportFdf(string? pdfFileName = null) -> byte[]!
+MiPdf.Forms.PdfAcroForm.ExportXfdf(string? pdfFileName = null) -> string!
+MiPdf.Forms.PdfAcroForm.Fields.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Forms.PdfFormField!>!
+MiPdf.Forms.PdfAcroForm.Flatten(System.Collections.Generic.IEnumerable<MiPdf.Forms.PdfFormField!>? fields = null) -> void
+MiPdf.Forms.PdfAcroForm.GetField(string! fullName) -> MiPdf.Forms.PdfFormField?
+MiPdf.Forms.PdfAcroForm.GetField<T>(string! fullName) -> T?
+MiPdf.Forms.PdfAcroForm.GetValues() -> System.Collections.Generic.IReadOnlyDictionary<string!, string?>!
+MiPdf.Forms.PdfAcroForm.ImportFdf(byte[]! fdf) -> MiPdf.Forms.FormDataImportResult!
+MiPdf.Forms.PdfAcroForm.ImportXfdf(string! xfdf) -> MiPdf.Forms.FormDataImportResult!
+MiPdf.Forms.PdfAcroForm.ImportXfdf(System.IO.Stream! xfdf) -> MiPdf.Forms.FormDataImportResult!
+MiPdf.Forms.PdfAcroForm.NeedAppearances.get -> bool
+MiPdf.Forms.PdfAcroForm.NeedAppearances.set -> void
+MiPdf.Forms.PdfAcroForm.RemoveField(MiPdf.Forms.PdfFormField! field) -> void
+MiPdf.Forms.PdfAcroForm.SetValue(string! fullName, string? value) -> void
+MiPdf.Forms.PdfAcroForm.Xfa.get -> MiPdf.Forms.XfaForm!
+MiPdf.Forms.PdfCheckBox
+MiPdf.Forms.PdfCheckBox.IsChecked.get -> bool
+MiPdf.Forms.PdfCheckBox.IsChecked.set -> void
+MiPdf.Forms.PdfCheckBox.OnValue.get -> string!
+MiPdf.Forms.PdfChoiceField
+MiPdf.Forms.PdfChoiceField.IsComboBox.get -> bool
+MiPdf.Forms.PdfChoiceField.IsEditable.get -> bool
+MiPdf.Forms.PdfChoiceField.IsMultiSelect.get -> bool
+MiPdf.Forms.PdfChoiceField.Options.get -> System.Collections.Generic.IReadOnlyList<(string! Export, string! Display)>!
+MiPdf.Forms.PdfChoiceField.SelectedValues.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Forms.PdfChoiceField.SetSelection(System.Collections.Generic.IEnumerable<string!>! values) -> void
+MiPdf.Forms.PdfFormField
+MiPdf.Forms.PdfFormField.AppearanceFont.get -> MiPdf.Fonts.PdfFont?
+MiPdf.Forms.PdfFormField.AppearanceFont.set -> void
+MiPdf.Forms.PdfFormField.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.Forms.PdfFormField.FieldType.get -> string!
+MiPdf.Forms.PdfFormField.Flags.get -> MiPdf.Forms.FieldFlags
+MiPdf.Forms.PdfFormField.Flags.set -> void
+MiPdf.Forms.PdfFormField.Form.get -> MiPdf.Forms.PdfAcroForm!
+MiPdf.Forms.PdfFormField.FullName.get -> string!
+MiPdf.Forms.PdfFormField.PartialName.get -> string!
+MiPdf.Forms.PdfFormField.ReadOnly.get -> bool
+MiPdf.Forms.PdfFormField.ReadOnly.set -> void
+MiPdf.Forms.PdfFormField.Required.get -> bool
+MiPdf.Forms.PdfFormField.Required.set -> void
+MiPdf.Forms.PdfFormField.ToolTip.get -> string?
+MiPdf.Forms.PdfFormField.Tooltip.get -> string?
+MiPdf.Forms.PdfFormField.ToolTip.set -> void
+MiPdf.Forms.PdfFormField.Tooltip.set -> void
+MiPdf.Forms.PdfFormField.Widgets.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Forms.PdfWidget!>!
+MiPdf.Forms.PdfPushButton
+MiPdf.Forms.PdfPushButton.Caption.get -> string?
+MiPdf.Forms.PdfPushButton.SetAppearance(MiPdf.Images.PdfImage? icon, string? caption = null) -> void
+MiPdf.Forms.PdfPushButton.SetImage(MiPdf.Images.PdfImage! image) -> void
+MiPdf.Forms.PdfRadioButtonGroup
+MiPdf.Forms.PdfRadioButtonGroup.Options.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Forms.PdfSignatureField
+MiPdf.Forms.PdfSignatureField.IsSigned.get -> bool
+MiPdf.Forms.PdfSignatureField.Lock.get -> MiPdf.Signatures.PdfFieldLock?
+MiPdf.Forms.PdfSignatureField.Lock.set -> void
+MiPdf.Forms.PdfSignatureField.SignatureDictionary.get -> MiPdf.Objects.PdfDictionary?
+MiPdf.Forms.PdfTextField
+MiPdf.Forms.PdfTextField.Alignment.get -> MiPdf.Graphics.TextAlignment
+MiPdf.Forms.PdfTextField.Alignment.set -> void
+MiPdf.Forms.PdfTextField.Comb.get -> bool
+MiPdf.Forms.PdfTextField.MaxLength.get -> int
+MiPdf.Forms.PdfTextField.MaxLength.set -> void
+MiPdf.Forms.PdfTextField.Multiline.get -> bool
+MiPdf.Forms.PdfTextField.Password.get -> bool
+MiPdf.Forms.PdfWidget
+MiPdf.Forms.PdfWidget.AppearanceState.get -> string?
+MiPdf.Forms.PdfWidget.BackgroundColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Forms.PdfWidget.BackgroundColor.set -> void
+MiPdf.Forms.PdfWidget.BorderColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Forms.PdfWidget.BorderColor.set -> void
+MiPdf.Forms.PdfWidget.BorderWidth.get -> double
+MiPdf.Forms.PdfWidget.BorderWidth.set -> void
+MiPdf.Forms.PdfWidget.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.Forms.PdfWidget.ExtractImages() -> System.Collections.Generic.IReadOnlyList<MiPdf.Images.PdfExtractedImage!>!
+MiPdf.Forms.PdfWidget.IsHidden.get -> bool
+MiPdf.Forms.PdfWidget.IsHidden.set -> void
+MiPdf.Forms.PdfWidget.OnStates.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Forms.PdfWidget.Page.get -> MiPdf.PdfPage?
+MiPdf.Forms.PdfWidget.Rect.get -> MiPdf.PdfRectangle
+MiPdf.Forms.PdfWidget.Rect.set -> void
+MiPdf.Forms.PdfWidget.Rotation.get -> int
+MiPdf.Forms.PdfWidget.Rotation.set -> void
+MiPdf.Forms.XfaForm
+MiPdf.Forms.XfaForm.Exists.get -> bool
+MiPdf.Forms.XfaForm.FillData(string! xml) -> void
+MiPdf.Forms.XfaForm.FillData(System.Xml.XmlNode! node) -> void
+MiPdf.Forms.XfaForm.GetData() -> string?
+MiPdf.Forms.XfaForm.GetPackets() -> System.Collections.Generic.IReadOnlyDictionary<string!, byte[]!>!
+MiPdf.Forms.XfaForm.Remove() -> void
+MiPdf.Graphics.IResourceContainer
+MiPdf.Graphics.IResourceContainer.AddResource(MiPdf.Objects.PdfName! category, MiPdf.Objects.PdfObject! resource, string! prefix) -> MiPdf.Objects.PdfName!
+MiPdf.Graphics.IResourceContainer.Document.get -> MiPdf.PdfDocument!
+MiPdf.Graphics.LineCap
+MiPdf.Graphics.LineCap.Butt = 0 -> MiPdf.Graphics.LineCap
+MiPdf.Graphics.LineCap.Round = 1 -> MiPdf.Graphics.LineCap
+MiPdf.Graphics.LineCap.Square = 2 -> MiPdf.Graphics.LineCap
+MiPdf.Graphics.LineJoin
+MiPdf.Graphics.LineJoin.Bevel = 2 -> MiPdf.Graphics.LineJoin
+MiPdf.Graphics.LineJoin.Miter = 0 -> MiPdf.Graphics.LineJoin
+MiPdf.Graphics.LineJoin.Round = 1 -> MiPdf.Graphics.LineJoin
+MiPdf.Graphics.Matrix
+MiPdf.Graphics.Matrix.A.get -> double
+MiPdf.Graphics.Matrix.A.init -> void
+MiPdf.Graphics.Matrix.B.get -> double
+MiPdf.Graphics.Matrix.B.init -> void
+MiPdf.Graphics.Matrix.C.get -> double
+MiPdf.Graphics.Matrix.C.init -> void
+MiPdf.Graphics.Matrix.D.get -> double
+MiPdf.Graphics.Matrix.D.init -> void
+MiPdf.Graphics.Matrix.Deconstruct(out double A, out double B, out double C, out double D, out double E, out double F) -> void
+MiPdf.Graphics.Matrix.E.get -> double
+MiPdf.Graphics.Matrix.E.init -> void
+MiPdf.Graphics.Matrix.Equals(MiPdf.Graphics.Matrix other) -> bool
+MiPdf.Graphics.Matrix.F.get -> double
+MiPdf.Graphics.Matrix.F.init -> void
+MiPdf.Graphics.Matrix.Matrix() -> void
+MiPdf.Graphics.Matrix.Matrix(double A, double B, double C, double D, double E, double F) -> void
+MiPdf.Graphics.Matrix.Multiply(MiPdf.Graphics.Matrix other) -> MiPdf.Graphics.Matrix
+MiPdf.Graphics.Matrix.Transform(double x, double y) -> (double X, double Y)
+MiPdf.Graphics.PdfCanvas
+MiPdf.Graphics.PdfCanvas.Artifact(System.Action<MiPdf.Graphics.PdfCanvas!>! draw, MiPdf.Tagging.ArtifactType type = MiPdf.Tagging.ArtifactType.None) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.BeginArtifact(MiPdf.Tagging.ArtifactType type = MiPdf.Tagging.ArtifactType.None) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.BeginTag(MiPdf.Tagging.PdfStructureElement! element) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.BeginText() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Circle(double centerX, double centerY, double radius) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Clip(bool evenOdd = false) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.ClosePath() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.CurveTo(double x1, double y1, double x2, double y2, double x3, double y3) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Dispose() -> void
+MiPdf.Graphics.PdfCanvas.Document.get -> MiPdf.PdfDocument!
+MiPdf.Graphics.PdfCanvas.DrawImage(MiPdf.Images.PdfImage! image, double x, double y, double width, double height) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.DrawImage(MiPdf.Images.PdfImage! image, MiPdf.PdfRectangle box) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.DrawLine(double x1, double y1, double x2, double y2, MiPdf.Graphics.PdfColor? color = null, double lineWidth = 1) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.DrawRectangle(double x, double y, double width, double height, MiPdf.Graphics.PdfColor? stroke = null, MiPdf.Graphics.PdfColor? fill = null, double lineWidth = 1) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.DrawText(string! text, MiPdf.Fonts.PdfFont! font, double fontSize, double x, double y, MiPdf.Graphics.PdfColor? color = null, MiPdf.Graphics.TextAlignment alignment = MiPdf.Graphics.TextAlignment.Left, bool kerning = false) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.DrawTextBox(string! text, MiPdf.Fonts.PdfFont! font, double fontSize, MiPdf.PdfRectangle box, MiPdf.Graphics.TextAlignment alignment = MiPdf.Graphics.TextAlignment.Left, MiPdf.Layout.VerticalAlignment verticalAlignment = MiPdf.Layout.VerticalAlignment.Top, MiPdf.Graphics.PdfColor? color = null, double lineSpacing = 1.15) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.DrawXObject(MiPdf.Graphics.PdfFormXObject! xobject, double x, double y, double? width = null, double? height = null) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Ellipse(double x, double y, double width, double height) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.EndArtifact() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.EndPath() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.EndTag() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.EndText() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Fill(bool evenOdd = false) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.FillAndStroke(bool evenOdd = false) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Flush() -> void
+MiPdf.Graphics.PdfCanvas.GetContentBytes() -> byte[]!
+MiPdf.Graphics.PdfCanvas.IsTagged.get -> bool
+MiPdf.Graphics.PdfCanvas.LineTo(double x, double y) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.MoveText(double tx, double ty) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.MoveTo(double x, double y) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.NewLine() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Rectangle(double x, double y, double width, double height) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Rectangle(MiPdf.PdfRectangle r) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.RestoreState() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Rotate(double degrees, double cx = 0, double cy = 0) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.RoundedRectangle(double x, double y, double width, double height, double radius) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SaveState() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Scale(double sx, double sy) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetCharacterSpacing(double spacing) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetDashPattern(double[]! pattern, double phase) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetDashPattern(params double[]! pattern) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetFillColor(MiPdf.Graphics.PdfColor color) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetFont(MiPdf.Fonts.PdfFont! font, double size) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetHorizontalScaling(double percent) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetLeading(double leading) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetLineCap(MiPdf.Graphics.LineCap cap) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetLineJoin(MiPdf.Graphics.LineJoin join) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetLineWidth(double width) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetMiterLimit(double limit) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetOpacity(double fillOpacity, double? strokeOpacity = null, string? blendMode = null) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetSolidLine() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetStrokeColor(MiPdf.Graphics.PdfColor color) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetTextMatrix(double a, double b, double c, double d, double e, double f) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetTextPosition(double x, double y) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetTextRenderingMode(MiPdf.Graphics.TextRenderingMode mode) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetTextRise(double rise) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.SetWordSpacing(double spacing) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.ShowText(string! text) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.ShowTextWithWordSpacing(string! text, double extraWordSpace, bool kerning = false) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Stroke() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.StructureParent.get -> MiPdf.Tagging.PdfStructureElement?
+MiPdf.Graphics.PdfCanvas.StructureParent.set -> void
+MiPdf.Graphics.PdfCanvas.Tag(MiPdf.Tagging.PdfStructureElement! element, System.Action<MiPdf.Graphics.PdfCanvas!>! draw) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Target.get -> MiPdf.Graphics.IResourceContainer!
+MiPdf.Graphics.PdfCanvas.Transform(double a, double b, double c, double d, double e, double f) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.Translate(double x, double y) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfCanvas.WriteRaw(string! operators) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfColor
+MiPdf.Graphics.PdfColor.C1.get -> double
+MiPdf.Graphics.PdfColor.C2.get -> double
+MiPdf.Graphics.PdfColor.C3.get -> double
+MiPdf.Graphics.PdfColor.C4.get -> double
+MiPdf.Graphics.PdfColor.ColorSpace.get -> MiPdf.Graphics.PdfColorSpace
+MiPdf.Graphics.PdfColor.Equals(MiPdf.Graphics.PdfColor other) -> bool
+MiPdf.Graphics.PdfColor.PdfColor() -> void
+MiPdf.Graphics.PdfColorSpace
+MiPdf.Graphics.PdfColorSpace.Cmyk = 2 -> MiPdf.Graphics.PdfColorSpace
+MiPdf.Graphics.PdfColorSpace.Gray = 0 -> MiPdf.Graphics.PdfColorSpace
+MiPdf.Graphics.PdfColorSpace.Rgb = 1 -> MiPdf.Graphics.PdfColorSpace
+MiPdf.Graphics.PdfFormXObject
+MiPdf.Graphics.PdfFormXObject.AddResource(MiPdf.Objects.PdfName! category, MiPdf.Objects.PdfObject! resource, string! prefix) -> MiPdf.Objects.PdfName!
+MiPdf.Graphics.PdfFormXObject.BBox.get -> MiPdf.PdfRectangle
+MiPdf.Graphics.PdfFormXObject.BBox.set -> void
+MiPdf.Graphics.PdfFormXObject.Document.get -> MiPdf.PdfDocument!
+MiPdf.Graphics.PdfFormXObject.GetCanvas() -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Graphics.PdfFormXObject.Height.get -> double
+MiPdf.Graphics.PdfFormXObject.Matrix.get -> MiPdf.Graphics.Matrix?
+MiPdf.Graphics.PdfFormXObject.Matrix.set -> void
+MiPdf.Graphics.PdfFormXObject.PdfFormXObject(MiPdf.PdfDocument! document, MiPdf.Objects.PdfStream! stream) -> void
+MiPdf.Graphics.PdfFormXObject.PdfFormXObject(MiPdf.PdfDocument! document, MiPdf.PdfRectangle bbox) -> void
+MiPdf.Graphics.PdfFormXObject.Reference.get -> MiPdf.Objects.PdfReference!
+MiPdf.Graphics.PdfFormXObject.Resources.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.Graphics.PdfFormXObject.Stream.get -> MiPdf.Objects.PdfStream!
+MiPdf.Graphics.PdfFormXObject.Width.get -> double
+MiPdf.Graphics.TextAlignment
+MiPdf.Graphics.TextAlignment.Center = 1 -> MiPdf.Graphics.TextAlignment
+MiPdf.Graphics.TextAlignment.Justify = 3 -> MiPdf.Graphics.TextAlignment
+MiPdf.Graphics.TextAlignment.Left = 0 -> MiPdf.Graphics.TextAlignment
+MiPdf.Graphics.TextAlignment.Right = 2 -> MiPdf.Graphics.TextAlignment
+MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.Clip = 7 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.Fill = 0 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.FillClip = 4 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.FillStroke = 2 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.FillStrokeClip = 6 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.Invisible = 3 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.Stroke = 1 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Graphics.TextRenderingMode.StrokeClip = 5 -> MiPdf.Graphics.TextRenderingMode
+MiPdf.Images.PdfExtractedImage
+MiPdf.Images.PdfExtractedImage.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Images.PdfExtractedImage.GetEncodedData() -> byte[]!
+MiPdf.Images.PdfExtractedImage.HasTransparency.get -> bool
+MiPdf.Images.PdfExtractedImage.Height.get -> int
+MiPdf.Images.PdfExtractedImage.IsJpeg.get -> bool
+MiPdf.Images.PdfExtractedImage.IsJpeg2000.get -> bool
+MiPdf.Images.PdfExtractedImage.Name.get -> string?
+MiPdf.Images.PdfExtractedImage.Stream.get -> MiPdf.Objects.PdfStream!
+MiPdf.Images.PdfExtractedImage.ToFile(out string! extension) -> byte[]?
+MiPdf.Images.PdfExtractedImage.ToPng(MiPdf.Graphics.PdfColor? background = null) -> byte[]?
+MiPdf.Images.PdfExtractedImage.Transform.get -> MiPdf.Graphics.Matrix
+MiPdf.Images.PdfExtractedImage.Width.get -> int
+MiPdf.Images.PdfImage
+MiPdf.Images.PdfImage.AspectRatio.get -> double
+MiPdf.Images.PdfImage.Height.get -> int
+MiPdf.Images.PdfImage.Width.get -> int
+MiPdf.Images.PdfImageExtractor
+MiPdf.Images.PngEncoder
+MiPdf.Invoicing.FacturX
+MiPdf.Invoicing.FacturXFinding
+MiPdf.Invoicing.FacturXFinding.<Clone>$() -> MiPdf.Invoicing.FacturXFinding!
+MiPdf.Invoicing.FacturXFinding.BusinessTerm.get -> string!
+MiPdf.Invoicing.FacturXFinding.BusinessTerm.init -> void
+MiPdf.Invoicing.FacturXFinding.Deconstruct(out string! BusinessTerm, out string! Name, out string! Value) -> void
+MiPdf.Invoicing.FacturXFinding.Equals(MiPdf.Invoicing.FacturXFinding? other) -> bool
+MiPdf.Invoicing.FacturXFinding.FacturXFinding(string! BusinessTerm, string! Name, string! Value) -> void
+MiPdf.Invoicing.FacturXFinding.Name.get -> string!
+MiPdf.Invoicing.FacturXFinding.Name.init -> void
+MiPdf.Invoicing.FacturXFinding.Value.get -> string!
+MiPdf.Invoicing.FacturXFinding.Value.init -> void
+MiPdf.Invoicing.FacturXProfile
+MiPdf.Invoicing.FacturXProfile.Basic = 2 -> MiPdf.Invoicing.FacturXProfile
+MiPdf.Invoicing.FacturXProfile.BasicWL = 1 -> MiPdf.Invoicing.FacturXProfile
+MiPdf.Invoicing.FacturXProfile.EN16931 = 3 -> MiPdf.Invoicing.FacturXProfile
+MiPdf.Invoicing.FacturXProfile.Extended = 4 -> MiPdf.Invoicing.FacturXProfile
+MiPdf.Invoicing.FacturXProfile.Minimum = 0 -> MiPdf.Invoicing.FacturXProfile
+MiPdf.Invoicing.FacturXProfile.XRechnung = 5 -> MiPdf.Invoicing.FacturXProfile
+MiPdf.IO.PdfSaveOptions
+MiPdf.IO.PdfSaveOptions.CompressUncompressedStreams.get -> bool
+MiPdf.IO.PdfSaveOptions.CompressUncompressedStreams.set -> void
+MiPdf.IO.PdfSaveOptions.Incremental.get -> bool
+MiPdf.IO.PdfSaveOptions.Incremental.set -> void
+MiPdf.IO.PdfSaveOptions.PdfSaveOptions() -> void
+MiPdf.IO.PdfSaveOptions.UpdateModificationDate.get -> bool
+MiPdf.IO.PdfSaveOptions.UpdateModificationDate.set -> void
+MiPdf.IO.PdfSaveOptions.UpdateProducer.get -> bool
+MiPdf.IO.PdfSaveOptions.UpdateProducer.set -> void
+MiPdf.IO.PdfSaveOptions.UseObjectStreams.get -> bool
+MiPdf.IO.PdfSaveOptions.UseObjectStreams.set -> void
+MiPdf.IO.PdfSaveOptions.Version.get -> string?
+MiPdf.IO.PdfSaveOptions.Version.set -> void
+MiPdf.Layout.BarcodeElement
+MiPdf.Layout.BarcodeElement.Alignment.get -> MiPdf.Graphics.TextAlignment
+MiPdf.Layout.BarcodeElement.Alignment.set -> void
+MiPdf.Layout.BarcodeElement.AlternateText.get -> string?
+MiPdf.Layout.BarcodeElement.AlternateText.set -> void
+MiPdf.Layout.BarcodeElement.Barcode.get -> MiPdf.Barcodes.Barcode!
+MiPdf.Layout.BarcodeElement.BarcodeElement(MiPdf.Barcodes.Barcode! barcode, double? width = null, double? height = null) -> void
+MiPdf.Layout.BarcodeElement.Height.get -> double?
+MiPdf.Layout.BarcodeElement.Height.set -> void
+MiPdf.Layout.BarcodeElement.Width.get -> double?
+MiPdf.Layout.BarcodeElement.Width.set -> void
+MiPdf.Layout.Cell
+MiPdf.Layout.Cell.Add(MiPdf.Layout.LayoutElement! element) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Cell.Add(string! text) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Cell.Background.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Layout.Cell.Background.set -> void
+MiPdf.Layout.Cell.BorderColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Layout.Cell.BorderColor.set -> void
+MiPdf.Layout.Cell.BorderWidth.get -> double?
+MiPdf.Layout.Cell.BorderWidth.set -> void
+MiPdf.Layout.Cell.Cell(int colSpan = 1, int rowSpan = 1) -> void
+MiPdf.Layout.Cell.Cell(string! text, int colSpan = 1, int rowSpan = 1) -> void
+MiPdf.Layout.Cell.ColSpan.get -> int
+MiPdf.Layout.Cell.Content.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Layout.LayoutElement!>!
+MiPdf.Layout.Cell.Font.get -> MiPdf.Fonts.PdfFont?
+MiPdf.Layout.Cell.Font.set -> void
+MiPdf.Layout.Cell.FontSize.get -> double?
+MiPdf.Layout.Cell.FontSize.set -> void
+MiPdf.Layout.Cell.Padding.get -> MiPdf.Layout.Thickness?
+MiPdf.Layout.Cell.Padding.set -> void
+MiPdf.Layout.Cell.RowSpan.get -> int
+MiPdf.Layout.Cell.TextAlignment.get -> MiPdf.Graphics.TextAlignment?
+MiPdf.Layout.Cell.TextAlignment.set -> void
+MiPdf.Layout.Cell.TextColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Layout.Cell.TextColor.set -> void
+MiPdf.Layout.Cell.VerticalAlignment.get -> MiPdf.Layout.VerticalAlignment
+MiPdf.Layout.Cell.VerticalAlignment.set -> void
+MiPdf.Layout.HorizontalLine
+MiPdf.Layout.HorizontalLine.Color.get -> MiPdf.Graphics.PdfColor
+MiPdf.Layout.HorizontalLine.Color.set -> void
+MiPdf.Layout.HorizontalLine.HorizontalLine(double lineWidth = 0.5, MiPdf.Graphics.PdfColor? color = null) -> void
+MiPdf.Layout.HorizontalLine.LineWidth.get -> double
+MiPdf.Layout.HorizontalLine.LineWidth.set -> void
+MiPdf.Layout.IHyphenator
+MiPdf.Layout.IHyphenator.GetBreakPoints(string! word) -> System.Collections.Generic.IReadOnlyList<int>!
+MiPdf.Layout.ImageElement
+MiPdf.Layout.ImageElement.Alignment.get -> MiPdf.Graphics.TextAlignment
+MiPdf.Layout.ImageElement.Alignment.set -> void
+MiPdf.Layout.ImageElement.AlternateText.get -> string?
+MiPdf.Layout.ImageElement.AlternateText.set -> void
+MiPdf.Layout.ImageElement.Height.get -> double?
+MiPdf.Layout.ImageElement.Height.set -> void
+MiPdf.Layout.ImageElement.Image.get -> MiPdf.Images.PdfImage!
+MiPdf.Layout.ImageElement.ImageElement(MiPdf.Images.PdfImage! image, double? width = null, double? height = null) -> void
+MiPdf.Layout.ImageElement.IsDecorative.get -> bool
+MiPdf.Layout.ImageElement.IsDecorative.set -> void
+MiPdf.Layout.ImageElement.Width.get -> double?
+MiPdf.Layout.ImageElement.Width.set -> void
+MiPdf.Layout.LayoutDocument
+MiPdf.Layout.LayoutDocument.Add(MiPdf.Layout.LayoutElement! element) -> MiPdf.Layout.LayoutDocument!
+MiPdf.Layout.LayoutDocument.Add(string! text) -> MiPdf.Layout.LayoutDocument!
+MiPdf.Layout.LayoutDocument.AddSpace(double height) -> MiPdf.Layout.LayoutDocument!
+MiPdf.Layout.LayoutDocument.Canvas.get -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Layout.LayoutDocument.Close() -> void
+MiPdf.Layout.LayoutDocument.ContentArea.get -> MiPdf.PdfRectangle
+MiPdf.Layout.LayoutDocument.CurrentPage.get -> MiPdf.PdfPage?
+MiPdf.Layout.LayoutDocument.CurrentY.get -> double
+MiPdf.Layout.LayoutDocument.Dispose() -> void
+MiPdf.Layout.LayoutDocument.Document.get -> MiPdf.PdfDocument!
+MiPdf.Layout.LayoutDocument.Footer.get -> System.Action<MiPdf.Layout.PageContext!>?
+MiPdf.Layout.LayoutDocument.Footer.set -> void
+MiPdf.Layout.LayoutDocument.Header.get -> System.Action<MiPdf.Layout.PageContext!>?
+MiPdf.Layout.LayoutDocument.Header.set -> void
+MiPdf.Layout.LayoutDocument.LayoutDocument(MiPdf.PdfDocument! document, MiPdf.PdfRectangle? pageSize = null, MiPdf.Layout.Thickness? margins = null) -> void
+MiPdf.Layout.LayoutDocument.Margins.get -> MiPdf.Layout.Thickness
+MiPdf.Layout.LayoutDocument.Margins.set -> void
+MiPdf.Layout.LayoutDocument.NewPage() -> MiPdf.PdfPage!
+MiPdf.Layout.LayoutDocument.Pages.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfPage!>!
+MiPdf.Layout.LayoutDocument.PageSize.get -> MiPdf.PdfRectangle
+MiPdf.Layout.LayoutDocument.PageSize.set -> void
+MiPdf.Layout.LayoutDocument.PageStarted.get -> System.Action<MiPdf.Layout.PageContext!>?
+MiPdf.Layout.LayoutDocument.PageStarted.set -> void
+MiPdf.Layout.LayoutDocument.RemainingHeight.get -> double
+MiPdf.Layout.LayoutDocument.StructureParent.get -> MiPdf.Tagging.PdfStructureElement?
+MiPdf.Layout.LayoutDocument.StructureParent.set -> void
+MiPdf.Layout.LayoutElement
+MiPdf.Layout.LayoutElement.LayoutElement() -> void
+MiPdf.Layout.LayoutElement.SpacingAfter.get -> double
+MiPdf.Layout.LayoutElement.SpacingAfter.set -> void
+MiPdf.Layout.LayoutElement.SpacingBefore.get -> double
+MiPdf.Layout.LayoutElement.SpacingBefore.set -> void
+MiPdf.Layout.LayoutElement.StructureType.get -> string?
+MiPdf.Layout.LayoutElement.StructureType.set -> void
+MiPdf.Layout.ListElement
+MiPdf.Layout.ListElement.AddItem(params MiPdf.Layout.LayoutElement![]! content) -> MiPdf.Layout.ListItem!
+MiPdf.Layout.ListElement.AddItem(string! text) -> MiPdf.Layout.ListItem!
+MiPdf.Layout.ListElement.AddItems(params string![]! texts) -> MiPdf.Layout.ListElement!
+MiPdf.Layout.ListElement.Color.get -> MiPdf.Graphics.PdfColor
+MiPdf.Layout.ListElement.Color.set -> void
+MiPdf.Layout.ListElement.Font.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Layout.ListElement.Font.set -> void
+MiPdf.Layout.ListElement.FontSize.get -> double
+MiPdf.Layout.ListElement.FontSize.set -> void
+MiPdf.Layout.ListElement.GetLabel(int index) -> string!
+MiPdf.Layout.ListElement.Items.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Layout.ListItem!>!
+MiPdf.Layout.ListElement.ItemSpacing.get -> double
+MiPdf.Layout.ListElement.ItemSpacing.set -> void
+MiPdf.Layout.ListElement.LabelFormatter.get -> System.Func<int, string!>?
+MiPdf.Layout.ListElement.LabelFormatter.set -> void
+MiPdf.Layout.ListElement.LabelWidth.get -> double
+MiPdf.Layout.ListElement.LabelWidth.set -> void
+MiPdf.Layout.ListElement.ListElement(MiPdf.Layout.ListStyle style = MiPdf.Layout.ListStyle.Bullet) -> void
+MiPdf.Layout.ListElement.StartNumber.get -> int
+MiPdf.Layout.ListElement.StartNumber.set -> void
+MiPdf.Layout.ListElement.Style.get -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListElement.Style.set -> void
+MiPdf.Layout.ListItem
+MiPdf.Layout.ListItem.Add(MiPdf.Layout.LayoutElement! element) -> MiPdf.Layout.ListItem!
+MiPdf.Layout.ListItem.Content.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Layout.LayoutElement!>!
+MiPdf.Layout.ListItem.Label.get -> string?
+MiPdf.Layout.ListItem.Label.set -> void
+MiPdf.Layout.ListItem.ListItem() -> void
+MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.Bullet = 0 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.Dash = 1 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.Decimal = 2 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.LowerAlpha = 3 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.LowerRoman = 5 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.None = 7 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.UpperAlpha = 4 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.ListStyle.UpperRoman = 6 -> MiPdf.Layout.ListStyle
+MiPdf.Layout.PageBreak
+MiPdf.Layout.PageBreak.PageBreak() -> void
+MiPdf.Layout.PageContext
+MiPdf.Layout.PageContext.Canvas.get -> MiPdf.Graphics.PdfCanvas!
+MiPdf.Layout.PageContext.ContentArea.get -> MiPdf.PdfRectangle
+MiPdf.Layout.PageContext.Page.get -> MiPdf.PdfPage!
+MiPdf.Layout.PageContext.PageArea.get -> MiPdf.PdfRectangle
+MiPdf.Layout.PageContext.PageNumber.get -> int
+MiPdf.Layout.PageContext.TotalPages.get -> int
+MiPdf.Layout.Paragraph
+MiPdf.Layout.Paragraph.Add(MiPdf.Layout.TextRun! run) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.Add(string! text) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.Add(string! text, MiPdf.Fonts.PdfFont! font, double? fontSize = null, MiPdf.Graphics.PdfColor? color = null) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.Alignment.get -> MiPdf.Graphics.TextAlignment
+MiPdf.Layout.Paragraph.Alignment.set -> void
+MiPdf.Layout.Paragraph.AsHeading(int level) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.Color.get -> MiPdf.Graphics.PdfColor
+MiPdf.Layout.Paragraph.Color.set -> void
+MiPdf.Layout.Paragraph.FirstLineIndent.get -> double
+MiPdf.Layout.Paragraph.FirstLineIndent.set -> void
+MiPdf.Layout.Paragraph.Font.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Layout.Paragraph.Font.set -> void
+MiPdf.Layout.Paragraph.FontSize.get -> double
+MiPdf.Layout.Paragraph.FontSize.set -> void
+MiPdf.Layout.Paragraph.Hyphenator.get -> MiPdf.Layout.IHyphenator?
+MiPdf.Layout.Paragraph.Hyphenator.set -> void
+MiPdf.Layout.Paragraph.Kerning.get -> bool
+MiPdf.Layout.Paragraph.Kerning.set -> void
+MiPdf.Layout.Paragraph.LeftIndent.get -> double
+MiPdf.Layout.Paragraph.LeftIndent.set -> void
+MiPdf.Layout.Paragraph.LineSpacing.get -> double
+MiPdf.Layout.Paragraph.LineSpacing.set -> void
+MiPdf.Layout.Paragraph.Paragraph() -> void
+MiPdf.Layout.Paragraph.Paragraph(string! text, MiPdf.Fonts.PdfFont? font = null, double? fontSize = null) -> void
+MiPdf.Layout.Paragraph.RightIndent.get -> double
+MiPdf.Layout.Paragraph.RightIndent.set -> void
+MiPdf.Layout.Paragraph.Runs.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Layout.TextRun!>!
+MiPdf.Layout.Paragraph.SetAlignment(MiPdf.Graphics.TextAlignment alignment) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.SetColor(MiPdf.Graphics.PdfColor color) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.SetFont(MiPdf.Fonts.PdfFont! font, double? size = null) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.SetFontSize(double size) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.SetSpacing(double before, double after) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.PatternHyphenator
+MiPdf.Layout.PatternHyphenator.GetBreakPoints(string! word) -> System.Collections.Generic.IReadOnlyList<int>!
+MiPdf.Layout.PatternHyphenator.LeftMin.get -> int
+MiPdf.Layout.PatternHyphenator.PatternHyphenator(System.Collections.Generic.IEnumerable<string!>! patterns, System.Collections.Generic.IEnumerable<string!>? exceptions = null, int leftMin = 2, int rightMin = 2) -> void
+MiPdf.Layout.PatternHyphenator.RightMin.get -> int
+MiPdf.Layout.Spacer
+MiPdf.Layout.Spacer.Height.get -> double
+MiPdf.Layout.Spacer.Height.set -> void
+MiPdf.Layout.Spacer.Spacer(double height) -> void
+MiPdf.Layout.Table
+MiPdf.Layout.Table.AddCell(MiPdf.Layout.Cell! cell) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Table.AddCell(MiPdf.Layout.LayoutElement! element) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Table.AddCell(string! text) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Table.AddHeaderCell(MiPdf.Layout.Cell! cell) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Table.AddHeaderCell(string! text) -> MiPdf.Layout.Cell!
+MiPdf.Layout.Table.AlternateRowBackground.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Layout.Table.AlternateRowBackground.set -> void
+MiPdf.Layout.Table.BorderColor.get -> MiPdf.Graphics.PdfColor
+MiPdf.Layout.Table.BorderColor.set -> void
+MiPdf.Layout.Table.BorderWidth.get -> double
+MiPdf.Layout.Table.BorderWidth.set -> void
+MiPdf.Layout.Table.CellPadding.get -> MiPdf.Layout.Thickness
+MiPdf.Layout.Table.CellPadding.set -> void
+MiPdf.Layout.Table.ColumnCount.get -> int
+MiPdf.Layout.Table.Font.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Layout.Table.Font.set -> void
+MiPdf.Layout.Table.FontSize.get -> double
+MiPdf.Layout.Table.FontSize.set -> void
+MiPdf.Layout.Table.HeaderBackground.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Layout.Table.HeaderBackground.set -> void
+MiPdf.Layout.Table.HeaderFont.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Layout.Table.HeaderFont.set -> void
+MiPdf.Layout.Table.RepeatHeader.get -> bool
+MiPdf.Layout.Table.RepeatHeader.set -> void
+MiPdf.Layout.Table.SplitRowsAcrossPages.get -> bool
+MiPdf.Layout.Table.SplitRowsAcrossPages.set -> void
+MiPdf.Layout.Table.Table(params double[]! relativeColumnWidths) -> void
+MiPdf.Layout.Table.WidthPercent.get -> double
+MiPdf.Layout.Table.WidthPercent.set -> void
+MiPdf.Layout.TextLayout
+MiPdf.Layout.TextRun
+MiPdf.Layout.TextRun.Color.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Layout.TextRun.Color.set -> void
+MiPdf.Layout.TextRun.Font.get -> MiPdf.Fonts.PdfFont?
+MiPdf.Layout.TextRun.Font.set -> void
+MiPdf.Layout.TextRun.FontSize.get -> double?
+MiPdf.Layout.TextRun.FontSize.set -> void
+MiPdf.Layout.TextRun.Strikethrough.get -> bool
+MiPdf.Layout.TextRun.Strikethrough.set -> void
+MiPdf.Layout.TextRun.Text.get -> string!
+MiPdf.Layout.TextRun.Text.set -> void
+MiPdf.Layout.TextRun.TextRun(string! text, MiPdf.Fonts.PdfFont? font = null, double? fontSize = null, MiPdf.Graphics.PdfColor? color = null) -> void
+MiPdf.Layout.TextRun.Underline.get -> bool
+MiPdf.Layout.TextRun.Underline.set -> void
+MiPdf.Layout.Thickness
+MiPdf.Layout.Thickness.Bottom.get -> double
+MiPdf.Layout.Thickness.Bottom.init -> void
+MiPdf.Layout.Thickness.Deconstruct(out double Left, out double Top, out double Right, out double Bottom) -> void
+MiPdf.Layout.Thickness.Equals(MiPdf.Layout.Thickness other) -> bool
+MiPdf.Layout.Thickness.Horizontal.get -> double
+MiPdf.Layout.Thickness.Left.get -> double
+MiPdf.Layout.Thickness.Left.init -> void
+MiPdf.Layout.Thickness.Right.get -> double
+MiPdf.Layout.Thickness.Right.init -> void
+MiPdf.Layout.Thickness.Thickness() -> void
+MiPdf.Layout.Thickness.Thickness(double all) -> void
+MiPdf.Layout.Thickness.Thickness(double horizontal, double vertical) -> void
+MiPdf.Layout.Thickness.Thickness(double Left, double Top, double Right, double Bottom) -> void
+MiPdf.Layout.Thickness.Top.get -> double
+MiPdf.Layout.Thickness.Top.init -> void
+MiPdf.Layout.Thickness.Vertical.get -> double
+MiPdf.Layout.VerticalAlignment
+MiPdf.Layout.VerticalAlignment.Bottom = 2 -> MiPdf.Layout.VerticalAlignment
+MiPdf.Layout.VerticalAlignment.Middle = 1 -> MiPdf.Layout.VerticalAlignment
+MiPdf.Layout.VerticalAlignment.Top = 0 -> MiPdf.Layout.VerticalAlignment
+MiPdf.LineEnding
+MiPdf.LineEnding.Circle = 3 -> MiPdf.LineEnding
+MiPdf.LineEnding.ClosedArrow = 2 -> MiPdf.LineEnding
+MiPdf.LineEnding.None = 0 -> MiPdf.LineEnding
+MiPdf.LineEnding.OpenArrow = 1 -> MiPdf.LineEnding
+MiPdf.LineEnding.Square = 4 -> MiPdf.LineEnding
+MiPdf.Objects.PdfArray
+MiPdf.Objects.PdfArray.Add(MiPdf.Objects.PdfObject! item) -> void
+MiPdf.Objects.PdfArray.AddRange(System.Collections.Generic.IEnumerable<MiPdf.Objects.PdfObject!>! items) -> void
+MiPdf.Objects.PdfArray.Clear() -> void
+MiPdf.Objects.PdfArray.Contains(MiPdf.Objects.PdfObject! item) -> bool
+MiPdf.Objects.PdfArray.CopyTo(MiPdf.Objects.PdfObject![]! array, int arrayIndex) -> void
+MiPdf.Objects.PdfArray.Count.get -> int
+MiPdf.Objects.PdfArray.Get(int index) -> MiPdf.Objects.PdfObject?
+MiPdf.Objects.PdfArray.Get<T>(int index) -> T?
+MiPdf.Objects.PdfArray.GetArray(int index) -> MiPdf.Objects.PdfArray?
+MiPdf.Objects.PdfArray.GetDictionary(int index) -> MiPdf.Objects.PdfDictionary?
+MiPdf.Objects.PdfArray.GetDouble(int index, double defaultValue = 0) -> double
+MiPdf.Objects.PdfArray.GetEnumerator() -> System.Collections.Generic.IEnumerator<MiPdf.Objects.PdfObject!>!
+MiPdf.Objects.PdfArray.GetInt(int index, int defaultValue = 0) -> int
+MiPdf.Objects.PdfArray.GetName(int index) -> MiPdf.Objects.PdfName?
+MiPdf.Objects.PdfArray.GetStream(int index) -> MiPdf.Objects.PdfStream?
+MiPdf.Objects.PdfArray.GetString(int index) -> MiPdf.Objects.PdfString?
+MiPdf.Objects.PdfArray.IndexOf(MiPdf.Objects.PdfObject! item) -> int
+MiPdf.Objects.PdfArray.Insert(int index, MiPdf.Objects.PdfObject! item) -> void
+MiPdf.Objects.PdfArray.IsReadOnly.get -> bool
+MiPdf.Objects.PdfArray.PdfArray() -> void
+MiPdf.Objects.PdfArray.PdfArray(params MiPdf.Objects.PdfObject![]! items) -> void
+MiPdf.Objects.PdfArray.PdfArray(System.Collections.Generic.IEnumerable<MiPdf.Objects.PdfObject!>! items) -> void
+MiPdf.Objects.PdfArray.Remove(MiPdf.Objects.PdfObject! item) -> bool
+MiPdf.Objects.PdfArray.RemoveAt(int index) -> void
+MiPdf.Objects.PdfArray.this[int index].get -> MiPdf.Objects.PdfObject!
+MiPdf.Objects.PdfArray.this[int index].set -> void
+MiPdf.Objects.PdfArray.ToDoubleArray() -> double[]!
+MiPdf.Objects.PdfArray.ToRectangle() -> MiPdf.PdfRectangle?
+MiPdf.Objects.PdfBoolean
+MiPdf.Objects.PdfBoolean.Value.get -> bool
+MiPdf.Objects.PdfDictionary
+MiPdf.Objects.PdfDictionary.Clear() -> void
+MiPdf.Objects.PdfDictionary.ContainsKey(MiPdf.Objects.PdfName! key) -> bool
+MiPdf.Objects.PdfDictionary.CopyEntriesTo(MiPdf.Objects.PdfDictionary! target) -> void
+MiPdf.Objects.PdfDictionary.Count.get -> int
+MiPdf.Objects.PdfDictionary.Get(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfObject?
+MiPdf.Objects.PdfDictionary.Get<T>(MiPdf.Objects.PdfName! key) -> T?
+MiPdf.Objects.PdfDictionary.GetArray(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfArray?
+MiPdf.Objects.PdfDictionary.GetBool(MiPdf.Objects.PdfName! key, bool defaultValue = false) -> bool
+MiPdf.Objects.PdfDictionary.GetDictionary(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfDictionary?
+MiPdf.Objects.PdfDictionary.GetDouble(MiPdf.Objects.PdfName! key, double defaultValue = 0) -> double
+MiPdf.Objects.PdfDictionary.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<MiPdf.Objects.PdfName!, MiPdf.Objects.PdfObject!>>!
+MiPdf.Objects.PdfDictionary.GetInt(MiPdf.Objects.PdfName! key, int defaultValue = 0) -> int
+MiPdf.Objects.PdfDictionary.GetLong(MiPdf.Objects.PdfName! key, long defaultValue = 0) -> long
+MiPdf.Objects.PdfDictionary.GetName(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfName?
+MiPdf.Objects.PdfDictionary.GetNumber(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfNumber?
+MiPdf.Objects.PdfDictionary.GetRectangle(MiPdf.Objects.PdfName! key) -> MiPdf.PdfRectangle?
+MiPdf.Objects.PdfDictionary.GetStream(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfStream?
+MiPdf.Objects.PdfDictionary.GetString(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfString?
+MiPdf.Objects.PdfDictionary.GetText(MiPdf.Objects.PdfName! key) -> string?
+MiPdf.Objects.PdfDictionary.IsType(MiPdf.Objects.PdfName! type) -> bool
+MiPdf.Objects.PdfDictionary.Keys.get -> System.Collections.Generic.IEnumerable<MiPdf.Objects.PdfName!>!
+MiPdf.Objects.PdfDictionary.PdfDictionary() -> void
+MiPdf.Objects.PdfDictionary.PdfDictionary(MiPdf.Objects.PdfName! type) -> void
+MiPdf.Objects.PdfDictionary.Remove(MiPdf.Objects.PdfName! key) -> bool
+MiPdf.Objects.PdfDictionary.Set(MiPdf.Objects.PdfName! key, bool value) -> void
+MiPdf.Objects.PdfDictionary.Set(MiPdf.Objects.PdfName! key, double value) -> void
+MiPdf.Objects.PdfDictionary.Set(MiPdf.Objects.PdfName! key, int value) -> void
+MiPdf.Objects.PdfDictionary.Set(MiPdf.Objects.PdfName! key, long value) -> void
+MiPdf.Objects.PdfDictionary.Set(MiPdf.Objects.PdfName! key, MiPdf.Objects.PdfObject? value) -> void
+MiPdf.Objects.PdfDictionary.SetName(MiPdf.Objects.PdfName! key, string? value) -> void
+MiPdf.Objects.PdfDictionary.SetText(MiPdf.Objects.PdfName! key, string? value) -> void
+MiPdf.Objects.PdfDictionary.this[MiPdf.Objects.PdfName! key].get -> MiPdf.Objects.PdfObject?
+MiPdf.Objects.PdfDictionary.this[MiPdf.Objects.PdfName! key].set -> void
+MiPdf.Objects.PdfName
+MiPdf.Objects.PdfName.Equals(MiPdf.Objects.PdfName? other) -> bool
+MiPdf.Objects.PdfName.Value.get -> string!
+MiPdf.Objects.PdfNull
+MiPdf.Objects.PdfNumber
+MiPdf.Objects.PdfNumber.IntValue.get -> int
+MiPdf.Objects.PdfNumber.IsInteger.get -> bool
+MiPdf.Objects.PdfNumber.LongValue.get -> long
+MiPdf.Objects.PdfNumber.PdfNumber(double value) -> void
+MiPdf.Objects.PdfNumber.PdfNumber(int value) -> void
+MiPdf.Objects.PdfNumber.PdfNumber(long value) -> void
+MiPdf.Objects.PdfNumber.Value.get -> double
+MiPdf.Objects.PdfObject
+MiPdf.Objects.PdfObject.PdfObject() -> void
+MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Array = 5 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Boolean = 1 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Dictionary = 6 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Name = 4 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Null = 0 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Number = 2 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Reference = 8 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.Stream = 7 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfObjectType.String = 3 -> MiPdf.Objects.PdfObjectType
+MiPdf.Objects.PdfReference
+MiPdf.Objects.PdfReference.Equals(MiPdf.Objects.PdfReference? other) -> bool
+MiPdf.Objects.PdfReference.Generation.get -> int
+MiPdf.Objects.PdfReference.ObjectNumber.get -> int
+MiPdf.Objects.PdfStream
+MiPdf.Objects.PdfStream.GetBytes() -> byte[]!
+MiPdf.Objects.PdfStream.GetFilters() -> System.Collections.Generic.IReadOnlyList<MiPdf.Objects.PdfName!>!
+MiPdf.Objects.PdfStream.PdfStream() -> void
+MiPdf.Objects.PdfStream.PdfStream(byte[]! data, bool compress = true) -> void
+MiPdf.Objects.PdfStream.RawBytes.get -> byte[]!
+MiPdf.Objects.PdfStream.SetBytes(byte[]! data, bool compress = true) -> void
+MiPdf.Objects.PdfStream.SetRawBytes(byte[]! raw) -> void
+MiPdf.Objects.PdfString
+MiPdf.Objects.PdfString.Bytes.get -> byte[]!
+MiPdf.Objects.PdfString.Bytes.set -> void
+MiPdf.Objects.PdfString.IsHex.get -> bool
+MiPdf.Objects.PdfString.IsHex.set -> void
+MiPdf.Objects.PdfString.PdfString(byte[]! bytes, bool hex = false) -> void
+MiPdf.Objects.PdfString.PdfString(string! text) -> void
+MiPdf.Objects.PdfString.Text.get -> string!
+MiPdf.PageSize
+MiPdf.PdfA.PdfAChecker
+MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA1B = 0 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA2B = 1 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA2U = 2 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA3B = 3 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA3U = 4 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAIdentification
+MiPdf.PdfA.PdfAIdentification.<Clone>$() -> MiPdf.PdfA.PdfAIdentification!
+MiPdf.PdfA.PdfAIdentification.Conformance.get -> string!
+MiPdf.PdfA.PdfAIdentification.Conformance.init -> void
+MiPdf.PdfA.PdfAIdentification.Deconstruct(out int Part, out string! Conformance) -> void
+MiPdf.PdfA.PdfAIdentification.Equals(MiPdf.PdfA.PdfAIdentification? other) -> bool
+MiPdf.PdfA.PdfAIdentification.Part.get -> int
+MiPdf.PdfA.PdfAIdentification.Part.init -> void
+MiPdf.PdfA.PdfAIdentification.PdfAIdentification(int Part, string! Conformance) -> void
+MiPdf.PdfA.PdfAIdentification.ToConformance() -> MiPdf.PdfA.PdfAConformance?
+MiPdf.PdfA.XmpExtensionSchema
+MiPdf.PdfA.XmpExtensionSchema.<Clone>$() -> MiPdf.PdfA.XmpExtensionSchema!
+MiPdf.PdfA.XmpExtensionSchema.Deconstruct(out string! Prefix, out string! NamespaceUri, out string! SchemaName, out System.Collections.Generic.IReadOnlyList<MiPdf.PdfA.XmpProperty!>! Properties) -> void
+MiPdf.PdfA.XmpExtensionSchema.Equals(MiPdf.PdfA.XmpExtensionSchema? other) -> bool
+MiPdf.PdfA.XmpExtensionSchema.NamespaceUri.get -> string!
+MiPdf.PdfA.XmpExtensionSchema.NamespaceUri.init -> void
+MiPdf.PdfA.XmpExtensionSchema.Prefix.get -> string!
+MiPdf.PdfA.XmpExtensionSchema.Prefix.init -> void
+MiPdf.PdfA.XmpExtensionSchema.Properties.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfA.XmpProperty!>!
+MiPdf.PdfA.XmpExtensionSchema.Properties.init -> void
+MiPdf.PdfA.XmpExtensionSchema.SchemaName.get -> string!
+MiPdf.PdfA.XmpExtensionSchema.SchemaName.init -> void
+MiPdf.PdfA.XmpExtensionSchema.XmpExtensionSchema(string! Prefix, string! NamespaceUri, string! SchemaName, System.Collections.Generic.IReadOnlyList<MiPdf.PdfA.XmpProperty!>! Properties) -> void
+MiPdf.PdfA.XmpMetadata
+MiPdf.PdfA.XmpProperty
+MiPdf.PdfA.XmpProperty.<Clone>$() -> MiPdf.PdfA.XmpProperty!
+MiPdf.PdfA.XmpProperty.Category.get -> string!
+MiPdf.PdfA.XmpProperty.Category.init -> void
+MiPdf.PdfA.XmpProperty.Deconstruct(out string! Name, out string! Value, out string! ValueType, out string! Category, out string! Description) -> void
+MiPdf.PdfA.XmpProperty.Description.get -> string!
+MiPdf.PdfA.XmpProperty.Description.init -> void
+MiPdf.PdfA.XmpProperty.Equals(MiPdf.PdfA.XmpProperty? other) -> bool
+MiPdf.PdfA.XmpProperty.Name.get -> string!
+MiPdf.PdfA.XmpProperty.Name.init -> void
+MiPdf.PdfA.XmpProperty.Value.get -> string!
+MiPdf.PdfA.XmpProperty.Value.init -> void
+MiPdf.PdfA.XmpProperty.ValueType.get -> string!
+MiPdf.PdfA.XmpProperty.ValueType.init -> void
+MiPdf.PdfA.XmpProperty.XmpProperty(string! Name, string! Value, string! ValueType = "Text", string! Category = "external", string! Description = "") -> void
+MiPdf.PdfAnnotation
+MiPdf.PdfAnnotation.Author.get -> string?
+MiPdf.PdfAnnotation.Author.set -> void
+MiPdf.PdfAnnotation.Color.get -> double[]?
+MiPdf.PdfAnnotation.Contents.get -> string?
+MiPdf.PdfAnnotation.Contents.set -> void
+MiPdf.PdfAnnotation.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfAnnotation.ExtractImages() -> System.Collections.Generic.IReadOnlyList<MiPdf.Images.PdfExtractedImage!>!
+MiPdf.PdfAnnotation.Flags.get -> int
+MiPdf.PdfAnnotation.Flags.set -> void
+MiPdf.PdfAnnotation.ModificationDate.get -> System.DateTimeOffset?
+MiPdf.PdfAnnotation.Rect.get -> MiPdf.PdfRectangle
+MiPdf.PdfAnnotation.Rect.set -> void
+MiPdf.PdfAnnotation.Reference.get -> MiPdf.Objects.PdfReference?
+MiPdf.PdfAnnotation.Subtype.get -> string!
+MiPdf.PdfAnnotation.Uri.get -> string?
+MiPdf.PdfAttachment
+MiPdf.PdfAttachment.Description.get -> string?
+MiPdf.PdfAttachment.FileName.get -> string!
+MiPdf.PdfAttachment.FileSpec.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfAttachment.GetData() -> byte[]!
+MiPdf.PdfAttachment.MimeType.get -> string?
+MiPdf.PdfAttachment.ModificationDate.get -> System.DateTimeOffset?
+MiPdf.PdfAttachment.Name.get -> string!
+MiPdf.PdfAttachment.Relationship.get -> MiPdf.AttachmentRelationship
+MiPdf.PdfAttachment.Size.get -> long?
+MiPdf.PdfDate
+MiPdf.PdfDocument
+MiPdf.PdfDocument.AddAttachment(string! fileName, byte[]! data, string? mimeType = null, string? description = null, MiPdf.AttachmentRelationship relationship = MiPdf.AttachmentRelationship.Unspecified, System.DateTimeOffset? modificationDate = null) -> MiPdf.PdfAttachment!
+MiPdf.PdfDocument.AddObject(MiPdf.Objects.PdfObject! obj) -> MiPdf.Objects.PdfReference!
+MiPdf.PdfDocument.AddPage(MiPdf.PdfRectangle? size = null) -> MiPdf.PdfPage!
+MiPdf.PdfDocument.ApplyRedactions(MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+MiPdf.PdfDocument.Attachments.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfAttachment!>!
+MiPdf.PdfDocument.Catalog.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfDocument.CheckPdfA(MiPdf.PdfA.PdfAConformance conformance) -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.PdfDocument.CheckPdfUA() -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.PdfDocument.Conformance.get -> MiPdf.PdfA.PdfAConformance?
+MiPdf.PdfDocument.Conformance.set -> void
+MiPdf.PdfDocument.Dispose() -> void
+MiPdf.PdfDocument.EnableTagging() -> MiPdf.Tagging.PdfStructureTree!
+MiPdf.PdfDocument.Encrypt(MiPdf.Security.PdfEncryptionOptions! options) -> void
+MiPdf.PdfDocument.EncryptionRevision.get -> int
+MiPdf.PdfDocument.ExtractPages(System.Collections.Generic.IEnumerable<int>! pageNumbers) -> MiPdf.PdfDocument!
+MiPdf.PdfDocument.ExtractText(MiPdf.Text.TextExtractionOptions? options = null) -> string!
+MiPdf.PdfDocument.GetAttachment(string! name) -> MiPdf.PdfAttachment?
+MiPdf.PdfDocument.GetForm() -> MiPdf.Forms.PdfAcroForm?
+MiPdf.PdfDocument.GetImageReference(MiPdf.Images.PdfImage! image) -> MiPdf.Objects.PdfReference!
+MiPdf.PdfDocument.GetObject(int objectNumber) -> MiPdf.Objects.PdfObject?
+MiPdf.PdfDocument.GetObjectNumbers() -> System.Collections.Generic.IEnumerable<int>!
+MiPdf.PdfDocument.GetOrCreateForm() -> MiPdf.Forms.PdfAcroForm!
+MiPdf.PdfDocument.GetPage(int pageNumber) -> MiPdf.PdfPage!
+MiPdf.PdfDocument.GetPageLabel(int pageNumber) -> string!
+MiPdf.PdfDocument.GetPdfAIdentification() -> MiPdf.PdfA.PdfAIdentification?
+MiPdf.PdfDocument.GetReference(MiPdf.Objects.PdfObject! obj) -> MiPdf.Objects.PdfReference?
+MiPdf.PdfDocument.GetXmpMetadata() -> byte[]?
+MiPdf.PdfDocument.HasOutlines.get -> bool
+MiPdf.PdfDocument.IgnorePermissions.get -> bool
+MiPdf.PdfDocument.IgnorePermissions.set -> void
+MiPdf.PdfDocument.ImportObject(MiPdf.Objects.PdfObject! obj) -> MiPdf.Objects.PdfObject!
+MiPdf.PdfDocument.ImportPage(MiPdf.PdfPage! sourcePage, int? insertIndex = null) -> MiPdf.PdfPage!
+MiPdf.PdfDocument.ImportPageAsTemplate(MiPdf.PdfPage! sourcePage) -> MiPdf.Graphics.PdfFormXObject!
+MiPdf.PdfDocument.ImportPages(MiPdf.PdfDocument! source, System.Collections.Generic.IEnumerable<int>? pageNumbers = null, int? insertIndex = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfPage!>!
+MiPdf.PdfDocument.Info.get -> MiPdf.PdfDocumentInfo!
+MiPdf.PdfDocument.InsertPage(int index, MiPdf.PdfRectangle? size = null) -> MiPdf.PdfPage!
+MiPdf.PdfDocument.IsEncrypted.get -> bool
+MiPdf.PdfDocument.IsOpenedFromFile.get -> bool
+MiPdf.PdfDocument.IsOwnerAccess.get -> bool
+MiPdf.PdfDocument.IsTagged.get -> bool
+MiPdf.PdfDocument.Language.get -> string?
+MiPdf.PdfDocument.Language.set -> void
+MiPdf.PdfDocument.MovePage(int fromIndex, int toIndex) -> void
+MiPdf.PdfDocument.Outlines.get -> MiPdf.PdfOutline!
+MiPdf.PdfDocument.PageCount.get -> int
+MiPdf.PdfDocument.PageLabels.get -> MiPdf.PdfPageLabels!
+MiPdf.PdfDocument.PageLayout.get -> MiPdf.PdfPageLayout
+MiPdf.PdfDocument.PageLayout.set -> void
+MiPdf.PdfDocument.PageMode.get -> MiPdf.PdfPageMode
+MiPdf.PdfDocument.PageMode.set -> void
+MiPdf.PdfDocument.Pages.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfPage!>!
+MiPdf.PdfDocument.Permissions.get -> MiPdf.Security.PdfPermissions
+MiPdf.PdfDocument.RedactText(string! text, System.StringComparison comparison = System.StringComparison.Ordinal, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+MiPdf.PdfDocument.RedactText(System.Text.RegularExpressions.Regex! pattern, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+MiPdf.PdfDocument.RemoveAttachment(string! name) -> bool
+MiPdf.PdfDocument.RemoveEncryption() -> void
+MiPdf.PdfDocument.RemovePage(int index) -> void
+MiPdf.PdfDocument.ReorderPages(System.Collections.Generic.IEnumerable<int>! order) -> void
+MiPdf.PdfDocument.ReplaceObject(MiPdf.Objects.PdfReference! reference, MiPdf.Objects.PdfObject! obj) -> void
+MiPdf.PdfDocument.Save(string! path, MiPdf.IO.PdfSaveOptions? options = null) -> void
+MiPdf.PdfDocument.Save(System.IO.Stream! stream, MiPdf.IO.PdfSaveOptions? options = null) -> void
+MiPdf.PdfDocument.SetXmpMetadata(byte[]? xmp) -> void
+MiPdf.PdfDocument.Split(int pagesPerDocument = 1) -> System.Collections.Generic.IEnumerable<MiPdf.PdfDocument!>!
+MiPdf.PdfDocument.StructureTree.get -> MiPdf.Tagging.PdfStructureTree?
+MiPdf.PdfDocument.ToArray(MiPdf.IO.PdfSaveOptions? options = null) -> byte[]!
+MiPdf.PdfDocument.Trailer.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfDocument.UAConformance.get -> MiPdf.PdfUAConformance?
+MiPdf.PdfDocument.UAConformance.set -> void
+MiPdf.PdfDocument.Version.get -> string!
+MiPdf.PdfDocument.Version.set -> void
+MiPdf.PdfDocument.ViewerPreferences.get -> MiPdf.PdfViewerPreferences!
+MiPdf.PdfDocument.WasRepaired.get -> bool
+MiPdf.PdfDocument.XmpExtensions.get -> System.Collections.Generic.IList<MiPdf.PdfA.XmpExtensionSchema!>!
+MiPdf.PdfDocumentInfo
+MiPdf.PdfDocumentInfo.Author.get -> string?
+MiPdf.PdfDocumentInfo.Author.set -> void
+MiPdf.PdfDocumentInfo.CreationDate.get -> System.DateTimeOffset?
+MiPdf.PdfDocumentInfo.CreationDate.set -> void
+MiPdf.PdfDocumentInfo.Creator.get -> string?
+MiPdf.PdfDocumentInfo.Creator.set -> void
+MiPdf.PdfDocumentInfo.Dictionary.get -> MiPdf.Objects.PdfDictionary?
+MiPdf.PdfDocumentInfo.Get(MiPdf.Objects.PdfName! key) -> string?
+MiPdf.PdfDocumentInfo.Keywords.get -> string?
+MiPdf.PdfDocumentInfo.Keywords.set -> void
+MiPdf.PdfDocumentInfo.ModificationDate.get -> System.DateTimeOffset?
+MiPdf.PdfDocumentInfo.ModificationDate.set -> void
+MiPdf.PdfDocumentInfo.Producer.get -> string?
+MiPdf.PdfDocumentInfo.Producer.set -> void
+MiPdf.PdfDocumentInfo.Remove(MiPdf.Objects.PdfName! key) -> void
+MiPdf.PdfDocumentInfo.Set(MiPdf.Objects.PdfName! key, string? value) -> void
+MiPdf.PdfDocumentInfo.Subject.get -> string?
+MiPdf.PdfDocumentInfo.Subject.set -> void
+MiPdf.PdfDocumentInfo.Title.get -> string?
+MiPdf.PdfDocumentInfo.Title.set -> void
+MiPdf.PdfException
+MiPdf.PdfException.PdfException(string! message) -> void
+MiPdf.PdfException.PdfException(string! message, System.Exception! inner) -> void
+MiPdf.PdfLimits
+MiPdf.PdfLimits.<Clone>$() -> MiPdf.PdfLimits!
+MiPdf.PdfLimits.Equals(MiPdf.PdfLimits? other) -> bool
+MiPdf.PdfLimits.MaxCMapEntries.get -> long
+MiPdf.PdfLimits.MaxCMapEntries.init -> void
+MiPdf.PdfLimits.MaxDecodedStreamSize.get -> long
+MiPdf.PdfLimits.MaxDecodedStreamSize.init -> void
+MiPdf.PdfLimits.MaxFiltersPerStream.get -> int
+MiPdf.PdfLimits.MaxFiltersPerStream.init -> void
+MiPdf.PdfLimits.MaxImagePixels.get -> long
+MiPdf.PdfLimits.MaxImagePixels.init -> void
+MiPdf.PdfLimits.PdfLimits() -> void
+MiPdf.PdfOpenOptions
+MiPdf.PdfOpenOptions.Password.get -> string?
+MiPdf.PdfOpenOptions.Password.set -> void
+MiPdf.PdfOpenOptions.PdfOpenOptions() -> void
+MiPdf.PdfOpenOptions.ReadFromFile.get -> bool
+MiPdf.PdfOpenOptions.ReadFromFile.set -> void
+MiPdf.PdfOutline
+MiPdf.PdfOutline.AddChild(string! title, MiPdf.PdfPage? page, double? top = null) -> MiPdf.PdfOutline!
+MiPdf.PdfOutline.Bold.get -> bool
+MiPdf.PdfOutline.Bold.set -> void
+MiPdf.PdfOutline.Children.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfOutline!>!
+MiPdf.PdfOutline.Color.get -> MiPdf.Graphics.PdfColor?
+MiPdf.PdfOutline.Color.set -> void
+MiPdf.PdfOutline.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfOutline.IsOpen.get -> bool
+MiPdf.PdfOutline.IsOpen.set -> void
+MiPdf.PdfOutline.IsRoot.get -> bool
+MiPdf.PdfOutline.Italic.get -> bool
+MiPdf.PdfOutline.Italic.set -> void
+MiPdf.PdfOutline.PageNumber.get -> int?
+MiPdf.PdfOutline.Reference.get -> MiPdf.Objects.PdfReference!
+MiPdf.PdfOutline.Remove() -> void
+MiPdf.PdfOutline.Title.get -> string!
+MiPdf.PdfOutline.Title.set -> void
+MiPdf.PdfPage
+MiPdf.PdfPage.AddAnnotation(MiPdf.Objects.PdfDictionary! annotation) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddEllipseAnnotation(MiPdf.PdfRectangle rect, MiPdf.Graphics.PdfColor? stroke = null, MiPdf.Graphics.PdfColor? fill = null, double lineWidth = 1, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddFileAttachmentAnnotation(double x, double y, string! fileName, byte[]! data, string? mimeType = null, string? description = null, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddFreeText(MiPdf.PdfRectangle rect, string! text, MiPdf.Fonts.PdfFont? font = null, double fontSize = 10, MiPdf.Graphics.PdfColor? textColor = null, MiPdf.Graphics.PdfColor? border = null, MiPdf.Graphics.PdfColor? background = null, MiPdf.Graphics.TextAlignment alignment = MiPdf.Graphics.TextAlignment.Left, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddImageStamp(MiPdf.PdfRectangle rect, MiPdf.Images.PdfImage! image, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddInk(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<(double X, double Y)>!>! strokes, MiPdf.Graphics.PdfColor? color = null, double lineWidth = 1.5, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddLineAnnotation(double x1, double y1, double x2, double y2, MiPdf.Graphics.PdfColor? color = null, double lineWidth = 1, MiPdf.LineEnding start = MiPdf.LineEnding.None, MiPdf.LineEnding end = MiPdf.LineEnding.None, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddLink(MiPdf.PdfRectangle area, MiPdf.PdfPage! target, double? top = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddLink(MiPdf.PdfRectangle area, string! uri) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddRectangleAnnotation(MiPdf.PdfRectangle rect, MiPdf.Graphics.PdfColor? stroke = null, MiPdf.Graphics.PdfColor? fill = null, double lineWidth = 1, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddResource(MiPdf.Objects.PdfName! category, MiPdf.Objects.PdfObject! resource, string! prefix) -> MiPdf.Objects.PdfName!
+MiPdf.PdfPage.AddStamp(MiPdf.PdfRectangle rect, string! text, MiPdf.Graphics.PdfColor? color = null, MiPdf.AnnotationOptions? options = null, MiPdf.Fonts.PdfFont? font = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddTextMarkup(MiPdf.TextMarkupType type, System.Collections.Generic.IEnumerable<MiPdf.PdfRectangle>! areas, MiPdf.Graphics.PdfColor? color = null, MiPdf.AnnotationOptions? options = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddTextNote(double x, double y, string! text, string? author = null, MiPdf.Graphics.PdfColor? color = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.AddTextWatermark(string! text, MiPdf.Fonts.PdfFont? font = null, double fontSize = 60, MiPdf.Graphics.PdfColor? color = null, double opacity = 0.25, double angle = 45, bool behindContent = false) -> void
+MiPdf.PdfPage.Annotations.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfAnnotation!>!
+MiPdf.PdfPage.AppendContent(byte[]! content, bool isolate = true, bool compress = true) -> void
+MiPdf.PdfPage.ArtBox.get -> MiPdf.PdfRectangle
+MiPdf.PdfPage.ArtBox.set -> void
+MiPdf.PdfPage.BleedBox.get -> MiPdf.PdfRectangle
+MiPdf.PdfPage.BleedBox.set -> void
+MiPdf.PdfPage.CropBox.get -> MiPdf.PdfRectangle
+MiPdf.PdfPage.CropBox.set -> void
+MiPdf.PdfPage.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfPage.Document.get -> MiPdf.PdfDocument!
+MiPdf.PdfPage.ExtractImages() -> System.Collections.Generic.IReadOnlyList<MiPdf.Images.PdfExtractedImage!>!
+MiPdf.PdfPage.ExtractText(MiPdf.Text.TextExtractionOptions? options = null) -> string!
+MiPdf.PdfPage.FindFreeSpaces(double minWidth, double minHeight, bool includeAnnotations = true) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+MiPdf.PdfPage.FindText(string! text, System.StringComparison comparison = System.StringComparison.Ordinal) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+MiPdf.PdfPage.FindText(System.Text.RegularExpressions.Regex! pattern) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+MiPdf.PdfPage.FlattenAnnotations(System.Func<MiPdf.PdfAnnotation!, bool>? filter = null) -> int
+MiPdf.PdfPage.GetCanvas(bool background = false) -> MiPdf.Graphics.PdfCanvas!
+MiPdf.PdfPage.GetContentBytes() -> byte[]!
+MiPdf.PdfPage.GetContentStreams() -> System.Collections.Generic.IReadOnlyList<MiPdf.Objects.PdfStream!>!
+MiPdf.PdfPage.GetInheritable(MiPdf.Objects.PdfName! key) -> MiPdf.Objects.PdfObject?
+MiPdf.PdfPage.GetOrCreateAnnotations() -> MiPdf.Objects.PdfArray!
+MiPdf.PdfPage.Height.get -> double
+MiPdf.PdfPage.HighlightText(string! text, MiPdf.Graphics.PdfColor? color = null, System.StringComparison comparison = System.StringComparison.Ordinal, MiPdf.TextMarkupType type = MiPdf.TextMarkupType.Highlight, MiPdf.AnnotationOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfAnnotation!>!
+MiPdf.PdfPage.MarkForRedaction(MiPdf.PdfRectangle area, string? overlayText = null) -> MiPdf.PdfAnnotation!
+MiPdf.PdfPage.MediaBox.get -> MiPdf.PdfRectangle
+MiPdf.PdfPage.MediaBox.set -> void
+MiPdf.PdfPage.PrependContent(byte[]! content, bool compress = true) -> void
+MiPdf.PdfPage.Redact(System.Collections.Generic.IEnumerable<MiPdf.PdfRectangle>! areas, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+MiPdf.PdfPage.Reference.get -> MiPdf.Objects.PdfReference!
+MiPdf.PdfPage.RemoveAnnotation(MiPdf.PdfAnnotation! annotation) -> bool
+MiPdf.PdfPage.Resources.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.PdfPage.Rotation.get -> int
+MiPdf.PdfPage.Rotation.set -> void
+MiPdf.PdfPage.SetContent(byte[]! content, bool compress = true) -> void
+MiPdf.PdfPage.TrimBox.get -> MiPdf.PdfRectangle
+MiPdf.PdfPage.TrimBox.set -> void
+MiPdf.PdfPage.Width.get -> double
+MiPdf.PdfPageLabelRange
+MiPdf.PdfPageLabelRange.<Clone>$() -> MiPdf.PdfPageLabelRange!
+MiPdf.PdfPageLabelRange.Deconstruct(out int StartPage, out MiPdf.PdfPageLabelStyle Style, out string? Prefix, out int StartNumber) -> void
+MiPdf.PdfPageLabelRange.Equals(MiPdf.PdfPageLabelRange? other) -> bool
+MiPdf.PdfPageLabelRange.PdfPageLabelRange(int StartPage, MiPdf.PdfPageLabelStyle Style, string? Prefix = null, int StartNumber = 1) -> void
+MiPdf.PdfPageLabelRange.Prefix.get -> string?
+MiPdf.PdfPageLabelRange.Prefix.init -> void
+MiPdf.PdfPageLabelRange.StartNumber.get -> int
+MiPdf.PdfPageLabelRange.StartNumber.init -> void
+MiPdf.PdfPageLabelRange.StartPage.get -> int
+MiPdf.PdfPageLabelRange.StartPage.init -> void
+MiPdf.PdfPageLabelRange.Style.get -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelRange.Style.init -> void
+MiPdf.PdfPageLabels
+MiPdf.PdfPageLabels.Add(int startPage, MiPdf.PdfPageLabelStyle style, string? prefix = null, int startNumber = 1) -> void
+MiPdf.PdfPageLabels.Add(MiPdf.PdfPageLabelRange! range) -> void
+MiPdf.PdfPageLabels.Clear() -> void
+MiPdf.PdfPageLabels.Count.get -> int
+MiPdf.PdfPageLabels.GetEnumerator() -> System.Collections.Generic.IEnumerator<MiPdf.PdfPageLabelRange!>!
+MiPdf.PdfPageLabels.GetLabel(int pageNumber) -> string!
+MiPdf.PdfPageLabels.Remove(int startPage) -> bool
+MiPdf.PdfPageLabels.this[int index].get -> MiPdf.PdfPageLabelRange!
+MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelStyle.Decimal = 1 -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelStyle.LowerLetters = 5 -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelStyle.LowerRoman = 3 -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelStyle.None = 0 -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelStyle.UpperLetters = 4 -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLabelStyle.UpperRoman = 2 -> MiPdf.PdfPageLabelStyle
+MiPdf.PdfPageLayout
+MiPdf.PdfPageLayout.OneColumn = 1 -> MiPdf.PdfPageLayout
+MiPdf.PdfPageLayout.SinglePage = 0 -> MiPdf.PdfPageLayout
+MiPdf.PdfPageLayout.TwoColumnLeft = 2 -> MiPdf.PdfPageLayout
+MiPdf.PdfPageLayout.TwoColumnRight = 3 -> MiPdf.PdfPageLayout
+MiPdf.PdfPageLayout.TwoPageLeft = 4 -> MiPdf.PdfPageLayout
+MiPdf.PdfPageLayout.TwoPageRight = 5 -> MiPdf.PdfPageLayout
+MiPdf.PdfPageMode
+MiPdf.PdfPageMode.FullScreen = 3 -> MiPdf.PdfPageMode
+MiPdf.PdfPageMode.UseAttachments = 5 -> MiPdf.PdfPageMode
+MiPdf.PdfPageMode.UseNone = 0 -> MiPdf.PdfPageMode
+MiPdf.PdfPageMode.UseOC = 4 -> MiPdf.PdfPageMode
+MiPdf.PdfPageMode.UseOutlines = 1 -> MiPdf.PdfPageMode
+MiPdf.PdfPageMode.UseThumbs = 2 -> MiPdf.PdfPageMode
+MiPdf.PdfParseException
+MiPdf.PdfParseException.PdfParseException(string! message, long position = -1) -> void
+MiPdf.PdfParseException.Position.get -> long
+MiPdf.PdfPasswordException
+MiPdf.PdfPasswordException.PdfPasswordException(string! message) -> void
+MiPdf.PdfRectangle
+MiPdf.PdfRectangle.Bottom.get -> double
+MiPdf.PdfRectangle.Bottom.init -> void
+MiPdf.PdfRectangle.Contains(double x, double y) -> bool
+MiPdf.PdfRectangle.Deconstruct(out double Left, out double Bottom, out double Right, out double Top) -> void
+MiPdf.PdfRectangle.Equals(MiPdf.PdfRectangle other) -> bool
+MiPdf.PdfRectangle.Height.get -> double
+MiPdf.PdfRectangle.Inflate(double d) -> MiPdf.PdfRectangle
+MiPdf.PdfRectangle.Left.get -> double
+MiPdf.PdfRectangle.Left.init -> void
+MiPdf.PdfRectangle.PdfRectangle() -> void
+MiPdf.PdfRectangle.PdfRectangle(double Left, double Bottom, double Right, double Top) -> void
+MiPdf.PdfRectangle.Right.get -> double
+MiPdf.PdfRectangle.Right.init -> void
+MiPdf.PdfRectangle.Top.get -> double
+MiPdf.PdfRectangle.Top.init -> void
+MiPdf.PdfRectangle.Width.get -> double
+MiPdf.PdfUAConformance
+MiPdf.PdfUAConformance.PdfUA1 = 0 -> MiPdf.PdfUAConformance
+MiPdf.PdfViewerPreferences
+MiPdf.PdfViewerPreferences.CenterWindow.get -> bool
+MiPdf.PdfViewerPreferences.CenterWindow.set -> void
+MiPdf.PdfViewerPreferences.Dictionary.get -> MiPdf.Objects.PdfDictionary?
+MiPdf.PdfViewerPreferences.DisplayDocTitle.get -> bool
+MiPdf.PdfViewerPreferences.DisplayDocTitle.set -> void
+MiPdf.PdfViewerPreferences.FitWindow.get -> bool
+MiPdf.PdfViewerPreferences.FitWindow.set -> void
+MiPdf.PdfViewerPreferences.HideMenubar.get -> bool
+MiPdf.PdfViewerPreferences.HideMenubar.set -> void
+MiPdf.PdfViewerPreferences.HideToolbar.get -> bool
+MiPdf.PdfViewerPreferences.HideToolbar.set -> void
+MiPdf.PdfViewerPreferences.HideWindowUI.get -> bool
+MiPdf.PdfViewerPreferences.HideWindowUI.set -> void
+MiPdf.Redaction.PdfRedactor
+MiPdf.Redaction.RedactionOptions
+MiPdf.Redaction.RedactionOptions.FillColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Redaction.RedactionOptions.FillColor.set -> void
+MiPdf.Redaction.RedactionOptions.GlyphOverlapThreshold.get -> double
+MiPdf.Redaction.RedactionOptions.GlyphOverlapThreshold.set -> void
+MiPdf.Redaction.RedactionOptions.OverlayFont.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Redaction.RedactionOptions.OverlayFont.set -> void
+MiPdf.Redaction.RedactionOptions.OverlayText.get -> string?
+MiPdf.Redaction.RedactionOptions.OverlayText.set -> void
+MiPdf.Redaction.RedactionOptions.OverlayTextColor.get -> MiPdf.Graphics.PdfColor
+MiPdf.Redaction.RedactionOptions.OverlayTextColor.set -> void
+MiPdf.Redaction.RedactionOptions.RedactionOptions() -> void
+MiPdf.Redaction.RedactionOptions.RemoveAnnotations.get -> bool
+MiPdf.Redaction.RedactionOptions.RemoveAnnotations.set -> void
+MiPdf.Redaction.RedactionOptions.RemoveVectorGraphics.get -> bool
+MiPdf.Redaction.RedactionOptions.RemoveVectorGraphics.set -> void
+MiPdf.Redaction.RedactionResult
+MiPdf.Redaction.RedactionResult.AnnotationsRemoved.get -> int
+MiPdf.Redaction.RedactionResult.GlyphsRemoved.get -> int
+MiPdf.Redaction.RedactionResult.ImagesModified.get -> int
+MiPdf.Redaction.RedactionResult.ImagesRemoved.get -> int
+MiPdf.Redaction.RedactionResult.PathsRemoved.get -> int
+MiPdf.Redaction.RedactionResult.RedactionResult() -> void
+MiPdf.Redaction.RedactionResult.Warnings.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Security.PdfEncryptionAlgorithm
+MiPdf.Security.PdfEncryptionAlgorithm.Aes128 = 1 -> MiPdf.Security.PdfEncryptionAlgorithm
+MiPdf.Security.PdfEncryptionAlgorithm.Aes256 = 0 -> MiPdf.Security.PdfEncryptionAlgorithm
+MiPdf.Security.PdfEncryptionAlgorithm.Rc4_128 = 2 -> MiPdf.Security.PdfEncryptionAlgorithm
+MiPdf.Security.PdfEncryptionOptions
+MiPdf.Security.PdfEncryptionOptions.Algorithm.get -> MiPdf.Security.PdfEncryptionAlgorithm
+MiPdf.Security.PdfEncryptionOptions.Algorithm.set -> void
+MiPdf.Security.PdfEncryptionOptions.EncryptMetadata.get -> bool
+MiPdf.Security.PdfEncryptionOptions.EncryptMetadata.set -> void
+MiPdf.Security.PdfEncryptionOptions.OwnerPassword.get -> string!
+MiPdf.Security.PdfEncryptionOptions.OwnerPassword.set -> void
+MiPdf.Security.PdfEncryptionOptions.PdfEncryptionOptions() -> void
+MiPdf.Security.PdfEncryptionOptions.Permissions.get -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfEncryptionOptions.Permissions.set -> void
+MiPdf.Security.PdfEncryptionOptions.UserPassword.get -> string!
+MiPdf.Security.PdfEncryptionOptions.UserPassword.set -> void
+MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.All = MiPdf.Security.PdfPermissions.Print | MiPdf.Security.PdfPermissions.ModifyContents | MiPdf.Security.PdfPermissions.CopyContents | MiPdf.Security.PdfPermissions.ModifyAnnotations | MiPdf.Security.PdfPermissions.FillForms | MiPdf.Security.PdfPermissions.ExtractForAccessibility | MiPdf.Security.PdfPermissions.AssembleDocument | MiPdf.Security.PdfPermissions.PrintHighQuality -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.AssembleDocument = 1024 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.CopyContents = 16 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.ExtractForAccessibility = 512 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.FillForms = 256 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.ModifyAnnotations = 32 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.ModifyContents = 8 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.None = 0 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.Print = 4 -> MiPdf.Security.PdfPermissions
+MiPdf.Security.PdfPermissions.PrintHighQuality = 2048 -> MiPdf.Security.PdfPermissions
+MiPdf.Signatures.CertificateRevocation
+MiPdf.Signatures.CertificateRevocation.<Clone>$() -> MiPdf.Signatures.CertificateRevocation!
+MiPdf.Signatures.CertificateRevocation.Certificate.get -> System.Security.Cryptography.X509Certificates.X509Certificate2!
+MiPdf.Signatures.CertificateRevocation.Certificate.init -> void
+MiPdf.Signatures.CertificateRevocation.CertificateRevocation(System.Security.Cryptography.X509Certificates.X509Certificate2! Certificate, MiPdf.Signatures.RevocationStatus Status, string? Source, System.DateTimeOffset? IssuedAt, System.DateTimeOffset? RevocationTime, bool IsFresh) -> void
+MiPdf.Signatures.CertificateRevocation.Deconstruct(out System.Security.Cryptography.X509Certificates.X509Certificate2! Certificate, out MiPdf.Signatures.RevocationStatus Status, out string? Source, out System.DateTimeOffset? IssuedAt, out System.DateTimeOffset? RevocationTime, out bool IsFresh) -> void
+MiPdf.Signatures.CertificateRevocation.Equals(MiPdf.Signatures.CertificateRevocation? other) -> bool
+MiPdf.Signatures.CertificateRevocation.IsFresh.get -> bool
+MiPdf.Signatures.CertificateRevocation.IsFresh.init -> void
+MiPdf.Signatures.CertificateRevocation.IssuedAt.get -> System.DateTimeOffset?
+MiPdf.Signatures.CertificateRevocation.IssuedAt.init -> void
+MiPdf.Signatures.CertificateRevocation.RevocationTime.get -> System.DateTimeOffset?
+MiPdf.Signatures.CertificateRevocation.RevocationTime.init -> void
+MiPdf.Signatures.CertificateRevocation.Source.get -> string?
+MiPdf.Signatures.CertificateRevocation.Source.init -> void
+MiPdf.Signatures.CertificateRevocation.Status.get -> MiPdf.Signatures.RevocationStatus
+MiPdf.Signatures.CertificateRevocation.Status.init -> void
+MiPdf.Signatures.CertificateSigner
+MiPdf.Signatures.CertificateSigner.Certificate.get -> System.Security.Cryptography.X509Certificates.X509Certificate2!
+MiPdf.Signatures.CertificateSigner.CertificateChain.get -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+MiPdf.Signatures.CertificateSigner.CertificateSigner(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate, System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>? chain = null) -> void
+MiPdf.Signatures.CertificateSigner.SignHash(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm) -> byte[]!
+MiPdf.Signatures.CertificateSigner.SignHash(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm, System.Security.Cryptography.RSASignaturePadding! padding) -> byte[]!
+MiPdf.Signatures.CertificationLevel
+MiPdf.Signatures.CertificationLevel.FormFilling = 2 -> MiPdf.Signatures.CertificationLevel
+MiPdf.Signatures.CertificationLevel.FormFillingAndAnnotations = 3 -> MiPdf.Signatures.CertificationLevel
+MiPdf.Signatures.CertificationLevel.NoChanges = 1 -> MiPdf.Signatures.CertificationLevel
+MiPdf.Signatures.CmsUtil
+MiPdf.Signatures.FailoverTimestampClient
+MiPdf.Signatures.FailoverTimestampClient.FailoverTimestampClient(params MiPdf.Signatures.ITimestampClient![]! clients) -> void
+MiPdf.Signatures.FailoverTimestampClient.FailoverTimestampClient(System.Collections.Generic.IEnumerable<MiPdf.Signatures.ITimestampClient!>! clients) -> void
+MiPdf.Signatures.FailoverTimestampClient.GetTimestampToken(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm) -> byte[]!
+MiPdf.Signatures.FailoverTimestampClient.LastErrors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Signatures.FieldLockAction
+MiPdf.Signatures.FieldLockAction.All = 0 -> MiPdf.Signatures.FieldLockAction
+MiPdf.Signatures.FieldLockAction.Exclude = 2 -> MiPdf.Signatures.FieldLockAction
+MiPdf.Signatures.FieldLockAction.Include = 1 -> MiPdf.Signatures.FieldLockAction
+MiPdf.Signatures.HttpRevocationSource
+MiPdf.Signatures.HttpRevocationSource.AllowedHosts.get -> System.Collections.Generic.IReadOnlyCollection<string!>?
+MiPdf.Signatures.HttpRevocationSource.AllowedHosts.init -> void
+MiPdf.Signatures.HttpRevocationSource.AllowPrivateNetworks.get -> bool
+MiPdf.Signatures.HttpRevocationSource.AllowPrivateNetworks.init -> void
+MiPdf.Signatures.HttpRevocationSource.CacheDuration.get -> System.TimeSpan
+MiPdf.Signatures.HttpRevocationSource.CacheDuration.set -> void
+MiPdf.Signatures.HttpRevocationSource.GetCrls(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<byte[]!>!
+MiPdf.Signatures.HttpRevocationSource.GetIssuers(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+MiPdf.Signatures.HttpRevocationSource.GetOcspResponse(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate, System.Security.Cryptography.X509Certificates.X509Certificate2! issuer) -> byte[]?
+MiPdf.Signatures.HttpRevocationSource.HttpRevocationSource(System.Net.Http.HttpClient? httpClient = null) -> void
+MiPdf.Signatures.HttpRevocationSource.MaxCacheEntries.get -> int
+MiPdf.Signatures.HttpRevocationSource.MaxCacheEntries.set -> void
+MiPdf.Signatures.HttpRevocationSource.MaxCrlSize.get -> long
+MiPdf.Signatures.HttpRevocationSource.MaxCrlSize.set -> void
+MiPdf.Signatures.HttpTimestampClient
+MiPdf.Signatures.HttpTimestampClient.GetTimestampToken(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm) -> byte[]!
+MiPdf.Signatures.HttpTimestampClient.HttpTimestampClient(string! url, string? userName = null, string? password = null, System.Net.Http.HttpClient? httpClient = null) -> void
+MiPdf.Signatures.HttpTimestampClient.MaxResponseSize.get -> int
+MiPdf.Signatures.HttpTimestampClient.MaxResponseSize.set -> void
+MiPdf.Signatures.HttpTimestampClient.PolicyOid.get -> string?
+MiPdf.Signatures.HttpTimestampClient.PolicyOid.set -> void
+MiPdf.Signatures.HttpTimestampClient.Url.get -> string!
+MiPdf.Signatures.HttpTimestampClient.UserName.get -> string?
+MiPdf.Signatures.IExternalSigner
+MiPdf.Signatures.IExternalSigner.Certificate.get -> System.Security.Cryptography.X509Certificates.X509Certificate2!
+MiPdf.Signatures.IExternalSigner.CertificateChain.get -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+MiPdf.Signatures.IExternalSigner.SignHash(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm) -> byte[]!
+MiPdf.Signatures.IExternalSigner.SignHash(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm, System.Security.Cryptography.RSASignaturePadding! padding) -> byte[]!
+MiPdf.Signatures.InkPoint
+MiPdf.Signatures.InkPoint.Deconstruct(out double X, out double Y, out double Pressure) -> void
+MiPdf.Signatures.InkPoint.Equals(MiPdf.Signatures.InkPoint other) -> bool
+MiPdf.Signatures.InkPoint.InkPoint() -> void
+MiPdf.Signatures.InkPoint.InkPoint(double X, double Y, double Pressure = 1) -> void
+MiPdf.Signatures.InkPoint.Pressure.get -> double
+MiPdf.Signatures.InkPoint.Pressure.init -> void
+MiPdf.Signatures.InkPoint.X.get -> double
+MiPdf.Signatures.InkPoint.X.init -> void
+MiPdf.Signatures.InkPoint.Y.get -> double
+MiPdf.Signatures.InkPoint.Y.init -> void
+MiPdf.Signatures.InkRenderer
+MiPdf.Signatures.IRevocationSource
+MiPdf.Signatures.IRevocationSource.GetCrls(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<byte[]!>!
+MiPdf.Signatures.IRevocationSource.GetIssuers(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+MiPdf.Signatures.IRevocationSource.GetOcspResponse(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate, System.Security.Cryptography.X509Certificates.X509Certificate2! issuer) -> byte[]?
+MiPdf.Signatures.ITimestampClient
+MiPdf.Signatures.ITimestampClient.GetTimestampToken(byte[]! hash, System.Security.Cryptography.HashAlgorithmName hashAlgorithm) -> byte[]!
+MiPdf.Signatures.LtvOptions
+MiPdf.Signatures.LtvOptions.AdditionalCertificates.get -> System.Collections.Generic.IList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+MiPdf.Signatures.LtvOptions.FieldNames.get -> System.Collections.Generic.IReadOnlyCollection<string!>?
+MiPdf.Signatures.LtvOptions.FieldNames.set -> void
+MiPdf.Signatures.LtvOptions.IncludeCrlsWithOcsp.get -> bool
+MiPdf.Signatures.LtvOptions.IncludeCrlsWithOcsp.set -> void
+MiPdf.Signatures.LtvOptions.IncludeVri.get -> bool
+MiPdf.Signatures.LtvOptions.IncludeVri.set -> void
+MiPdf.Signatures.LtvOptions.LtvOptions() -> void
+MiPdf.Signatures.LtvOptions.MaxCertificates.get -> int
+MiPdf.Signatures.LtvOptions.MaxCertificates.set -> void
+MiPdf.Signatures.LtvOptions.Password.get -> string?
+MiPdf.Signatures.LtvOptions.Password.set -> void
+MiPdf.Signatures.LtvOptions.RevocationSource.get -> MiPdf.Signatures.IRevocationSource!
+MiPdf.Signatures.LtvOptions.RevocationSource.set -> void
+MiPdf.Signatures.LtvOptions.UseCrls.get -> bool
+MiPdf.Signatures.LtvOptions.UseCrls.set -> void
+MiPdf.Signatures.LtvOptions.UseOcsp.get -> bool
+MiPdf.Signatures.LtvOptions.UseOcsp.set -> void
+MiPdf.Signatures.LtvResult
+MiPdf.Signatures.LtvResult.CertificatesAdded.get -> int
+MiPdf.Signatures.LtvResult.CrlsAdded.get -> int
+MiPdf.Signatures.LtvResult.IsComplete.get -> bool
+MiPdf.Signatures.LtvResult.Level.get -> MiPdf.Signatures.PadesLevel?
+MiPdf.Signatures.LtvResult.OcspResponsesAdded.get -> int
+MiPdf.Signatures.LtvResult.Pdf.get -> byte[]!
+MiPdf.Signatures.LtvResult.Warnings.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Signatures.PadesLevel
+MiPdf.Signatures.PadesLevel.BB = 0 -> MiPdf.Signatures.PadesLevel
+MiPdf.Signatures.PadesLevel.BLT = 2 -> MiPdf.Signatures.PadesLevel
+MiPdf.Signatures.PadesLevel.BLTA = 3 -> MiPdf.Signatures.PadesLevel
+MiPdf.Signatures.PadesLevel.BT = 1 -> MiPdf.Signatures.PadesLevel
+MiPdf.Signatures.PdfFieldLock
+MiPdf.Signatures.PdfFieldLock.Action.get -> MiPdf.Signatures.FieldLockAction
+MiPdf.Signatures.PdfFieldLock.Fields.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Signatures.PdfFieldLock.Locks(string! fieldName) -> bool
+MiPdf.Signatures.PdfLtv
+MiPdf.Signatures.PdfSignatureAppearance
+MiPdf.Signatures.PdfSignatureAppearance.Background.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Signatures.PdfSignatureAppearance.Background.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.Border.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Signatures.PdfSignatureAppearance.Border.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.DateFormat.get -> string!
+MiPdf.Signatures.PdfSignatureAppearance.DateFormat.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.Draw.get -> System.Action<MiPdf.Graphics.PdfCanvas!, double, double>?
+MiPdf.Signatures.PdfSignatureAppearance.Draw.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.Font.get -> MiPdf.Fonts.PdfFont!
+MiPdf.Signatures.PdfSignatureAppearance.Font.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.FontSize.get -> double
+MiPdf.Signatures.PdfSignatureAppearance.FontSize.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.Image.get -> MiPdf.Images.PdfImage?
+MiPdf.Signatures.PdfSignatureAppearance.Image.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.ImagePosition.get -> MiPdf.Signatures.SignatureImagePosition
+MiPdf.Signatures.PdfSignatureAppearance.ImagePosition.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.KeepUpright.get -> bool
+MiPdf.Signatures.PdfSignatureAppearance.KeepUpright.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.PdfSignatureAppearance() -> void
+MiPdf.Signatures.PdfSignatureAppearance.Text.get -> string?
+MiPdf.Signatures.PdfSignatureAppearance.Text.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.TextColor.get -> MiPdf.Graphics.PdfColor
+MiPdf.Signatures.PdfSignatureAppearance.TextColor.set -> void
+MiPdf.Signatures.PdfSignatureAppearance.TextStripRatio.get -> double
+MiPdf.Signatures.PdfSignatureAppearance.TextStripRatio.set -> void
+MiPdf.Signatures.PdfSignatureFormat
+MiPdf.Signatures.PdfSignatureFormat.PAdES = 0 -> MiPdf.Signatures.PdfSignatureFormat
+MiPdf.Signatures.PdfSignatureFormat.Pkcs7Detached = 1 -> MiPdf.Signatures.PdfSignatureFormat
+MiPdf.Signatures.PdfSignatureOptions
+MiPdf.Signatures.PdfSignatureOptions.AdditionalSignedAttributes.get -> System.Collections.Generic.IList<System.Security.Cryptography.AsnEncodedData!>!
+MiPdf.Signatures.PdfSignatureOptions.AdditionalUnsignedAttributes.get -> System.Collections.Generic.IList<System.Security.Cryptography.AsnEncodedData!>!
+MiPdf.Signatures.PdfSignatureOptions.Appearance.get -> MiPdf.Signatures.PdfSignatureAppearance!
+MiPdf.Signatures.PdfSignatureOptions.Appearance.set -> void
+MiPdf.Signatures.PdfSignatureOptions.Certification.get -> MiPdf.Signatures.CertificationLevel?
+MiPdf.Signatures.PdfSignatureOptions.Certification.set -> void
+MiPdf.Signatures.PdfSignatureOptions.ContactInfo.get -> string?
+MiPdf.Signatures.PdfSignatureOptions.ContactInfo.set -> void
+MiPdf.Signatures.PdfSignatureOptions.DigestAlgorithm.get -> System.Security.Cryptography.HashAlgorithmName
+MiPdf.Signatures.PdfSignatureOptions.DigestAlgorithm.set -> void
+MiPdf.Signatures.PdfSignatureOptions.FieldLock.get -> MiPdf.Signatures.PdfFieldLock?
+MiPdf.Signatures.PdfSignatureOptions.FieldLock.set -> void
+MiPdf.Signatures.PdfSignatureOptions.FieldName.get -> string?
+MiPdf.Signatures.PdfSignatureOptions.FieldName.set -> void
+MiPdf.Signatures.PdfSignatureOptions.Format.get -> MiPdf.Signatures.PdfSignatureFormat
+MiPdf.Signatures.PdfSignatureOptions.Format.set -> void
+MiPdf.Signatures.PdfSignatureOptions.Location.get -> string?
+MiPdf.Signatures.PdfSignatureOptions.Location.set -> void
+MiPdf.Signatures.PdfSignatureOptions.PageNumber.get -> int
+MiPdf.Signatures.PdfSignatureOptions.PageNumber.set -> void
+MiPdf.Signatures.PdfSignatureOptions.Password.get -> string?
+MiPdf.Signatures.PdfSignatureOptions.Password.set -> void
+MiPdf.Signatures.PdfSignatureOptions.PdfSignatureOptions() -> void
+MiPdf.Signatures.PdfSignatureOptions.Reason.get -> string?
+MiPdf.Signatures.PdfSignatureOptions.Reason.set -> void
+MiPdf.Signatures.PdfSignatureOptions.Rectangle.get -> MiPdf.PdfRectangle?
+MiPdf.Signatures.PdfSignatureOptions.Rectangle.set -> void
+MiPdf.Signatures.PdfSignatureOptions.RepairDamagedDocument.get -> bool
+MiPdf.Signatures.PdfSignatureOptions.RepairDamagedDocument.set -> void
+MiPdf.Signatures.PdfSignatureOptions.RsaPadding.get -> System.Security.Cryptography.RSASignaturePadding!
+MiPdf.Signatures.PdfSignatureOptions.RsaPadding.set -> void
+MiPdf.Signatures.PdfSignatureOptions.SignatureCreator.get -> string!
+MiPdf.Signatures.PdfSignatureOptions.SignatureCreator.set -> void
+MiPdf.Signatures.PdfSignatureOptions.SignatureDictionaryEntries.get -> System.Collections.Generic.IDictionary<string!, MiPdf.Objects.PdfObject!>!
+MiPdf.Signatures.PdfSignatureOptions.SignatureSize.get -> int
+MiPdf.Signatures.PdfSignatureOptions.SignatureSize.set -> void
+MiPdf.Signatures.PdfSignatureOptions.SignerName.get -> string?
+MiPdf.Signatures.PdfSignatureOptions.SignerName.set -> void
+MiPdf.Signatures.PdfSignatureOptions.SigningTime.get -> System.DateTimeOffset?
+MiPdf.Signatures.PdfSignatureOptions.SigningTime.set -> void
+MiPdf.Signatures.PdfSignatureOptions.TimestampClient.get -> MiPdf.Signatures.ITimestampClient?
+MiPdf.Signatures.PdfSignatureOptions.TimestampClient.set -> void
+MiPdf.Signatures.PdfSignatureOptions.TimestampOptional.get -> bool
+MiPdf.Signatures.PdfSignatureOptions.TimestampOptional.set -> void
+MiPdf.Signatures.PdfSignatureValidator
+MiPdf.Signatures.PdfSigner
+MiPdf.Signatures.PdfSigningResult
+MiPdf.Signatures.PdfSigningResult.Cms.get -> byte[]!
+MiPdf.Signatures.PdfSigningResult.FieldName.get -> string!
+MiPdf.Signatures.PdfSigningResult.Level.get -> MiPdf.Signatures.PadesLevel
+MiPdf.Signatures.PdfSigningResult.Pdf.get -> byte[]!
+MiPdf.Signatures.PdfSigningResult.Warnings.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Signatures.PreparedSignature
+MiPdf.Signatures.PreparedSignature.ByteRange.get -> System.Collections.Generic.IReadOnlyList<long>!
+MiPdf.Signatures.PreparedSignature.ContainerSize.get -> int
+MiPdf.Signatures.PreparedSignature.DigestAlgorithm.get -> System.Security.Cryptography.HashAlgorithmName
+MiPdf.Signatures.PreparedSignature.FieldName.get -> string!
+MiPdf.Signatures.PreparedSignature.GetDocumentDigest() -> byte[]!
+MiPdf.Signatures.PreparedSignature.GetSignedData() -> byte[]!
+MiPdf.Signatures.PreparedSignature.PreparedPdf.get -> byte[]!
+MiPdf.Signatures.RevocationInfo
+MiPdf.Signatures.RevocationStatus
+MiPdf.Signatures.RevocationStatus.Good = 0 -> MiPdf.Signatures.RevocationStatus
+MiPdf.Signatures.RevocationStatus.Revoked = 1 -> MiPdf.Signatures.RevocationStatus
+MiPdf.Signatures.RevocationStatus.Unknown = 2 -> MiPdf.Signatures.RevocationStatus
+MiPdf.Signatures.SignatureImagePosition
+MiPdf.Signatures.SignatureImagePosition.Background = 1 -> MiPdf.Signatures.SignatureImagePosition
+MiPdf.Signatures.SignatureImagePosition.ImageOnly = 2 -> MiPdf.Signatures.SignatureImagePosition
+MiPdf.Signatures.SignatureImagePosition.Left = 0 -> MiPdf.Signatures.SignatureImagePosition
+MiPdf.Signatures.SignatureImagePosition.Top = 3 -> MiPdf.Signatures.SignatureImagePosition
+MiPdf.Signatures.SignatureValidationOptions
+MiPdf.Signatures.SignatureValidationOptions.CheckCertificateChain.get -> bool
+MiPdf.Signatures.SignatureValidationOptions.CheckCertificateChain.set -> void
+MiPdf.Signatures.SignatureValidationOptions.RevocationMode.get -> System.Security.Cryptography.X509Certificates.X509RevocationMode
+MiPdf.Signatures.SignatureValidationOptions.RevocationMode.set -> void
+MiPdf.Signatures.SignatureValidationOptions.SignatureValidationOptions() -> void
+MiPdf.Signatures.SignatureValidationOptions.TrustedRoots.get -> System.Security.Cryptography.X509Certificates.X509Certificate2Collection!
+MiPdf.Signatures.SignatureValidationResult
+MiPdf.Signatures.SignatureValidationResult.Certificates.get -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+MiPdf.Signatures.SignatureValidationResult.Certificates.init -> void
+MiPdf.Signatures.SignatureValidationResult.CertificationLevel.get -> MiPdf.Signatures.CertificationLevel?
+MiPdf.Signatures.SignatureValidationResult.CertificationLevel.init -> void
+MiPdf.Signatures.SignatureValidationResult.Cms.get -> byte[]?
+MiPdf.Signatures.SignatureValidationResult.Cms.init -> void
+MiPdf.Signatures.SignatureValidationResult.CoversWholeDocument.get -> bool
+MiPdf.Signatures.SignatureValidationResult.CoversWholeDocument.init -> void
+MiPdf.Signatures.SignatureValidationResult.Errors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Signatures.SignatureValidationResult.Errors.init -> void
+MiPdf.Signatures.SignatureValidationResult.FieldLock.get -> MiPdf.Signatures.PdfFieldLock?
+MiPdf.Signatures.SignatureValidationResult.FieldLock.init -> void
+MiPdf.Signatures.SignatureValidationResult.FieldName.get -> string!
+MiPdf.Signatures.SignatureValidationResult.FieldName.init -> void
+MiPdf.Signatures.SignatureValidationResult.GetSignatureDictionaryText(string! key) -> string?
+MiPdf.Signatures.SignatureValidationResult.GetSignedAttribute(string! oid) -> byte[]?
+MiPdf.Signatures.SignatureValidationResult.GetUnsignedAttribute(string! oid) -> byte[]?
+MiPdf.Signatures.SignatureValidationResult.HasTimestamp.get -> bool
+MiPdf.Signatures.SignatureValidationResult.IsCertificateTrusted.get -> bool?
+MiPdf.Signatures.SignatureValidationResult.IsCertificateTrusted.init -> void
+MiPdf.Signatures.SignatureValidationResult.IsDocumentTimestamp.get -> bool
+MiPdf.Signatures.SignatureValidationResult.IsIntegrityValid.get -> bool
+MiPdf.Signatures.SignatureValidationResult.IsIntegrityValid.init -> void
+MiPdf.Signatures.SignatureValidationResult.Level.get -> MiPdf.Signatures.PadesLevel?
+MiPdf.Signatures.SignatureValidationResult.Location.get -> string?
+MiPdf.Signatures.SignatureValidationResult.Location.init -> void
+MiPdf.Signatures.SignatureValidationResult.ModifiedLockedFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
+MiPdf.Signatures.SignatureValidationResult.Reason.get -> string?
+MiPdf.Signatures.SignatureValidationResult.Reason.init -> void
+MiPdf.Signatures.SignatureValidationResult.Revocation.get -> MiPdf.Signatures.RevocationStatus?
+MiPdf.Signatures.SignatureValidationResult.RevocationDetails.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.CertificateRevocation!>!
+MiPdf.Signatures.SignatureValidationResult.SignatureDictionary.get -> MiPdf.Objects.PdfDictionary?
+MiPdf.Signatures.SignatureValidationResult.SignatureDictionary.init -> void
+MiPdf.Signatures.SignatureValidationResult.SignatureValidationResult() -> void
+MiPdf.Signatures.SignatureValidationResult.SignedRevisionLength.get -> long
+MiPdf.Signatures.SignatureValidationResult.SignedRevisionLength.init -> void
+MiPdf.Signatures.SignatureValidationResult.SignerCertificate.get -> System.Security.Cryptography.X509Certificates.X509Certificate2?
+MiPdf.Signatures.SignatureValidationResult.SignerCertificate.init -> void
+MiPdf.Signatures.SignatureValidationResult.SignerName.get -> string?
+MiPdf.Signatures.SignatureValidationResult.SignerName.init -> void
+MiPdf.Signatures.SignatureValidationResult.SigningTime.get -> System.DateTimeOffset?
+MiPdf.Signatures.SignatureValidationResult.SigningTime.init -> void
+MiPdf.Signatures.SignatureValidationResult.SubFilter.get -> string!
+MiPdf.Signatures.SignatureValidationResult.SubFilter.init -> void
+MiPdf.Signatures.SignatureValidationResult.TimestampTime.get -> System.DateTimeOffset?
+MiPdf.Signatures.SignatureValidationResult.TimestampTime.init -> void
+MiPdf.Tagging.ArtifactType
+MiPdf.Tagging.ArtifactType.Background = 4 -> MiPdf.Tagging.ArtifactType
+MiPdf.Tagging.ArtifactType.Layout = 2 -> MiPdf.Tagging.ArtifactType
+MiPdf.Tagging.ArtifactType.None = 0 -> MiPdf.Tagging.ArtifactType
+MiPdf.Tagging.ArtifactType.Page = 3 -> MiPdf.Tagging.ArtifactType
+MiPdf.Tagging.ArtifactType.Pagination = 1 -> MiPdf.Tagging.ArtifactType
+MiPdf.Tagging.PdfStructureElement
+MiPdf.Tagging.PdfStructureElement.ActualText.get -> string?
+MiPdf.Tagging.PdfStructureElement.ActualText.set -> void
+MiPdf.Tagging.PdfStructureElement.AddAnnotation(MiPdf.PdfAnnotation! annotation, MiPdf.PdfPage! page) -> void
+MiPdf.Tagging.PdfStructureElement.AddChild(string! type, string? alternateText = null) -> MiPdf.Tagging.PdfStructureElement!
+MiPdf.Tagging.PdfStructureElement.AlternateText.get -> string?
+MiPdf.Tagging.PdfStructureElement.AlternateText.set -> void
+MiPdf.Tagging.PdfStructureElement.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.Tagging.PdfStructureElement.Language.get -> string?
+MiPdf.Tagging.PdfStructureElement.Language.set -> void
+MiPdf.Tagging.PdfStructureElement.Reference.get -> MiPdf.Objects.PdfReference!
+MiPdf.Tagging.PdfStructureElement.SetAttribute(string! owner, string! key, MiPdf.Objects.PdfObject! value) -> MiPdf.Tagging.PdfStructureElement!
+MiPdf.Tagging.PdfStructureElement.Title.get -> string?
+MiPdf.Tagging.PdfStructureElement.Title.set -> void
+MiPdf.Tagging.PdfStructureElement.Type.get -> string!
+MiPdf.Tagging.PdfStructureTree
+MiPdf.Tagging.PdfStructureTree.Dictionary.get -> MiPdf.Objects.PdfDictionary!
+MiPdf.Tagging.PdfStructureTree.MapRole(string! customType, string! standardType) -> void
+MiPdf.Tagging.PdfStructureTree.Root.get -> MiPdf.Tagging.PdfStructureElement!
+MiPdf.Tagging.PdfUAChecker
+MiPdf.Tagging.StructureType
+MiPdf.Text.PdfDocEncoding
+MiPdf.Text.PdfTextExtractor
+MiPdf.Text.TextExtractionOptions
+MiPdf.Text.TextExtractionOptions.DetectParagraphs.get -> bool
+MiPdf.Text.TextExtractionOptions.DetectParagraphs.set -> void
+MiPdf.Text.TextExtractionOptions.IncludeAnnotations.get -> bool
+MiPdf.Text.TextExtractionOptions.IncludeAnnotations.set -> void
+MiPdf.Text.TextExtractionOptions.IncludeXObjects.get -> bool
+MiPdf.Text.TextExtractionOptions.IncludeXObjects.set -> void
+MiPdf.Text.TextExtractionOptions.SortByPosition.get -> bool
+MiPdf.Text.TextExtractionOptions.SortByPosition.set -> void
+MiPdf.Text.TextExtractionOptions.TextExtractionOptions() -> void
+MiPdf.Text.TextLineInfo
+MiPdf.Text.TextLineInfo.<Clone>$() -> MiPdf.Text.TextLineInfo!
+MiPdf.Text.TextLineInfo.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Text.TextLineInfo.Bounds.init -> void
+MiPdf.Text.TextLineInfo.Deconstruct(out string! Text, out MiPdf.PdfRectangle Bounds, out System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextWord!>! Words) -> void
+MiPdf.Text.TextLineInfo.Equals(MiPdf.Text.TextLineInfo? other) -> bool
+MiPdf.Text.TextLineInfo.Text.get -> string!
+MiPdf.Text.TextLineInfo.Text.init -> void
+MiPdf.Text.TextLineInfo.TextLineInfo(string! Text, MiPdf.PdfRectangle Bounds, System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextWord!>! Words) -> void
+MiPdf.Text.TextLineInfo.Words.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextWord!>!
+MiPdf.Text.TextLineInfo.Words.init -> void
+MiPdf.Text.TextWord
+MiPdf.Text.TextWord.<Clone>$() -> MiPdf.Text.TextWord!
+MiPdf.Text.TextWord.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Text.TextWord.Bounds.init -> void
+MiPdf.Text.TextWord.Deconstruct(out string! Text, out MiPdf.PdfRectangle Bounds, out double FontSize, out string! FontName) -> void
+MiPdf.Text.TextWord.Equals(MiPdf.Text.TextWord? other) -> bool
+MiPdf.Text.TextWord.FontName.get -> string!
+MiPdf.Text.TextWord.FontName.init -> void
+MiPdf.Text.TextWord.FontSize.get -> double
+MiPdf.Text.TextWord.FontSize.init -> void
+MiPdf.Text.TextWord.Text.get -> string!
+MiPdf.Text.TextWord.Text.init -> void
+MiPdf.Text.TextWord.TextWord(string! Text, MiPdf.PdfRectangle Bounds, double FontSize, string! FontName) -> void
+MiPdf.TextMarkupType
+MiPdf.TextMarkupType.Highlight = 0 -> MiPdf.TextMarkupType
+MiPdf.TextMarkupType.Squiggly = 3 -> MiPdf.TextMarkupType
+MiPdf.TextMarkupType.StrikeOut = 2 -> MiPdf.TextMarkupType
+MiPdf.TextMarkupType.Underline = 1 -> MiPdf.TextMarkupType
+override MiPdf.Barcodes.LinearBarcode.Draw(MiPdf.Graphics.PdfCanvas! canvas, double x, double y, double width, double height) -> void
+override MiPdf.Barcodes.LinearBarcode.ToString() -> string!
+override MiPdf.Barcodes.LinearBarcode.TotalWidthModules.get -> int
+override MiPdf.Barcodes.MatrixBarcode.Draw(MiPdf.Graphics.PdfCanvas! canvas, double x, double y, double width, double height) -> void
+override MiPdf.Barcodes.MatrixBarcode.ToString() -> string!
+override MiPdf.Barcodes.MatrixBarcode.TotalWidthModules.get -> int
+override MiPdf.Content.ContentOperation.ToString() -> string!
+override MiPdf.Fonts.PdfStandardFont.Ascent.get -> double
+override MiPdf.Fonts.PdfStandardFont.CanDisplay(int codePoint) -> bool
+override MiPdf.Fonts.PdfStandardFont.CapHeight.get -> double
+override MiPdf.Fonts.PdfStandardFont.Descent.get -> double
+override MiPdf.Fonts.PdfStandardFont.GetCharWidth(int codePoint) -> double
+override MiPdf.Fonts.PdfStandardFont.Name.get -> string!
+override MiPdf.Fonts.PdfTrueTypeFont.Ascent.get -> double
+override MiPdf.Fonts.PdfTrueTypeFont.CanDisplay(int codePoint) -> bool
+override MiPdf.Fonts.PdfTrueTypeFont.CapHeight.get -> double
+override MiPdf.Fonts.PdfTrueTypeFont.Descent.get -> double
+override MiPdf.Fonts.PdfTrueTypeFont.GetCharWidth(int codePoint) -> double
+override MiPdf.Fonts.PdfTrueTypeFont.GetKerning(int left, int right) -> double
+override MiPdf.Fonts.PdfTrueTypeFont.HasKerning.get -> bool
+override MiPdf.Fonts.PdfTrueTypeFont.LineGap.get -> double
+override MiPdf.Fonts.PdfTrueTypeFont.Name.get -> string!
+override MiPdf.Fonts.PdfTrueTypeFont.UnderlinePosition.get -> double
+override MiPdf.Fonts.PdfTrueTypeFont.UnderlineThickness.get -> double
+override MiPdf.Forms.PdfCheckBox.RegenerateAppearance() -> void
+override MiPdf.Forms.PdfCheckBox.Value.get -> string?
+override MiPdf.Forms.PdfCheckBox.Value.set -> void
+override MiPdf.Forms.PdfChoiceField.RegenerateAppearance() -> void
+override MiPdf.Forms.PdfChoiceField.Value.get -> string?
+override MiPdf.Forms.PdfChoiceField.Value.set -> void
+override MiPdf.Forms.PdfFormField.ToString() -> string!
+override MiPdf.Forms.PdfRadioButtonGroup.RegenerateAppearance() -> void
+override MiPdf.Forms.PdfRadioButtonGroup.Value.get -> string?
+override MiPdf.Forms.PdfRadioButtonGroup.Value.set -> void
+override MiPdf.Forms.PdfSignatureField.Value.get -> string?
+override MiPdf.Forms.PdfSignatureField.Value.set -> void
+override MiPdf.Forms.PdfTextField.RegenerateAppearance() -> void
+override MiPdf.Forms.PdfTextField.Value.get -> string?
+override MiPdf.Forms.PdfTextField.Value.set -> void
+override MiPdf.Graphics.Matrix.GetHashCode() -> int
+override MiPdf.Graphics.PdfColor.GetHashCode() -> int
+override MiPdf.Images.PdfExtractedImage.ToString() -> string!
+override MiPdf.Invoicing.FacturXFinding.Equals(object? obj) -> bool
+override MiPdf.Invoicing.FacturXFinding.GetHashCode() -> int
+override MiPdf.Invoicing.FacturXFinding.ToString() -> string!
+override MiPdf.Layout.Thickness.GetHashCode() -> int
+override MiPdf.Objects.PdfArray.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfArray.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfBoolean.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfBoolean.Equals(object? obj) -> bool
+override MiPdf.Objects.PdfBoolean.GetHashCode() -> int
+override MiPdf.Objects.PdfBoolean.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfDictionary.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfDictionary.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfName.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfName.Equals(object? obj) -> bool
+override MiPdf.Objects.PdfName.GetHashCode() -> int
+override MiPdf.Objects.PdfName.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfNull.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfNull.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfNumber.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfNumber.Equals(object? obj) -> bool
+override MiPdf.Objects.PdfNumber.GetHashCode() -> int
+override MiPdf.Objects.PdfNumber.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfObject.ToString() -> string!
+override MiPdf.Objects.PdfReference.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfReference.Equals(object? obj) -> bool
+override MiPdf.Objects.PdfReference.GetHashCode() -> int
+override MiPdf.Objects.PdfReference.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfReference.Resolve() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfStream.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfStream.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.Objects.PdfString.Clone() -> MiPdf.Objects.PdfObject!
+override MiPdf.Objects.PdfString.Equals(object? obj) -> bool
+override MiPdf.Objects.PdfString.GetHashCode() -> int
+override MiPdf.Objects.PdfString.ObjectType.get -> MiPdf.Objects.PdfObjectType
+override MiPdf.PdfA.PdfAIdentification.Equals(object? obj) -> bool
+override MiPdf.PdfA.PdfAIdentification.GetHashCode() -> int
+override MiPdf.PdfA.PdfAIdentification.ToString() -> string!
+override MiPdf.PdfA.XmpExtensionSchema.Equals(object? obj) -> bool
+override MiPdf.PdfA.XmpExtensionSchema.GetHashCode() -> int
+override MiPdf.PdfA.XmpExtensionSchema.ToString() -> string!
+override MiPdf.PdfA.XmpProperty.Equals(object? obj) -> bool
+override MiPdf.PdfA.XmpProperty.GetHashCode() -> int
+override MiPdf.PdfA.XmpProperty.ToString() -> string!
+override MiPdf.PdfAttachment.ToString() -> string!
+override MiPdf.PdfLimits.Equals(object? obj) -> bool
+override MiPdf.PdfLimits.GetHashCode() -> int
+override MiPdf.PdfLimits.ToString() -> string!
+override MiPdf.PdfPageLabelRange.Equals(object? obj) -> bool
+override MiPdf.PdfPageLabelRange.GetHashCode() -> int
+override MiPdf.PdfPageLabelRange.ToString() -> string!
+override MiPdf.PdfRectangle.GetHashCode() -> int
+override MiPdf.Redaction.RedactionResult.ToString() -> string!
+override MiPdf.Signatures.CertificateRevocation.Equals(object? obj) -> bool
+override MiPdf.Signatures.CertificateRevocation.GetHashCode() -> int
+override MiPdf.Signatures.CertificateRevocation.ToString() -> string!
+override MiPdf.Signatures.InkPoint.GetHashCode() -> int
+override MiPdf.Signatures.PdfFieldLock.ToString() -> string!
+override MiPdf.Signatures.SignatureValidationResult.ToString() -> string!
+override MiPdf.Text.TextLineInfo.Equals(object? obj) -> bool
+override MiPdf.Text.TextLineInfo.GetHashCode() -> int
+override MiPdf.Text.TextLineInfo.ToString() -> string!
+override MiPdf.Text.TextWord.Equals(object? obj) -> bool
+override MiPdf.Text.TextWord.GetHashCode() -> int
+override MiPdf.Text.TextWord.ToString() -> string!
+static MiPdf.Barcodes.BarcodeCanvasExtensions.DrawBarcode(this MiPdf.Graphics.PdfCanvas! canvas, MiPdf.Barcodes.Barcode! barcode, double x, double y, double width, double height) -> MiPdf.Graphics.PdfCanvas!
+static MiPdf.Barcodes.BarcodeCanvasExtensions.DrawBarcode(this MiPdf.Graphics.PdfCanvas! canvas, MiPdf.Barcodes.MatrixBarcode! barcode, double x, double y, double size) -> MiPdf.Graphics.PdfCanvas!
+static MiPdf.Barcodes.Code128.Create(string! text) -> MiPdf.Barcodes.Code128!
+static MiPdf.Barcodes.Code128.CreateGs1(string! elementStrings) -> MiPdf.Barcodes.Code128!
+static MiPdf.Barcodes.Code39.Create(string! text, bool addCheckCharacter = false) -> MiPdf.Barcodes.Code39!
+static MiPdf.Barcodes.DataMatrix.Create(byte[]! data, MiPdf.Barcodes.DataMatrixShape shape = MiPdf.Barcodes.DataMatrixShape.Square) -> MiPdf.Barcodes.DataMatrix!
+static MiPdf.Barcodes.DataMatrix.Create(string! text, MiPdf.Barcodes.DataMatrixShape shape = MiPdf.Barcodes.DataMatrixShape.Square) -> MiPdf.Barcodes.DataMatrix!
+static MiPdf.Barcodes.DataMatrix.CreateGs1(string! elementStrings, MiPdf.Barcodes.DataMatrixShape shape = MiPdf.Barcodes.DataMatrixShape.Square) -> MiPdf.Barcodes.DataMatrix!
+static MiPdf.Barcodes.Ean.CheckDigit(string! digitsWithoutCheck) -> int
+static MiPdf.Barcodes.Ean.CreateEan13(string! digits) -> MiPdf.Barcodes.Ean!
+static MiPdf.Barcodes.Ean.CreateEan8(string! digits) -> MiPdf.Barcodes.Ean!
+static MiPdf.Barcodes.Ean.CreateUpcA(string! digits) -> MiPdf.Barcodes.Ean!
+static MiPdf.Barcodes.EpcQrCode.Create(MiPdf.Barcodes.EpcPayment! payment) -> MiPdf.Barcodes.QrCode!
+static MiPdf.Barcodes.Interleaved2Of5.Create(string! digits, bool addCheckDigit = false) -> MiPdf.Barcodes.Interleaved2Of5!
+static MiPdf.Barcodes.QrCode.Create(string! text, MiPdf.Barcodes.QrCodeOptions! options) -> MiPdf.Barcodes.QrCode!
+static MiPdf.Barcodes.QrCode.Create(string! text, MiPdf.Barcodes.QrErrorCorrection errorCorrection = MiPdf.Barcodes.QrErrorCorrection.M) -> MiPdf.Barcodes.QrCode!
+static MiPdf.Content.ContentParser.Parse(byte[]! content, bool strict = false) -> System.Collections.Generic.IEnumerable<MiPdf.Content.ContentOperation!>!
+static MiPdf.Content.FreeSpaceFinder.Find(MiPdf.PdfPage! page, double minWidth, double minHeight, bool includeAnnotations = true) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+static MiPdf.Content.FreeSpaceFinder.Find(MiPdf.PdfRectangle area, System.Collections.Generic.IEnumerable<MiPdf.PdfRectangle>! occupied, double minWidth, double minHeight) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+static MiPdf.Filters.Ascii85Filter.Decode(byte[]! data) -> byte[]!
+static MiPdf.Filters.AsciiHexFilter.Decode(byte[]! data) -> byte[]!
+static MiPdf.Filters.AsciiHexFilter.Encode(byte[]! data) -> byte[]!
+static MiPdf.Filters.FlateFilter.Decode(byte[]! data) -> byte[]!
+static MiPdf.Filters.FlateFilter.Encode(byte[]! data, System.IO.Compression.CompressionLevel level = System.IO.Compression.CompressionLevel.Optimal) -> byte[]!
+static MiPdf.Filters.LzwFilter.Decode(byte[]! data, int earlyChange = 1) -> byte[]!
+static MiPdf.Filters.Predictor.Apply(byte[]! data, MiPdf.Objects.PdfDictionary? parms) -> byte[]!
+static MiPdf.Filters.RunLengthFilter.Decode(byte[]! data) -> byte[]!
+static MiPdf.Filters.StreamFilters.Decode(byte[]! data, MiPdf.Objects.PdfDictionary! dict, out MiPdf.Objects.PdfName? remainingImageFilter) -> byte[]!
+static MiPdf.Filters.StreamFilters.DecodeOne(byte[]! data, MiPdf.Objects.PdfName! filter, MiPdf.Objects.PdfDictionary? parms) -> byte[]!
+static MiPdf.Filters.StreamFilters.GetFilterNames(MiPdf.Objects.PdfDictionary! dict) -> System.Collections.Generic.IReadOnlyList<MiPdf.Objects.PdfName!>!
+static MiPdf.Fonts.PdfStandardFont.FromName(string! name) -> MiPdf.Fonts.PdfStandardFont!
+static MiPdf.Fonts.PdfTrueTypeFont.FromBytes(byte[]! data, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
+static MiPdf.Fonts.PdfTrueTypeFont.FromFile(string! path, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
+static MiPdf.Fonts.PdfTrueTypeFont.FromStream(System.IO.Stream! stream, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
+static MiPdf.Fonts.WinAnsiEncoding.ToCode(char c) -> int
+static MiPdf.Fonts.WinAnsiEncoding.ToUnicode(int code) -> char
+static MiPdf.Graphics.Matrix.operator !=(MiPdf.Graphics.Matrix left, MiPdf.Graphics.Matrix right) -> bool
+static MiPdf.Graphics.Matrix.operator ==(MiPdf.Graphics.Matrix left, MiPdf.Graphics.Matrix right) -> bool
+static MiPdf.Graphics.Matrix.Rotate(double degrees) -> MiPdf.Graphics.Matrix
+static MiPdf.Graphics.Matrix.Scale(double sx, double sy) -> MiPdf.Graphics.Matrix
+static MiPdf.Graphics.Matrix.Translate(double x, double y) -> MiPdf.Graphics.Matrix
+static MiPdf.Graphics.PdfColor.Cmyk(double c, double m, double y, double k) -> MiPdf.Graphics.PdfColor
+static MiPdf.Graphics.PdfColor.FromHex(string! hex) -> MiPdf.Graphics.PdfColor
+static MiPdf.Graphics.PdfColor.FromRgb(byte r, byte g, byte b) -> MiPdf.Graphics.PdfColor
+static MiPdf.Graphics.PdfColor.Gray(double gray) -> MiPdf.Graphics.PdfColor
+static MiPdf.Graphics.PdfColor.operator !=(MiPdf.Graphics.PdfColor left, MiPdf.Graphics.PdfColor right) -> bool
+static MiPdf.Graphics.PdfColor.operator ==(MiPdf.Graphics.PdfColor left, MiPdf.Graphics.PdfColor right) -> bool
+static MiPdf.Graphics.PdfColor.Rgb(double r, double g, double b) -> MiPdf.Graphics.PdfColor
+static MiPdf.Images.PdfImage.FromBytes(byte[]! data) -> MiPdf.Images.PdfImage!
+static MiPdf.Images.PdfImage.FromFile(string! path) -> MiPdf.Images.PdfImage!
+static MiPdf.Images.PdfImage.FromPixels(int width, int height, byte[]! pixels, int components, byte[]? alpha = null) -> MiPdf.Images.PdfImage!
+static MiPdf.Images.PdfImage.FromStream(System.IO.Stream! stream) -> MiPdf.Images.PdfImage!
+static MiPdf.Images.PdfImageExtractor.Extract(MiPdf.Objects.PdfDictionary! annotation) -> System.Collections.Generic.IReadOnlyList<MiPdf.Images.PdfExtractedImage!>!
+static MiPdf.Images.PdfImageExtractor.Extract(MiPdf.PdfPage! page) -> System.Collections.Generic.IReadOnlyList<MiPdf.Images.PdfExtractedImage!>!
+static MiPdf.Images.PngEncoder.Encode(int width, int height, byte[]! rgb, byte[]? alpha = null) -> byte[]!
+static MiPdf.Invoicing.FacturX.Attach(MiPdf.PdfDocument! document, byte[]! xml, MiPdf.Invoicing.FacturXProfile profile, string? fileName = null) -> MiPdf.PdfAttachment!
+static MiPdf.Invoicing.FacturX.CheckConsistency(MiPdf.PdfDocument! document) -> System.Collections.Generic.IReadOnlyList<MiPdf.Invoicing.FacturXFinding!>!
+static MiPdf.Invoicing.FacturX.ConformanceLevel(MiPdf.Invoicing.FacturXProfile profile) -> string!
+static MiPdf.Invoicing.FacturX.DetectProfile(byte[]! xml) -> MiPdf.Invoicing.FacturXProfile?
+static MiPdf.Invoicing.FacturX.GetInvoiceXml(MiPdf.PdfDocument! document) -> byte[]?
+static MiPdf.Invoicing.FacturX.GetProfile(MiPdf.PdfDocument! document) -> MiPdf.Invoicing.FacturXProfile?
+static MiPdf.Invoicing.FacturXFinding.operator !=(MiPdf.Invoicing.FacturXFinding? left, MiPdf.Invoicing.FacturXFinding? right) -> bool
+static MiPdf.Invoicing.FacturXFinding.operator ==(MiPdf.Invoicing.FacturXFinding? left, MiPdf.Invoicing.FacturXFinding? right) -> bool
+static MiPdf.Layout.PatternHyphenator.FromTex(string! tex, int leftMin = 2, int rightMin = 2) -> MiPdf.Layout.PatternHyphenator!
+static MiPdf.Layout.Table.WithColumns(int columns) -> MiPdf.Layout.Table!
+static MiPdf.Layout.TextLayout.BreakLines(string! text, MiPdf.Fonts.PdfFont! font, double fontSize, double width) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.Layout.TextLayout.DefaultHyphenator.get -> MiPdf.Layout.IHyphenator?
+static MiPdf.Layout.TextLayout.DefaultHyphenator.set -> void
+static MiPdf.Layout.TextLayout.MeasureHeight(string! text, MiPdf.Fonts.PdfFont! font, double fontSize, double width, double lineSpacing = 1.15) -> double
+static MiPdf.Layout.Thickness.implicit operator MiPdf.Layout.Thickness(double all) -> MiPdf.Layout.Thickness
+static MiPdf.Layout.Thickness.operator !=(MiPdf.Layout.Thickness left, MiPdf.Layout.Thickness right) -> bool
+static MiPdf.Layout.Thickness.operator ==(MiPdf.Layout.Thickness left, MiPdf.Layout.Thickness right) -> bool
+static MiPdf.Objects.PdfArray.FromNumbers(params double[]! values) -> MiPdf.Objects.PdfArray!
+static MiPdf.Objects.PdfArray.FromNumbers(params int[]! values) -> MiPdf.Objects.PdfArray!
+static MiPdf.Objects.PdfArray.FromRectangle(MiPdf.PdfRectangle r) -> MiPdf.Objects.PdfArray!
+static MiPdf.Objects.PdfBoolean.Get(bool value) -> MiPdf.Objects.PdfBoolean!
+static MiPdf.Objects.PdfName.Get(string! value) -> MiPdf.Objects.PdfName!
+static MiPdf.Objects.PdfName.implicit operator MiPdf.Objects.PdfName!(string! value) -> MiPdf.Objects.PdfName!
+static MiPdf.Objects.PdfName.operator !=(MiPdf.Objects.PdfName? a, MiPdf.Objects.PdfName? b) -> bool
+static MiPdf.Objects.PdfName.operator ==(MiPdf.Objects.PdfName? a, MiPdf.Objects.PdfName? b) -> bool
+static MiPdf.Objects.PdfNumber.implicit operator MiPdf.Objects.PdfNumber!(double value) -> MiPdf.Objects.PdfNumber!
+static MiPdf.Objects.PdfNumber.implicit operator MiPdf.Objects.PdfNumber!(int value) -> MiPdf.Objects.PdfNumber!
+static MiPdf.Objects.PdfString.DecodeText(System.ReadOnlySpan<byte> bytes) -> string!
+static MiPdf.Objects.PdfString.EncodeText(string! text) -> byte[]!
+static MiPdf.Objects.PdfString.FromBytes(byte[]! bytes, bool hex = false) -> MiPdf.Objects.PdfString!
+static MiPdf.Objects.PdfString.FromText(string! text) -> MiPdf.Objects.PdfString!
+static MiPdf.PageSize.FromMillimeters(double width, double height) -> MiPdf.PdfRectangle
+static MiPdf.PageSize.Landscape(MiPdf.PdfRectangle size) -> MiPdf.PdfRectangle
+static MiPdf.PdfA.PdfAChecker.Check(MiPdf.PdfDocument! document, MiPdf.PdfA.PdfAConformance conformance) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.PdfA.PdfAIdentification.operator !=(MiPdf.PdfA.PdfAIdentification? left, MiPdf.PdfA.PdfAIdentification? right) -> bool
+static MiPdf.PdfA.PdfAIdentification.operator ==(MiPdf.PdfA.PdfAIdentification? left, MiPdf.PdfA.PdfAIdentification? right) -> bool
+static MiPdf.PdfA.XmpExtensionSchema.operator !=(MiPdf.PdfA.XmpExtensionSchema? left, MiPdf.PdfA.XmpExtensionSchema? right) -> bool
+static MiPdf.PdfA.XmpExtensionSchema.operator ==(MiPdf.PdfA.XmpExtensionSchema? left, MiPdf.PdfA.XmpExtensionSchema? right) -> bool
+static MiPdf.PdfA.XmpMetadata.Create(MiPdf.PdfDocumentInfo! info, MiPdf.PdfA.PdfAConformance? conformance) -> byte[]!
+static MiPdf.PdfA.XmpMetadata.Create(MiPdf.PdfDocumentInfo! info, MiPdf.PdfA.PdfAConformance? conformance, MiPdf.PdfUAConformance? ua, string? language) -> byte[]!
+static MiPdf.PdfA.XmpMetadata.Create(MiPdf.PdfDocumentInfo! info, MiPdf.PdfA.PdfAConformance? conformance, MiPdf.PdfUAConformance? ua, string? language, System.Collections.Generic.IEnumerable<MiPdf.PdfA.XmpExtensionSchema!>! extensions) -> byte[]!
+static MiPdf.PdfA.XmpProperty.operator !=(MiPdf.PdfA.XmpProperty? left, MiPdf.PdfA.XmpProperty? right) -> bool
+static MiPdf.PdfA.XmpProperty.operator ==(MiPdf.PdfA.XmpProperty? left, MiPdf.PdfA.XmpProperty? right) -> bool
+static MiPdf.PdfDate.Format(System.DateTimeOffset date) -> string!
+static MiPdf.PdfDate.Parse(string? value) -> System.DateTimeOffset?
+static MiPdf.PdfDocument.Create() -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Merge(params string![]! paths) -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Merge(System.Collections.Generic.IEnumerable<MiPdf.PdfDocument!>! documents) -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Open(byte[]! data, string? password = null) -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Open(string! path, MiPdf.PdfOpenOptions! options) -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Open(string! path, string? password = null) -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Open(System.IO.Stream! stream, string? password = null) -> MiPdf.PdfDocument!
+static MiPdf.PdfLimits.Current.get -> MiPdf.PdfLimits!
+static MiPdf.PdfLimits.Default.get -> MiPdf.PdfLimits!
+static MiPdf.PdfLimits.Default.set -> void
+static MiPdf.PdfLimits.operator !=(MiPdf.PdfLimits? left, MiPdf.PdfLimits? right) -> bool
+static MiPdf.PdfLimits.operator ==(MiPdf.PdfLimits? left, MiPdf.PdfLimits? right) -> bool
+static MiPdf.PdfLimits.Use(MiPdf.PdfLimits! limits) -> System.IDisposable!
+static MiPdf.PdfPageLabelRange.operator !=(MiPdf.PdfPageLabelRange? left, MiPdf.PdfPageLabelRange? right) -> bool
+static MiPdf.PdfPageLabelRange.operator ==(MiPdf.PdfPageLabelRange? left, MiPdf.PdfPageLabelRange? right) -> bool
+static MiPdf.PdfRectangle.FromCorners(double x1, double y1, double x2, double y2) -> MiPdf.PdfRectangle
+static MiPdf.PdfRectangle.FromSize(double x, double y, double width, double height) -> MiPdf.PdfRectangle
+static MiPdf.PdfRectangle.operator !=(MiPdf.PdfRectangle left, MiPdf.PdfRectangle right) -> bool
+static MiPdf.PdfRectangle.operator ==(MiPdf.PdfRectangle left, MiPdf.PdfRectangle right) -> bool
+static MiPdf.Redaction.PdfRedactor.ApplyRedactions(MiPdf.PdfDocument! document, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+static MiPdf.Redaction.PdfRedactor.MarkForRedaction(MiPdf.PdfPage! page, MiPdf.PdfRectangle area, string? overlayText = null) -> MiPdf.PdfAnnotation!
+static MiPdf.Redaction.PdfRedactor.Redact(MiPdf.PdfPage! page, System.Collections.Generic.IEnumerable<MiPdf.PdfRectangle>! areas, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+static MiPdf.Redaction.PdfRedactor.RedactText(MiPdf.PdfDocument! document, string! text, System.StringComparison comparison = System.StringComparison.Ordinal, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+static MiPdf.Redaction.PdfRedactor.RedactText(MiPdf.PdfDocument! document, System.Text.RegularExpressions.Regex! pattern, MiPdf.Redaction.RedactionOptions? options = null) -> MiPdf.Redaction.RedactionResult!
+static MiPdf.Signatures.CertificateRevocation.operator !=(MiPdf.Signatures.CertificateRevocation? left, MiPdf.Signatures.CertificateRevocation? right) -> bool
+static MiPdf.Signatures.CertificateRevocation.operator ==(MiPdf.Signatures.CertificateRevocation? left, MiPdf.Signatures.CertificateRevocation? right) -> bool
+static MiPdf.Signatures.CertificateSigner.FromPfx(string! path, string? password) -> MiPdf.Signatures.CertificateSigner!
+static MiPdf.Signatures.CmsUtil.AddSignatureTimestamp(byte[]! cms, MiPdf.Signatures.ITimestampClient! tsa, System.Security.Cryptography.HashAlgorithmName? hashAlgorithm = null) -> byte[]!
+static MiPdf.Signatures.CmsUtil.AddUnsignedAttribute(byte[]! cms, string! oid, byte[]! valueDer) -> byte[]!
+static MiPdf.Signatures.CmsUtil.AssembleSignedData(byte[]! signedAttributes, byte[]! signatureValue, System.Security.Cryptography.X509Certificates.X509Certificate2! signerCertificate, System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>? chain = null, System.Security.Cryptography.HashAlgorithmName? digestAlgorithm = null, System.Security.Cryptography.RSASignaturePadding? rsaPadding = null) -> byte[]!
+static MiPdf.Signatures.CmsUtil.CreateSignedAttributes(byte[]! documentDigest, System.Security.Cryptography.X509Certificates.X509Certificate2! signerCertificate, MiPdf.Signatures.PdfSignatureFormat format = MiPdf.Signatures.PdfSignatureFormat.PAdES, System.DateTimeOffset? signingTime = null, System.Collections.Generic.IEnumerable<System.Security.Cryptography.AsnEncodedData!>? additionalAttributes = null) -> byte[]!
+static MiPdf.Signatures.CmsUtil.GetSignatureValue(byte[]! cms) -> byte[]!
+static MiPdf.Signatures.CmsUtil.GetSignedAttribute(byte[]! cms, string! oid) -> byte[]?
+static MiPdf.Signatures.CmsUtil.GetUnsignedAttribute(byte[]! cms, string! oid) -> byte[]?
+static MiPdf.Signatures.CmsUtil.P1363ToDer(byte[]! signature) -> byte[]!
+static MiPdf.Signatures.FailoverTimestampClient.FromUrls(System.Collections.Generic.IEnumerable<string!>! urls, string? userName = null, string? password = null) -> MiPdf.Signatures.FailoverTimestampClient!
+static MiPdf.Signatures.InkPoint.operator !=(MiPdf.Signatures.InkPoint left, MiPdf.Signatures.InkPoint right) -> bool
+static MiPdf.Signatures.InkPoint.operator ==(MiPdf.Signatures.InkPoint left, MiPdf.Signatures.InkPoint right) -> bool
+static MiPdf.Signatures.InkRenderer.Draw(MiPdf.Graphics.PdfCanvas! canvas, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.InkPoint>!>! strokes, MiPdf.Graphics.PdfColor? color = null, double minWidth = 0.35, double maxWidth = 2.4, double? topLeftHeight = null) -> void
+static MiPdf.Signatures.PdfFieldLock.All() -> MiPdf.Signatures.PdfFieldLock!
+static MiPdf.Signatures.PdfFieldLock.Exclude(params string![]! fields) -> MiPdf.Signatures.PdfFieldLock!
+static MiPdf.Signatures.PdfFieldLock.Include(params string![]! fields) -> MiPdf.Signatures.PdfFieldLock!
+static MiPdf.Signatures.PdfLtv.AddValidationData(byte[]! pdf, MiPdf.Signatures.LtvOptions? options = null) -> MiPdf.Signatures.LtvResult!
+static MiPdf.Signatures.PdfLtv.MakeLta(byte[]! pdf, MiPdf.Signatures.ITimestampClient! tsa, MiPdf.Signatures.LtvOptions? options = null) -> MiPdf.Signatures.LtvResult!
+static MiPdf.Signatures.PdfSignatureValidator.GetSignedRevision(byte[]! pdf, MiPdf.Signatures.SignatureValidationResult! signature) -> byte[]!
+static MiPdf.Signatures.PdfSignatureValidator.Validate(byte[]! pdf, MiPdf.Signatures.SignatureValidationOptions? options = null, string? password = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.SignatureValidationResult!>!
+static MiPdf.Signatures.PdfSignatureValidator.Validate(MiPdf.PdfDocument! document, MiPdf.Signatures.SignatureValidationOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.SignatureValidationResult!>!
+static MiPdf.Signatures.PdfSignatureValidator.Validate(string! path, MiPdf.Signatures.SignatureValidationOptions? options = null, string? password = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.SignatureValidationResult!>!
+static MiPdf.Signatures.PdfSigner.AddDocumentTimestamp(byte[]! pdf, MiPdf.Signatures.ITimestampClient! tsa, string? fieldName = null, string? password = null, System.Security.Cryptography.HashAlgorithmName? digestAlgorithm = null) -> byte[]!
+static MiPdf.Signatures.PdfSigner.CompleteExternalSignature(byte[]! preparedPdf, string! fieldName, byte[]! cmsContainer, string? password = null) -> byte[]!
+static MiPdf.Signatures.PdfSigner.CompleteExternalSignature(MiPdf.Signatures.PreparedSignature! prepared, byte[]! cmsContainer) -> byte[]!
+static MiPdf.Signatures.PdfSigner.PrepareExternalSignature(byte[]! pdf, MiPdf.Signatures.PdfSignatureOptions! options, System.Security.Cryptography.X509Certificates.X509Certificate2? certificate = null, int containerSize = 16384) -> MiPdf.Signatures.PreparedSignature!
+static MiPdf.Signatures.PdfSigner.Sign(byte[]! pdf, MiPdf.Signatures.IExternalSigner! signer, MiPdf.Signatures.PdfSignatureOptions? options = null) -> byte[]!
+static MiPdf.Signatures.PdfSigner.Sign(byte[]! pdf, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate, MiPdf.Signatures.PdfSignatureOptions? options = null, System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>? chain = null) -> byte[]!
+static MiPdf.Signatures.PdfSigner.Sign(MiPdf.PdfDocument! document, MiPdf.Signatures.IExternalSigner! signer, MiPdf.Signatures.PdfSignatureOptions? options = null) -> byte[]!
+static MiPdf.Signatures.PdfSigner.SignDetailed(byte[]! pdf, MiPdf.Signatures.IExternalSigner! signer, MiPdf.Signatures.PdfSignatureOptions? options = null) -> MiPdf.Signatures.PdfSigningResult!
+static MiPdf.Signatures.PdfSigner.SignFile(string! inputPath, string! outputPath, MiPdf.Signatures.IExternalSigner! signer, MiPdf.Signatures.PdfSignatureOptions? options = null) -> MiPdf.Signatures.PdfSigningResult!
+static MiPdf.Signatures.PdfSigner.SignFile(string! inputPath, string! outputPath, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate, MiPdf.Signatures.PdfSignatureOptions? options = null, System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>? chain = null) -> MiPdf.Signatures.PdfSigningResult!
+static MiPdf.Signatures.RevocationInfo.CreateOcspRequest(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate, System.Security.Cryptography.X509Certificates.X509Certificate2! issuer) -> byte[]!
+static MiPdf.Signatures.RevocationInfo.GetCaIssuerUrls(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.Signatures.RevocationInfo.GetCrlUrls(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.Signatures.RevocationInfo.GetOcspUrls(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.Signatures.RevocationInfo.HasOcspNoCheck(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> bool
+static MiPdf.Signatures.RevocationInfo.IsSelfSigned(System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> bool
+static MiPdf.Tagging.PdfUAChecker.Check(MiPdf.PdfDocument! document) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.Tagging.StructureType.Heading(int level) -> string!
+static MiPdf.Text.PdfDocEncoding.CanEncode(string! text) -> bool
+static MiPdf.Text.PdfDocEncoding.GetBytes(string! text) -> byte[]!
+static MiPdf.Text.PdfDocEncoding.GetString(System.ReadOnlySpan<byte> bytes) -> string!
+static MiPdf.Text.PdfTextExtractor.ExtractLines(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextLineInfo!>!
+static MiPdf.Text.PdfTextExtractor.ExtractText(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? options = null) -> string!
+static MiPdf.Text.PdfTextExtractor.ExtractText(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> string!
+static MiPdf.Text.PdfTextExtractor.ExtractWords(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextWord!>!
+static MiPdf.Text.PdfTextExtractor.FindText(MiPdf.PdfPage! page, string! search, System.StringComparison comparison = System.StringComparison.Ordinal) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+static MiPdf.Text.PdfTextExtractor.FindText(MiPdf.PdfPage! page, System.Text.RegularExpressions.Regex! pattern) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+static MiPdf.Text.TextLineInfo.operator !=(MiPdf.Text.TextLineInfo? left, MiPdf.Text.TextLineInfo? right) -> bool
+static MiPdf.Text.TextLineInfo.operator ==(MiPdf.Text.TextLineInfo? left, MiPdf.Text.TextLineInfo? right) -> bool
+static MiPdf.Text.TextWord.operator !=(MiPdf.Text.TextWord? left, MiPdf.Text.TextWord? right) -> bool
+static MiPdf.Text.TextWord.operator ==(MiPdf.Text.TextWord? left, MiPdf.Text.TextWord? right) -> bool
+static readonly MiPdf.Fonts.PdfStandardFont.Courier -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.CourierBold -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.CourierBoldOblique -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.CourierOblique -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.Helvetica -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.HelveticaBold -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.HelveticaBoldOblique -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.HelveticaOblique -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.Symbol -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.TimesBold -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.TimesBoldItalic -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.TimesItalic -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.TimesRoman -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Fonts.PdfStandardFont.ZapfDingbats -> MiPdf.Fonts.PdfStandardFont!
+static readonly MiPdf.Graphics.Matrix.Identity -> MiPdf.Graphics.Matrix
+static readonly MiPdf.Graphics.PdfColor.Black -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.Blue -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.DarkGray -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.Green -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.LightGray -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.Lime -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.Orange -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.Red -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.White -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Graphics.PdfColor.Yellow -> MiPdf.Graphics.PdfColor
+static readonly MiPdf.Objects.PdfBoolean.False -> MiPdf.Objects.PdfBoolean!
+static readonly MiPdf.Objects.PdfBoolean.True -> MiPdf.Objects.PdfBoolean!
+static readonly MiPdf.Objects.PdfName.AA -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.AcroForm -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ActualText -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.AESV2 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.AESV3 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Annot -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Annots -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.AP -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ArtBox -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.AS -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ASCII85Decode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ASCIIHexDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Author -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.BaseEncoding -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.BaseFont -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.BBox -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.BitsPerComponent -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.BleedBox -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Border -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.BS -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ByteRange -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.C -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Catalog -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CCITTFaxDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CF -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CFM -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Ch -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CIDFontType0 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CIDFontType2 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CIDSystemInfo -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CIDToGIDMap -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Colors -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ColorSpace -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Columns -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Contents -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Count -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CreationDate -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Creator -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.CropBox -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Crypt -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DA -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DCTDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Decode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DecodeParms -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DescendantFonts -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Dest -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Dests -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DeviceCMYK -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DeviceGray -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DeviceRGB -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Differences -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DP -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DR -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.DV -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.EarlyChange -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Encoding -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Encrypt -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.EncryptMetadata -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Extends -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ExtGState -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.F -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Ff -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Fields -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Filter -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.First -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FirstChar -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FitH -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FlateDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Font -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FontDescriptor -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FontFile -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FontFile2 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FontFile3 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FontName -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Form -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.FT -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ID -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Identity -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.IdentityH -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Image -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Index -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Info -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.JBIG2Decode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.JPXDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.K -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Keywords -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Kids -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.LastChar -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Length -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Link -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.LZWDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.M -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Mask -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.MediaBox -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Metadata -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.MK -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ModDate -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.N -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Name -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.NeedAppearances -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Next -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ObjStm -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Off -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Opt -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Outlines -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.P -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Page -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Pages -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Parent -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Pattern -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Perms -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Predictor -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Prev -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ProcSet -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Producer -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Properties -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Q -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Rect -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Resources -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Root -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Rotate -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.RunLengthDecode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.S -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Shading -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Sig -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.SigFlags -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Size -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.SMask -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.StdCF -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.StmF -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.StrF -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.StructTreeRoot -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.SubFilter -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Subject -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Subtype -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.T -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Title -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.ToUnicode -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Trapped -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.TrimBox -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.TrueType -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Tx -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Type -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Type0 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Type1 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Type3 -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.URI -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.V -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.W -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Widget -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.Widths -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.WinAnsiEncoding -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.XML -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.XObject -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.XRef -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfName.XRefStm -> MiPdf.Objects.PdfName!
+static readonly MiPdf.Objects.PdfNull.Instance -> MiPdf.Objects.PdfNull!
+static readonly MiPdf.PageSize.A0 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.A1 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.A2 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.A3 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.A4 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.A5 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.A6 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.B4 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.B5 -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.Executive -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.Ledger -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.Legal -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.Letter -> MiPdf.PdfRectangle
+static readonly MiPdf.PageSize.Tabloid -> MiPdf.PdfRectangle
+virtual MiPdf.Fonts.PdfFont.GetKerning(int left, int right) -> double
+virtual MiPdf.Fonts.PdfFont.HasKerning.get -> bool
+virtual MiPdf.Fonts.PdfFont.LineGap.get -> double
+virtual MiPdf.Fonts.PdfFont.UnderlinePosition.get -> double
+virtual MiPdf.Fonts.PdfFont.UnderlineThickness.get -> double
+virtual MiPdf.Forms.PdfFormField.RegenerateAppearance() -> void
+virtual MiPdf.Forms.PdfFormField.Value.get -> string?
+virtual MiPdf.Forms.PdfFormField.Value.set -> void
+virtual MiPdf.Objects.PdfObject.Resolve() -> MiPdf.Objects.PdfObject!
+~override MiPdf.Graphics.Matrix.Equals(object obj) -> bool
+~override MiPdf.Graphics.Matrix.ToString() -> string
+~override MiPdf.Graphics.PdfColor.Equals(object obj) -> bool
+~override MiPdf.Graphics.PdfColor.ToString() -> string
+~override MiPdf.Layout.Thickness.Equals(object obj) -> bool
+~override MiPdf.Layout.Thickness.ToString() -> string
+~override MiPdf.PdfRectangle.Equals(object obj) -> bool
+~override MiPdf.PdfRectangle.ToString() -> string
+~override MiPdf.Signatures.InkPoint.Equals(object obj) -> bool
+~override MiPdf.Signatures.InkPoint.ToString() -> string

@@ -25,6 +25,12 @@ public enum PdfAConformance
 
     /// <summary>PDF/A-3u.</summary>
     PdfA3U,
+
+    /// <summary>PDF/A-4 (ISO 19005-4, PDF 2.0): embedded files must be PDF/A files.</summary>
+    PdfA4,
+
+    /// <summary>PDF/A-4f: like PDF/A-4, arbitrary embedded files allowed (e.g. Factur-X/ZUGFeRD invoice data).</summary>
+    PdfA4F,
 }
 
 /// <summary>PDF/A identification read from a document (part 1-4, conformance level "A", "B", "U", "E", "F" or "").</summary>
@@ -32,7 +38,7 @@ public sealed record PdfAIdentification(int Part, string Conformance)
 {
     /// <summary>
     /// The matching output level of miPDFlib, or null if there is none (e.g. level A, which requires a complete
-    /// logical structure, or PDF/A-4). Use it to keep the conformance when modifying a document.
+    /// logical structure, or PDF/A-4e). Use it to keep the conformance when modifying a document.
     /// </summary>
     public PdfAConformance? ToConformance() => (Part, Conformance) switch
     {
@@ -41,6 +47,8 @@ public sealed record PdfAIdentification(int Part, string Conformance)
         (2, "U") => PdfAConformance.PdfA2U,
         (3, "B") => PdfAConformance.PdfA3B,
         (3, "U") => PdfAConformance.PdfA3U,
+        (4, "") => PdfAConformance.PdfA4,
+        (4, "F") => PdfAConformance.PdfA4F,
         _ => null,
     };
 
@@ -54,10 +62,24 @@ internal static class PdfAExtensions
     {
         PdfAConformance.PdfA1B => 1,
         PdfAConformance.PdfA2B or PdfAConformance.PdfA2U => 2,
-        _ => 3,
+        PdfAConformance.PdfA3B or PdfAConformance.PdfA3U => 3,
+        _ => 4,
     };
 
-    public static string Level(this PdfAConformance c) => c is PdfAConformance.PdfA2U or PdfAConformance.PdfA3U ? "U" : "B";
+    /// <summary>The pdfaid:conformance value; PDF/A-4 has none (or "F", "E").</summary>
+    public static string Level(this PdfAConformance c) => c switch
+    {
+        PdfAConformance.PdfA2U or PdfAConformance.PdfA3U => "U",
+        PdfAConformance.PdfA4 => "",
+        PdfAConformance.PdfA4F => "F",
+        _ => "B",
+    };
+
+    /// <summary>True if the level requires all text to be mappable to Unicode (2u, 3u and PDF/A-4).</summary>
+    public static bool RequiresUnicode(this PdfAConformance c) => c.Level() == "U" || c.Part() == 4;
+
+    /// <summary>True if arbitrary embedded files are allowed (PDF/A-3 and PDF/A-4f).</summary>
+    public static bool AllowsAnyAttachment(this PdfAConformance c) => c.Part() == 3 || c == PdfAConformance.PdfA4F;
 }
 
 /// <summary>A property of an <see cref="XmpExtensionSchema"/>.</summary>
@@ -77,8 +99,14 @@ public sealed record XmpExtensionSchema(string Prefix, string NamespaceUri, stri
 /// <summary>Creates XMP metadata packets from the document information.</summary>
 public static class XmpMetadata
 {
-    private static readonly XmpExtensionSchema PdfUASchema = new("pdfuaid", "http://www.aiim.org/pdfua/ns/id/", "PDF/UA Universal Accessibility Schema",
-        new[] { new XmpProperty("part", "1", "Integer", "internal", "Indicates, which part of ISO 14289 standard is followed") });
+    private static XmpExtensionSchema PdfUASchema(PdfUAConformance ua)
+    {
+        var part = new XmpProperty("part", ua == PdfUAConformance.PdfUA2 ? "2" : "1", "Integer", "internal", "Indicates, which part of ISO 14289 standard is followed");
+        var properties = ua == PdfUAConformance.PdfUA2
+            ? new[] { part, new XmpProperty("rev", "2024", "Integer", "internal", "Indicates the year of the ISO 14289 part that is followed") }
+            : new[] { part };
+        return new("pdfuaid", "http://www.aiim.org/pdfua/ns/id/", "PDF/UA Universal Accessibility Schema", properties);
+    }
 
     /// <summary>Builds an XMP packet with Dublin Core, XMP, PDF and (optionally) PDF/A identification properties.</summary>
     public static byte[] Create(PdfDocumentInfo info, PdfAConformance? conformance) => Create(info, conformance, null, null);
@@ -94,7 +122,7 @@ public static class XmpMetadata
         static string E(string s) => SecurityElement.Escape(s);
         static string D(DateTimeOffset d) => d.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture);
         var schemas = extensions.ToList();
-        if (ua != null) schemas.Insert(0, PdfUASchema);
+        if (ua is { } uaConformance) schemas.Insert(0, PdfUASchema(uaConformance));
 
         var sb = new StringBuilder();
         sb.Append("<?xpacket begin=\"﻿\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n");
@@ -102,7 +130,11 @@ public static class XmpMetadata
         sb.Append("<rdf:Description rdf:about=\"\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\" ")
           .Append("xmlns:pdf=\"http://ns.adobe.com/pdf/1.3/\" xmlns:pdfaid=\"http://www.aiim.org/pdfa/ns/id/\">\n");
         if (conformance is { } c)
-            sb.Append($"<pdfaid:part>{c.Part()}</pdfaid:part>\n<pdfaid:conformance>{c.Level()}</pdfaid:conformance>\n");
+        {
+            sb.Append($"<pdfaid:part>{c.Part()}</pdfaid:part>\n");
+            if (c.Part() == 4) sb.Append("<pdfaid:rev>2020</pdfaid:rev>\n");
+            if (c.Level().Length > 0) sb.Append($"<pdfaid:conformance>{c.Level()}</pdfaid:conformance>\n");
+        }
         sb.Append("<dc:format>application/pdf</dc:format>\n");
         if (language != null) sb.Append($"<dc:language><rdf:Bag><rdf:li>{E(language)}</rdf:li></rdf:Bag></dc:language>\n");
         if (info.Title is { } title) sb.Append($"<dc:title><rdf:Alt><rdf:li xml:lang=\"x-default\">{E(title)}</rdf:li></rdf:Alt></dc:title>\n");
@@ -123,9 +155,9 @@ public static class XmpMetadata
             sb.Append("</rdf:Description>\n");
         }
 
-        if (conformance != null && schemas.Count > 0)
+        if (conformance is { } described && described.Part() < 4 && schemas.Count > 0)
         {
-            // PDF/A requires a schema description for properties outside its predefined schemas
+            // PDF/A-1 to -3 require a schema description for properties outside their predefined schemas
             sb.Append("<rdf:Description rdf:about=\"\" xmlns:pdfaExtension=\"http://www.aiim.org/pdfa/ns/extension/\" ")
               .Append("xmlns:pdfaSchema=\"http://www.aiim.org/pdfa/ns/schema#\" xmlns:pdfaProperty=\"http://www.aiim.org/pdfa/ns/property#\">\n")
               .Append("<pdfaExtension:schemas><rdf:Bag>\n");
@@ -157,29 +189,80 @@ public static class XmpMetadata
     private static readonly XNamespace Rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     private static readonly XNamespace Xmp = "http://ns.adobe.com/xap/1.0/";
     private static readonly XNamespace Pdf = "http://ns.adobe.com/pdf/1.3/";
+    private static readonly XNamespace Dc = "http://purl.org/dc/elements/1.1/";
 
-    /// <summary>
-    /// Updates xmp:ModifyDate, xmp:MetadataDate and/or pdf:Producer in existing XMP metadata from the document
-    /// information, keeping everything else. Returns null if the packet cannot be parsed (it is then left unchanged).
-    /// </summary>
-    internal static byte[]? Update(byte[] xmp, PdfDocumentInfo info, bool dates, bool producer)
+    private static XDocument? Parse(byte[] xmp)
     {
-        XDocument document;
         try
         {
             var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
             using var reader = XmlReader.Create(new MemoryStream(xmp), settings);
-            document = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
+            return XDocument.Load(reader, LoadOptions.PreserveWhitespace);
         }
         catch (XmlException)
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Reads the document information properties (title, author, subject, keywords, creator, producer, dates) from XMP
+    /// metadata as a document information dictionary; null if the packet cannot be parsed or has none of them.
+    /// </summary>
+    internal static PdfDictionary? ReadInfo(byte[] xmp)
+    {
+        if (Parse(xmp) is not { } document) return null;
+        var descriptions = document.Descendants(Rdf + "Description").ToList();
+        string? Value(XNamespace ns, string name)
+        {
+            if (descriptions.Attributes(ns + name).FirstOrDefault() is { } attribute) return attribute.Value;
+            if (document.Descendants(ns + name).FirstOrDefault() is not { } element) return null;
+            var items = element.Descendants(Rdf + "li").ToList();
+            if (items.Count == 0) return element.Value.Trim();
+            // language alternatives: the default language; sequences (dc:creator): all entries
+            if (element.Element(Rdf + "Alt") != null)
+                return (items.FirstOrDefault(li => li.Attribute(XNamespace.Xml + "lang")?.Value == "x-default") ?? items[0]).Value;
+            return string.Join(", ", items.Select(li => li.Value));
+        }
+
+        var info = new PdfDictionary();
+        void Text(PdfName key, string? value)
+        {
+            if (!string.IsNullOrEmpty(value)) info.SetText(key, value);
+        }
+        void Date(PdfName key, string? value)
+        {
+            if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var date))
+                info.SetText(key, PdfDate.Format(date));
+        }
+        Text(PdfName.Title, Value(Dc, "title"));
+        Text(PdfName.Author, Value(Dc, "creator"));
+        Text(PdfName.Subject, Value(Dc, "description"));
+        Text(PdfName.Keywords, Value(Pdf, "Keywords"));
+        Text(PdfName.Creator, Value(Xmp, "CreatorTool"));
+        Text(PdfName.Producer, Value(Pdf, "Producer"));
+        Date(PdfName.CreationDate, Value(Xmp, "CreateDate"));
+        Date(PdfName.ModDate, Value(Xmp, "ModifyDate"));
+        return info.Count > 0 ? info : null;
+    }
+
+    /// <summary>
+    /// Updates xmp:ModifyDate, xmp:MetadataDate and/or pdf:Producer in existing XMP metadata from the document
+    /// information, keeping everything else; with <paramref name="allProperties"/> also the title, author, subject,
+    /// keywords, creator tool and creation date that differ. Returns null if the packet cannot be parsed or nothing
+    /// changed (it is then left unchanged).
+    /// </summary>
+    internal static byte[]? Update(byte[] xmp, PdfDocumentInfo info, bool dates, bool producer, bool allProperties = false)
+    {
+        if (Parse(xmp) is not { } document) return null;
+        var current = allProperties ? ReadInfo(xmp) ?? new PdfDictionary() : null;
+        bool changed = false;
         var description = document.Descendants(Rdf + "Description").FirstOrDefault();
         if (description == null) return null;
 
         void Set(XNamespace ns, string prefix, string name, string value)
         {
+            changed = true;
             var element = document.Descendants(ns + name).FirstOrDefault();
             if (element != null && !element.HasElements)
             {
@@ -204,6 +287,49 @@ public static class XmpMetadata
             Set(Xmp, "xmp", "MetadataDate", date);
         }
         if (producer && info.Producer is { } text) Set(Pdf, "pdf", "Producer", text);
+
+        // language alternatives (rdf:Alt, the x-default entry) and ordered lists (rdf:Seq, replaced by one entry)
+        void SetList(XNamespace ns, string prefix, string name, string container, string value)
+        {
+            changed = true;
+            foreach (var attribute in document.Descendants(Rdf + "Description").Attributes(ns + name).ToList()) attribute.Remove();
+            var element = document.Descendants(ns + name).FirstOrDefault();
+            if (element == null)
+            {
+                if (description.GetPrefixOfNamespace(ns) == null) description.SetAttributeValue(XNamespace.Xmlns + prefix, ns.NamespaceName);
+                description.Add(element = new XElement(ns + name));
+            }
+            var list = element.Element(Rdf + container);
+            if (list == null)
+            {
+                element.RemoveNodes();
+                element.Add(list = new XElement(Rdf + container));
+            }
+            if (container == "Alt")
+            {
+                var item = list.Elements(Rdf + "li").FirstOrDefault(li => li.Attribute(XNamespace.Xml + "lang")?.Value == "x-default");
+                if (item == null) list.AddFirst(item = new XElement(Rdf + "li", new XAttribute(XNamespace.Xml + "lang", "x-default")));
+                item.Value = value;
+            }
+            else
+            {
+                list.RemoveNodes();
+                list.Add(new XElement(Rdf + "li", value));
+            }
+        }
+
+        if (current != null)
+        {
+            bool Changed(PdfName key, string? value) => value != null && current.GetText(key) != value;
+            if (Changed(PdfName.Title, info.Title)) SetList(Dc, "dc", "title", "Alt", info.Title!);
+            if (Changed(PdfName.Author, info.Author)) SetList(Dc, "dc", "creator", "Seq", info.Author!);
+            if (Changed(PdfName.Subject, info.Subject)) SetList(Dc, "dc", "description", "Alt", info.Subject!);
+            if (Changed(PdfName.Keywords, info.Keywords)) Set(Pdf, "pdf", "Keywords", info.Keywords!);
+            if (Changed(PdfName.Creator, info.Creator)) Set(Xmp, "xmp", "CreatorTool", info.Creator!);
+            if (info.CreationDate is { } created && PdfDate.Parse(current.GetText(PdfName.CreationDate)) != created)
+                Set(Xmp, "xmp", "CreateDate", created.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture));
+        }
+        if (!changed) return null;
 
         using var output = new MemoryStream();
         var writerSettings = new XmlWriterSettings { Encoding = new UTF8Encoding(false), OmitXmlDeclaration = document.Declaration == null };
@@ -247,8 +373,8 @@ public static class PdfAChecker
                 int flags = annot.Dictionary.GetInt(PdfName.F);
                 if (subtype != "Popup" && (flags & 4) == 0) issues.Add($"{where}: {subtype} annotation without print flag.");
                 if ((flags & (1 | 2 | 32)) != 0) issues.Add($"{where}: {subtype} annotation is invisible, hidden or noview.");
-                if (subtype == "FileAttachment" && conformance.Part() < 3)
-                    issues.Add($"{where}: file attachment annotations require PDF/A-3 (PDF/A-{conformance.Part()} allows only PDF/A attachments).");
+                if (subtype == "FileAttachment" && !conformance.AllowsAnyAttachment())
+                    issues.Add($"{where}: file attachment annotations require PDF/A-3 or PDF/A-4f.");
                 if (annot.Dictionary.GetDictionary(PdfName.Get("A"))?.GetName(PdfName.S)?.Value is "JavaScript" or "Launch")
                     issues.Add($"{where}: forbidden action in annotation.");
                 if (annot.Dictionary.GetDictionary(PdfName.AP)?.Get(PdfName.N) is PdfStream ap && ap.GetDictionary(PdfName.Resources) is { } apRes)
@@ -257,9 +383,11 @@ public static class PdfAChecker
         }
         var names = document.Catalog.GetDictionary(PdfName.Get("Names"));
         if (names?.ContainsKey(PdfName.Get("JavaScript")) == true) issues.Add("Document-level JavaScript is not allowed.");
-        if (conformance.Part() == 2 && names?.ContainsKey(PdfName.Get("EmbeddedFiles")) == true)
-            issues.Add("PDF/A-2 allows only embedded PDF/A files (embedded files found).");
-        if (conformance.Part() == 3)
+        if (conformance.Part() is 2 or 4 && !conformance.AllowsAnyAttachment() && names?.ContainsKey(PdfName.Get("EmbeddedFiles")) == true)
+            issues.Add($"PDF/A-{conformance.Part()} allows only embedded PDF/A files (embedded files found; use PDF/A-3 or PDF/A-4f).");
+        if (conformance == PdfAConformance.PdfA4F && names?.ContainsKey(PdfName.Get("EmbeddedFiles")) != true)
+            issues.Add("PDF/A-4f requires at least one embedded file (use PDF/A-4 for documents without attachments).");
+        if (conformance.AllowsAnyAttachment())
         {
             var associated = document.Catalog.GetArray(PdfName.Get("AF"))?.Select(o => o.Resolve()).ToList() ?? new List<PdfObject>();
             foreach (var attachment in document.Attachments)
@@ -287,8 +415,8 @@ public static class PdfAChecker
             {
                 if (value.Resolve() is not PdfDictionary font || !fonts.Add(font)) continue;
                 if (!IsEmbedded(font)) issues.Add($"{where}: font {font.GetName(PdfName.BaseFont)?.Value ?? name.Value} is not embedded.");
-                if (conformance.Level() == "U" && font.GetName(PdfName.Subtype)?.Value is "Type0" && !font.ContainsKey(PdfName.ToUnicode))
-                    issues.Add($"{where}: font {font.GetName(PdfName.BaseFont)?.Value} has no ToUnicode map (required for level U).");
+                if (conformance.RequiresUnicode() && font.GetName(PdfName.Subtype)?.Value is "Type0" && !font.ContainsKey(PdfName.ToUnicode))
+                    issues.Add($"{where}: font {font.GetName(PdfName.BaseFont)?.Value} has no ToUnicode map (required for level U and PDF/A-4).");
             }
         }
         if (conformance.Part() == 1 && resources.GetDictionary(PdfName.ExtGState) is { } gsDict)

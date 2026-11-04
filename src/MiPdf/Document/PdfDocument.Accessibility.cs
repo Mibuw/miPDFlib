@@ -7,8 +7,14 @@ namespace MiPdf;
 /// <summary>PDF/UA conformance levels (ISO 14289).</summary>
 public enum PdfUAConformance
 {
-    /// <summary>PDF/UA-1 (ISO 14289-1).</summary>
+    /// <summary>PDF/UA-1 (ISO 14289-1, PDF 1.7).</summary>
     PdfUA1,
+
+    /// <summary>
+    /// PDF/UA-2 (ISO 14289-2, PDF 2.0): the structure elements are written in the PDF 2.0 structure namespace.
+    /// Can be combined with PDF/A-4 only.
+    /// </summary>
+    PdfUA2,
 }
 
 public sealed partial class PdfDocument
@@ -91,10 +97,16 @@ public sealed partial class PdfDocument
                 };
                 if (annotation.Subtype == "Link" && annotation.Contents == null && annotation.Uri is { } uri) annotation.Contents = uri;
                 var element = tree.Root.AddChild(type);
-                if (annotation.Subtype == "Widget" && FieldDescription(annotation.Dictionary) is { } description) element.AlternateText = description;
+                if (annotation.Subtype == "Widget" && FieldDescription(annotation.Dictionary) is { } description)
+                {
+                    element.AlternateText = description;
+                    // PDF/UA-2: a widget without a label needs /Contents
+                    if (_uaConformance == PdfUAConformance.PdfUA2) annotation.Contents ??= description;
+                }
                 element.AddAnnotation(annotation, page);
             }
         }
+        if (_uaConformance == PdfUAConformance.PdfUA2) tree.UsePdf20Namespace();
     }
 
     private static string? FieldDescription(PdfDictionary widget)

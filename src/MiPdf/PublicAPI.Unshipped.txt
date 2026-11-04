@@ -1,0 +1,11 @@
+#nullable enable
+const MiPdf.Tagging.StructureType.Aside = "Aside" -> string!
+const MiPdf.Tagging.StructureType.DocumentFragment = "DocumentFragment" -> string!
+const MiPdf.Tagging.StructureType.Emphasis = "Em" -> string!
+const MiPdf.Tagging.StructureType.FENote = "FENote" -> string!
+const MiPdf.Tagging.StructureType.Strong = "Strong" -> string!
+const MiPdf.Tagging.StructureType.Sub = "Sub" -> string!
+const MiPdf.Tagging.StructureType.Title = "Title" -> string!
+MiPdf.PdfA.PdfAConformance.PdfA4 = 5 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA4F = 6 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfUAConformance.PdfUA2 = 1 -> MiPdf.PdfUAConformance

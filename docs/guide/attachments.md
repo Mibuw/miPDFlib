@@ -14,7 +14,8 @@ doc.RemoveAttachment("data.csv");
 
 Attachments are stored in the `EmbeddedFiles` name tree with MIME type, size, MD5 checksum and dates, and listed
 as associated files (`/AF`) with an `/AFRelationship` – as required by PDF/A-3. `CheckPdfA(PdfA3B)` reports
-attachments without these entries. PDF/A-1 and PDF/A-2 do not allow arbitrary attachments.
+attachments without these entries. PDF/A-4f (PDF 2.0) allows arbitrary attachments as well; PDF/A-1, PDF/A-2 and
+PDF/A-4 do not.
 
 ## ZUGFeRD 2.x / Factur-X hybrid invoices
 

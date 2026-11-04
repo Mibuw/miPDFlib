@@ -53,8 +53,10 @@ doc.Save("same.pdf",  new PdfSaveOptions { Incremental = true });      // append
 
 Saving sets the modification date (`/ModDate`) and, for a document opened from a file, notes the edit in the
 producer: "Word; modified with miPDFlib" (or "miPDFlib" if there was none; the note is added only once). Existing
-XMP metadata is updated accordingly (`xmp:ModifyDate`, `xmp:MetadataDate`, `pdf:Producer`), so PDF/A documents stay
-consistent. New documents get the producer "miPDFlib"; the creating application belongs in `doc.Info.Creator`.
+XMP metadata is updated accordingly (`xmp:ModifyDate`, `xmp:MetadataDate`, `pdf:Producer`; for PDF/A documents also
+title, author, subject, keywords and creator), so PDF/A documents stay consistent. Documents without a document
+information dictionary (PDF 2.0 deprecates it, PDF/A-4 forbids it) are read from the XMP metadata. New documents get
+the producer "miPDFlib"; the creating application belongs in `doc.Info.Creator`.
 
 ```csharp
 doc.Info.Producer = "MyApp 2.1";                                     // your own text ...
@@ -77,8 +79,8 @@ Covered and tested with the PDF Association's PDF 2.0 example files:
 - AES-256 encryption (revision 6), PAdES signatures, DSS and document time-stamps, associated files (`/AF`).
 
 New documents are written as PDF 1.7 by default; set `doc.Version = "2.0"` or `PdfSaveOptions.Version` for a
-PDF 2.0 header. AES-256 encryption raises the version to 2.0 automatically. Not supported yet: PDF/A-4, PDF/UA-2
-and the PDF 2.0 structure namespaces.
+PDF 2.0 header. AES-256 encryption raises the version to 2.0 automatically, as do PDF/A-4 and PDF/UA-2
+(`PdfAConformance.PdfA4`, `PdfUAConformance.PdfUA2`, which also writes the PDF 2.0 structure namespace).
 
 ## Pages
 

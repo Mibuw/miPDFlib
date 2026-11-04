@@ -48,7 +48,12 @@ code is yours to contribute. This keeps the licensing of the project clear for a
   malformed input (see [SECURITY.md](SECURITY.md) and [ARCHITECTURE.md](docs/ARCHITECTURE.md)).
 - **Style:** follow the style of the surrounding code (nullable reference types enabled, file-scoped namespaces,
   XML documentation for public APIs). Comments, documentation and commit messages are written in English.
-- **Public API:** keep breaking changes to a minimum and describe them in the pull request.
+- **Public API:** keep breaking changes to a minimum and describe them in the pull request. The public API is
+  recorded in `src/MiPdf/PublicAPI.Shipped.txt` (released) and `src/MiPdf/PublicAPI.Unshipped.txt` (since the last
+  release). A public member that is added, removed or changed without updating `PublicAPI.Unshipped.txt` fails the
+  build (RS0016/RS0017); the IDE quick fix or
+  `dotnet format analyzers src/MiPdf/MiPdf.csproj --diagnostics RS0016 --severity info` adds the entries. On a
+  release the entries move to `PublicAPI.Shipped.txt`.
 
 ## Tests
 

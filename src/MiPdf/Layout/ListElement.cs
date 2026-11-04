@@ -96,6 +96,23 @@ public sealed class ListElement : LayoutElement
     /// <summary>Vertical space between items in points (default 2).</summary>
     public double ItemSpacing { get; set; } = 2;
 
+    /// <summary>The /ListNumbering attribute for the labels (required by PDF/UA-2), null if there is no matching value.</summary>
+    internal string? Numbering(bool pdf20)
+    {
+        if (LabelFormatter != null) return pdf20 ? "Ordered" : null;
+        return Style switch
+        {
+            ListStyle.Bullet => "Disc",
+            ListStyle.Dash => pdf20 ? "Unordered" : null,
+            ListStyle.Decimal => "Decimal",
+            ListStyle.LowerAlpha => "LowerAlpha",
+            ListStyle.UpperAlpha => "UpperAlpha",
+            ListStyle.LowerRoman => "LowerRoman",
+            ListStyle.UpperRoman => "UpperRoman",
+            _ => null,
+        };
+    }
+
     /// <summary>Adds an item with text formatted with the list's font.</summary>
     public ListItem AddItem(string text)
     {
@@ -206,7 +223,12 @@ public sealed class ListElement : LayoutElement
             double used = _before;
             bool renderedAny = false;
             var parent = canvas.StructureParent;
-            if (parent != null) _element ??= parent.AddChild(_list.StructureType ?? Tagging.StructureType.List);
+            if (parent != null && _element == null)
+            {
+                _element = parent.AddChild(_list.StructureType ?? Tagging.StructureType.List);
+                if (_list.Numbering(canvas.Document.UAConformance == PdfUAConformance.PdfUA2) is { } numbering)
+                    _element.SetAttribute("List", "ListNumbering", Objects.PdfName.Get(numbering));
+            }
             try
             {
                 for (int index = 0; index < _items.Count; index++)

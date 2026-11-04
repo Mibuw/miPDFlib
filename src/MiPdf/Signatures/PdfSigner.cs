@@ -384,6 +384,7 @@ public static class PdfSigner
     private static void TagSignatureField(PdfDocument doc, PdfSignatureField field, PdfWidget widget, string description)
     {
         field.ToolTip ??= description;
+        widget.Dictionary.SetText(PdfName.Contents, widget.Dictionary.GetText(PdfName.Contents) ?? field.ToolTip); // PDF/UA-2
         if (widget.Page is not { } page) return;
         page.Dictionary[PdfName.Get("Tabs")] = PdfName.S;
         if (widget.Rect.Width <= 0 || widget.Rect.Height <= 0 || widget.Dictionary.ContainsKey(PdfName.Get("StructParent"))) return;

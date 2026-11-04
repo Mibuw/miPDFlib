@@ -2,28 +2,46 @@ using MiPdf.Objects;
 
 namespace MiPdf.Tagging;
 
-/// <summary>Standard structure types (ISO 32000-1, 14.8.4) for <see cref="PdfStructureElement.AddChild"/>.</summary>
+/// <summary>
+/// Standard structure types (ISO 32000-1, 14.8.4, and ISO 32000-2, 14.8.4) for <see cref="PdfStructureElement.AddChild"/>.
+/// Types marked "PDF 2.0" are standard only in PDF/UA-2 documents; types marked "PDF 1.7 only" are not part of the
+/// PDF 2.0 namespace and stay in the PDF 1.7 namespace there.
+/// </summary>
 public static class StructureType
 {
     /// <summary>"Document": the complete document (root element of the structure).</summary>
     public const string Document = "Document";
     /// <summary>"Part": a large division of a document, e.g. a chapter group.</summary>
     public const string Part = "Part";
-    /// <summary>"Art": an article, a self-contained body of text.</summary>
+    /// <summary>"DocumentFragment" (PDF 2.0): a part of a document taken from another document.</summary>
+    public const string DocumentFragment = "DocumentFragment";
+    /// <summary>"Aside" (PDF 2.0): content that is related to but separate from the surrounding content, e.g. a sidebar.</summary>
+    public const string Aside = "Aside";
+    /// <summary>"Title" (PDF 2.0): the title of a document or of a part of it (not a heading).</summary>
+    public const string Title = "Title";
+    /// <summary>"FENote" (PDF 2.0): a footnote or endnote; replaces <see cref="Note"/>.</summary>
+    public const string FENote = "FENote";
+    /// <summary>"Sub" (PDF 2.0): a sub-division of a block, e.g. a line of an address.</summary>
+    public const string Sub = "Sub";
+    /// <summary>"Em" (PDF 2.0): emphasized text.</summary>
+    public const string Emphasis = "Em";
+    /// <summary>"Strong" (PDF 2.0): text of strong importance.</summary>
+    public const string Strong = "Strong";
+    /// <summary>"Art" (PDF 1.7 only): an article, a self-contained body of text.</summary>
     public const string Article = "Art";
-    /// <summary>"Index": a sequence of index entries with references.</summary>
+    /// <summary>"Index" (PDF 1.7 only): a sequence of index entries with references.</summary>
     public const string Index = "Index";
     /// <summary>"NonStruct": a grouping element without structural meaning (its children are kept).</summary>
     public const string NonStruct = "NonStruct";
-    /// <summary>"Private": content specific to the producing application.</summary>
+    /// <summary>"Private" (PDF 1.7 only): content specific to the producing application.</summary>
     public const string Private = "Private";
     /// <summary>"H": a heading without a level.</summary>
     public const string H = "H";
-    /// <summary>"Reference": a citation to content elsewhere in the document.</summary>
+    /// <summary>"Reference" (PDF 1.7 only): a citation to content elsewhere in the document.</summary>
     public const string Reference = "Reference";
-    /// <summary>"BibEntry": a bibliography entry.</summary>
+    /// <summary>"BibEntry" (PDF 1.7 only): a bibliography entry.</summary>
     public const string BibEntry = "BibEntry";
-    /// <summary>"Code": computer program text.</summary>
+    /// <summary>"Code" (PDF 1.7 only): computer program text.</summary>
     public const string Code = "Code";
     /// <summary>"Ruby": a ruby annotation (small text next to base text, e.g. pronunciation).</summary>
     public const string Ruby = "Ruby";
@@ -91,17 +109,17 @@ public static class StructureType
     public const string Formula = "Formula";
     /// <summary>"Form": a form field (widget annotation).</summary>
     public const string Form = "Form";
-    /// <summary>"Note": a footnote or endnote.</summary>
+    /// <summary>"Note" (PDF 1.7 only): a footnote or endnote; use <see cref="FENote"/> in PDF/UA-2 documents.</summary>
     public const string Note = "Note";
     /// <summary>"Caption": a caption of a figure or table.</summary>
     public const string Caption = "Caption";
-    /// <summary>"Quote": an inline quotation.</summary>
+    /// <summary>"Quote" (PDF 1.7 only): an inline quotation.</summary>
     public const string Quote = "Quote";
-    /// <summary>"BlockQuote": a block-level quotation.</summary>
+    /// <summary>"BlockQuote" (PDF 1.7 only): a block-level quotation.</summary>
     public const string BlockQuote = "BlockQuote";
-    /// <summary>"TOC": a table of contents.</summary>
+    /// <summary>"TOC" (PDF 1.7 only): a table of contents.</summary>
     public const string TableOfContents = "TOC";
-    /// <summary>"TOCI": an item of a table of contents.</summary>
+    /// <summary>"TOCI" (PDF 1.7 only): an item of a table of contents.</summary>
     public const string TableOfContentsItem = "TOCI";
 
     internal static readonly HashSet<string> All = new()
@@ -111,6 +129,18 @@ public static class StructureType
         TableHead, TableBody, TableFoot, Span, Quote, Note, Reference, BibEntry, Code, Link, Annotation, Ruby, RubyBase, RubyText,
         RubyPunctuation, Warichu, WarichuText, WarichuPunctuation, Figure, Formula, Form,
     };
+
+    /// <summary>The standard types of the PDF 2.0 namespace (headings H7 and higher are also standard there).</summary>
+    internal static readonly HashSet<string> Pdf20 = new()
+    {
+        Document, DocumentFragment, Part, Sect, Div, Aside, NonStruct, Paragraph, H, H1, H2, H3, H4, H5, H6, Title, FENote, Sub,
+        Label, Span, Emphasis, Strong, Link, Annotation, Form, Ruby, RubyBase, RubyText, RubyPunctuation, Warichu, WarichuText,
+        WarichuPunctuation, List, ListItem, ListBody, Table, TableRow, TableHeaderCell, TableDataCell, TableHead, TableBody,
+        TableFoot, Caption, Figure, Formula, "Artifact",
+    };
+
+    internal static bool IsPdf20Type(string type) =>
+        Pdf20.Contains(type) || (type.Length > 1 && type[0] == 'H' && type[1] != '0' && type.AsSpan(1).IndexOfAnyExceptInRange('0', '9') < 0);
 
     /// <summary>Returns "H1".."H6" for a heading level.</summary>
     public static string Heading(int level) => "H" + Math.Clamp(level, 1, 6);
@@ -276,6 +306,51 @@ public sealed class PdfStructureTree
 
     /// <summary>The structure tree root dictionary.</summary>
     public PdfDictionary Dictionary => _root;
+
+    /// <summary>The PDF 2.0 standard structure namespace (ISO 32000-2, 14.8.6).</summary>
+    internal const string Pdf20Namespace = "http://iso.org/pdf2/ssn";
+
+    /// <summary>
+    /// Puts all elements of PDF 2.0 standard types that have no namespace yet into the PDF 2.0 namespace (PDF/UA-2).
+    /// Other elements (PDF 1.7 only types, role-mapped custom types) stay in the default PDF 1.7 namespace.
+    /// </summary>
+    internal void UsePdf20Namespace()
+    {
+        PdfReference? ns = null;
+        var visited = new HashSet<PdfDictionary>(ReferenceEqualityComparer.Instance);
+        var pending = new Stack<(PdfObject Node, int Depth)>();
+        if (_root.Get(PdfName.K) is { } top) pending.Push((top, 0));
+        while (pending.Count > 0)
+        {
+            var (node, depth) = pending.Pop();
+            if (depth > 100) continue;
+            switch (node.Resolve())
+            {
+                case PdfArray array:
+                    foreach (var item in array) pending.Push((item, depth));
+                    break;
+                case PdfDictionary element when element.GetName(PdfName.S) is { } type && visited.Add(element):
+                    if (!element.ContainsKey(PdfName.Get("NS")) && StructureType.IsPdf20Type(type.Value))
+                        element[PdfName.Get("NS")] = ns ??= GetNamespace(Pdf20Namespace);
+                    if (element.Get(PdfName.K) is { } kids) pending.Push((kids, depth + 1));
+                    break;
+            }
+        }
+    }
+
+    /// <summary>Returns the namespace dictionary with the given URI from /Namespaces, adding it if needed.</summary>
+    private PdfReference GetNamespace(string uri)
+    {
+        var namespaces = _root.GetArray(PdfName.Get("Namespaces"));
+        if (namespaces == null) _root[PdfName.Get("Namespaces")] = namespaces = new PdfArray();
+        foreach (var item in namespaces)
+            if (item is PdfReference r && r.Resolve() is PdfDictionary d && d.GetText(PdfName.Get("NS")) == uri) return r;
+        var ns = new PdfDictionary(PdfName.Get("Namespace"));
+        ns.SetText(PdfName.Get("NS"), uri);
+        var reference = _document.AddObject(ns);
+        namespaces.Add(reference);
+        return reference;
+    }
 
     /// <summary>Maps a custom structure type to a standard type (/RoleMap), e.g. "Heading" → "H1".</summary>
     public void MapRole(string customType, string standardType)

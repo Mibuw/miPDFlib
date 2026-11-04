@@ -77,8 +77,11 @@ public sealed partial class PdfDocument
         }
         if (options.UpdateModificationDate) Info.ModificationDate = DateTimeOffset.Now;
         // with PDF/A, PDF/UA or XMP extensions the XMP metadata is rewritten from the document information anyway
-        if ((options.UpdateModificationDate || producerChanged) && Conformance == null && _uaConformance == null && XmpExtensions.Count == 0
-            && GetXmpMetadata() is { } xmp && XmpMetadata.Update(xmp, Info, options.UpdateModificationDate, producerChanged) is { } updated)
+        if (Conformance != null || _uaConformance != null || XmpExtensions.Count > 0 || GetXmpMetadata() is not { } xmp) return;
+        // opened PDF/A documents: PDF/A-1 to -3 require the same values in both, PDF/A-4 keeps them in the XMP metadata only
+        bool allProperties = GetPdfAIdentification() != null;
+        if ((options.UpdateModificationDate || producerChanged || allProperties)
+            && XmpMetadata.Update(xmp, Info, options.UpdateModificationDate, producerChanged, allProperties) is { } updated)
             SetXmpMetadata(updated);
     }
 
@@ -88,12 +91,24 @@ public sealed partial class PdfDocument
         if (Conformance is { } conformance)
         {
             if (IsEncrypted) throw new PdfException("PDF/A documents must not be encrypted.");
+            if (_uaConformance is { } ua && (ua == PdfUAConformance.PdfUA2) != (conformance.Part() == 4))
+                throw new PdfException(ua == PdfUAConformance.PdfUA2
+                    ? "PDF/UA-2 is based on PDF 2.0 and can only be combined with PDF/A-4."
+                    : "PDF/A-4 is based on PDF 2.0 and can only be combined with PDF/UA-2.");
             if (conformance == PdfAConformance.PdfA1B)
             {
                 if (options.UseObjectStreams) throw new PdfException("PDF/A-1 does not allow object streams; set UseObjectStreams = false.");
                 Version = "1.4";
             }
+            else if (conformance.Part() == 4)
+            {
+                if (!options.Incremental) Version = "2.0";
+            }
             else if (string.CompareOrdinal(Version, "1.7") != 0 && !options.Incremental) Version = "1.7";
+        }
+        else if (_uaConformance == PdfUAConformance.PdfUA2)
+        {
+            if (string.CompareOrdinal(Version, "2.0") < 0 && !options.Incremental) Version = "2.0";
         }
         else if (string.CompareOrdinal(Version, "1.7") < 0 && !options.Incremental) Version = "1.7";
 

@@ -56,6 +56,11 @@ internal sealed class PdfFileWriter
         _encryptor = encryptor;
     }
 
+    /// <summary>Leaves the document information dictionary out of the trailer (PDF/A-4 keeps it in the XMP metadata only).</summary>
+    public bool OmitInfo { get; init; }
+
+    private PdfName[] TrailerKeys => OmitInfo ? new[] { PdfName.Root, PdfName.Encrypt } : new[] { PdfName.Root, PdfName.Info, PdfName.Encrypt };
+
     // ---------------------------------------------------------------- full save
 
     public void WriteFull(Stream stream, string version)
@@ -189,7 +194,7 @@ internal sealed class PdfFileWriter
 
     private void CopyTrailerEntries(PdfDictionary source, PdfDictionary target)
     {
-        foreach (var key in new[] { PdfName.Root, PdfName.Info, PdfName.Encrypt })
+        foreach (var key in TrailerKeys)
             if (source[key] is { } v) target[key] = v;
         target[PdfName.ID] = BuildId(source);
     }
@@ -242,7 +247,7 @@ internal sealed class PdfFileWriter
             }
         }
 
-        foreach (var key in new[] { PdfName.Root, PdfName.Info, PdfName.Encrypt })
+        foreach (var key in TrailerKeys)
             if (trailer[key] is { } v) Visit(v);
         while (queue.Count > 0)
         {

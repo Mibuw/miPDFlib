@@ -1,6 +1,7 @@
 # Accessibility: tagged PDF and PDF/UA
 
-miPDFlib creates tagged PDF (ISO 32000 logical structure) and PDF/UA-1 (ISO 14289-1) documents. Namespace `MiPdf.Tagging`.
+miPDFlib creates tagged PDF (ISO 32000 logical structure), PDF/UA-1 (ISO 14289-1) and PDF/UA-2 (ISO 14289-2)
+documents. Namespace `MiPdf.Tagging`.
 
 ## PDF/UA with the layout engine
 
@@ -37,6 +38,7 @@ What the layout engine tags automatically:
 |---|---|---|
 | `Paragraph` | `P` | `AsHeading(n)` or `StructureType = "H2"`, any standard type possible |
 | `Table` | `Table` → `TR` → `TH`/`TD` | `Scope` and `ColSpan` attributes, one table element across pages |
+| `ListElement` | `L` → `LI` → `Lbl`/`LBody` | `ListNumbering` attribute, nested lists inside `LBody` |
 | `ImageElement`, `BarcodeElement` | `Figure` with `/Alt` and `BBox` | `IsDecorative` → artifact |
 | `HorizontalLine`, cell borders/backgrounds | artifact (Layout) | |
 | `Header`, `Footer` | artifact (Pagination) | |
@@ -48,6 +50,27 @@ When saving with `UAConformance` set, miPDFlib also writes the XMP identificatio
 schema when combined with PDF/A), sets `DisplayDocTitle`, sets `/Tabs /S` on pages with annotations and adds link,
 form field and other annotations to the structure tree (`Link`/`Form`/`Annot` with object references). Links without
 description get their URI as `/Contents`; form fields should get a description via `field.ToolTip`.
+
+## PDF/UA-2 (PDF 2.0)
+
+```csharp
+doc.UAConformance = PdfUAConformance.PdfUA2;
+doc.Conformance = PdfAConformance.PdfA4;    // optional; PDF/UA-2 can only be combined with PDF/A-4
+```
+
+The same code produces PDF/UA-2. In addition, saving
+
+- writes a PDF 2.0 file with `pdfuaid:part` 2 and `pdfuaid:rev` 2024,
+- puts the structure elements of PDF 2.0 types into the PDF 2.0 structure namespace (`http://iso.org/pdf2/ssn`,
+  `/Namespaces` in the structure tree root); types that exist only in PDF 1.7 (`Art`, `BlockQuote`, `Code`, ...) and
+  role-mapped custom types stay in the PDF 1.7 namespace,
+- gives form fields their description as `/Contents` as well.
+
+The layout engine adds the `ListNumbering` attribute to lists. PDF 2.0 introduces new structure types
+(`StructureType.Title`, `Aside`, `FENote`, `Sub`, `Emphasis`, `Strong`, `DocumentFragment`); use `FENote` instead of
+`Note`, which PDF/UA-2 does not allow. Skipped heading levels are allowed in PDF/UA-2. The containment rules of
+PDF 2.0 (which element may contain which, ISO 32000-2 Annex L) are not checked by `CheckPdfUA`: for example, inline
+elements such as `Quote` or `Sub` belong in a `P`, not directly in a `Sect`.
 
 ## Manual tagging on the canvas
 
@@ -75,7 +98,9 @@ documents can be extended: `EnableTagging()` continues the existing structure tr
 - missing tagging (`MarkInfo`, `StructTreeRoot`), language, title, `DisplayDocTitle`, XMP identification
 - content that is neither tagged nor marked as artifact
 - fonts that are not embedded (also in annotation appearances)
-- figures/formulas without alternate text, skipped heading levels, non-standard types without role mapping
+- figures/formulas without alternate text, skipped heading levels (PDF/UA-1), non-standard types without role mapping
+- PDF/UA-2: the `Document` element in the PDF 2.0 namespace, `ListNumbering` on lists with labels, `Note`, widgets
+  without `/Contents`
 - annotations outside the structure tree, missing `/Tabs /S`, links without `/Contents`, form fields without `/TU`
 - encryption that blocks accessibility tools
 
@@ -84,7 +109,8 @@ need human review; use veraPDF (PDF/UA profile) or PAC for formal validation.
 
 Validated with veraPDF 1.30 (`--flavour ua1` and `--flavour 2u`): layout documents with headings, tables across pages,
 figures, barcodes, links, text fields and check boxes pass PDF/UA-1 and PDF/A-2u – also after signing with a visible
-signature and extending to PAdES B-LTA.
+signature and extending to PAdES B-LTA. The same documents pass PDF/UA-2 and PDF/A-4 / PDF/A-4f (`--flavour ua2`,
+`4`, `4f`), also after signing.
 
 ## Forms and signatures in tagged documents
 
@@ -99,5 +125,4 @@ signature and extending to PAdES B-LTA.
 ## Limitations
 
 - The standard 14 fonts are not embedded and therefore not allowed in PDF/UA; use `PdfTrueTypeFont`.
-- Lists (`L`/`LI`) and table header/body groups (`THead`/`TBody`) can be created manually but are not produced by the
-  layout engine yet.
+- Table header/body groups (`THead`/`TBody`) can be created manually but are not produced by the layout engine yet.

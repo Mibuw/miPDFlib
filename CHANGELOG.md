@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- PDF/A-4 and PDF/A-4f (`PdfAConformance.PdfA4`, `PdfA4F`): written as PDF 2.0 with `pdfaid:rev`, without the document
+  information dictionary (the information is in the XMP metadata only). `CheckPdfA` knows the attachment rules of
+  PDF/A-4 and -4f. Validated with veraPDF.
+- PDF/UA-2 (`PdfUAConformance.PdfUA2`, can be combined with PDF/A-4): PDF 2.0 structure namespace for the structure
+  elements, `pdfuaid:rev`, `/Contents` for form fields; `CheckPdfUA` checks the PDF/UA-2 rules for namespaces, list
+  numbering and notes, and no longer reports skipped heading levels for PDF/UA-2. Validated with veraPDF.
+- PDF 2.0 structure types: `StructureType.Title`, `Aside`, `FENote`, `Sub`, `Emphasis`, `Strong`, `DocumentFragment`.
+- Lists produced by the layout engine get the `ListNumbering` attribute.
+- `doc.Info` of documents without a document information dictionary (PDF 2.0, PDF/A-4) is read from the XMP metadata.
+- Saving an opened PDF/A document also writes changed title, author, subject, keywords and creator into its XMP
+  metadata (before, only the dates and the producer were updated, so the information and the XMP metadata differed).
+- Signature fields in tagged documents get the description as `/Contents` (PDF/UA-2).
+- The public API is recorded in `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt` (Microsoft.CodeAnalysis.PublicApiAnalyzers,
+  build-time only, no runtime dependency): unintended API changes fail the build.
+
 ## 0.6.0
 
 - Performance: large documents need far less memory. Stream data of opened files is no longer copied (it is shared

@@ -1,5 +1,6 @@
 using MiPdf.IO;
 using MiPdf.Objects;
+using MiPdf.PdfA;
 
 namespace MiPdf;
 
@@ -343,7 +344,7 @@ public sealed partial class PdfDocument : IDisposable
     {
         options ??= new PdfSaveOptions();
         PrepareForSave(options);
-        var writer = new PdfFileWriter(Store, options, CreateEncryptor(options));
+        var writer = new PdfFileWriter(Store, options, CreateEncryptor(options)) { OmitInfo = OmitsInfo };
         if (options.Incremental) writer.WriteIncremental(stream);
         else writer.WriteFull(stream, EffectiveVersion(options));
         stream.Flush();
@@ -381,7 +382,7 @@ public sealed partial class PdfDocument : IDisposable
     {
         if (!options.Incremental) throw new ArgumentException("The options must be for an incremental save.", nameof(options));
         PrepareForSave(options);
-        new PdfFileWriter(Store, options, CreateEncryptor(options)).WriteIncremental(stream, updateOnly: true);
+        new PdfFileWriter(Store, options, CreateEncryptor(options)) { OmitInfo = OmitsInfo }.WriteIncremental(stream, updateOnly: true);
     }
 
     private void PrepareForSave(PdfSaveOptions options)
@@ -391,6 +392,12 @@ public sealed partial class PdfDocument : IDisposable
         if (options.Incremental && string.CompareOrdinal(Version, Store.Version) > 0)
             Catalog[PdfName.Get("Version")] = PdfName.Get(Version);
     }
+
+    /// <summary>
+    /// PDF/A-4 allows no document information dictionary; its content is in the XMP metadata. This also applies to
+    /// opened PDF/A-4 documents whose <see cref="Conformance"/> is not set, so that saving keeps them conforming.
+    /// </summary>
+    private bool OmitsInfo => (Conformance is { } conformance ? conformance.Part() : GetPdfAIdentification()?.Part) == 4;
 
     private string EffectiveVersion(PdfSaveOptions options)
     {

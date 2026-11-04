@@ -159,3 +159,31 @@ TextLayout.DefaultHyphenator = PatternHyphenator.FromTex(File.ReadAllText("hyph-
 
 `PdfImage.FromBytes` accepts JPEG (embedded unchanged), PNG (all color types, transparency), BMP (1/4/8/16/24/32 bit,
 RLE, bit fields with alpha) and GIF (first frame, transparency, interlacing).
+
+## PDF/A (long-term archiving)
+
+```csharp
+var doc = PdfDocument.Create();
+doc.Info.Title = "Annual report 2026";
+doc.Conformance = PdfAConformance.PdfA2B;   // or PdfA1B, PdfA2U, PdfA3B, PdfA3U, PdfA4, PdfA4F
+// ... content with embedded fonts (PdfTrueTypeFont); the standard 14 fonts are not embedded
+var issues = doc.CheckPdfA(PdfAConformance.PdfA2B);   // basic checks; use veraPDF for a full validation
+doc.Save("report.pdf");
+```
+
+Saving writes the XMP metadata with the PDF/A identification and an sRGB output intent, and sets the PDF version the
+part requires:
+
+| Level | Based on | Notes |
+|---|---|---|
+| `PdfA1B` | PDF 1.4 | no transparency, no object streams |
+| `PdfA2B`, `PdfA2U` | PDF 1.7 | `U`: all text mappable to Unicode (always the case with `PdfTrueTypeFont`) |
+| `PdfA3B`, `PdfA3U` | PDF 1.7 | like PDF/A-2, arbitrary attachments allowed (ZUGFeRD / Factur-X) |
+| `PdfA4` | PDF 2.0 | attachments must be PDF/A files |
+| `PdfA4F` | PDF 2.0 | arbitrary attachments, at least one required |
+
+PDF/A-4 does not allow the document information dictionary: miPDFlib writes title, author and dates only into the
+XMP metadata, and `doc.Info` of an opened PDF/A-4 (or other PDF 2.0) document reads them from there. Changes to
+`doc.Info` of an opened PDF/A document are written into its XMP metadata on saving, so the document stays conforming
+without setting `Conformance` again. PDF/A-4 can be combined with PDF/UA-2 (see [accessibility](accessibility.md)),
+PDF/A-1 to -3 with PDF/UA-1.

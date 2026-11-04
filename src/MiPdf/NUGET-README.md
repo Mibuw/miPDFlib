@@ -41,8 +41,8 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 | **Forms** | read/fill/create AcroForm fields (text, check box, radio, combo, list, push button, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
 | **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions |
 | **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA**, RFC 3161 and document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |
-| **PDF/A** | PDF/A-1b/2b/2u/3b/3u output (XMP, sRGB output intent) and a basic conformance checker |
-| **Accessibility** | tagged PDF and **PDF/UA-1**: automatic tagging by the layout engine, manual tagging API, PDF/UA checker |
+| **PDF/A** | PDF/A-1b/2b/2u/3b/3u/4/4f output (XMP, sRGB output intent) and a basic conformance checker |
+| **Accessibility** | tagged PDF, **PDF/UA-1** and **PDF/UA-2**: automatic tagging by the layout engine, manual tagging API, PDF/UA checker |
 | **Attachments / e-invoices** | embedded files with PDF/A-3 associated files, ZUGFeRD 2.x / Factur-X / XRechnung hybrid invoices, consistency check of the visible invoice against the XML |
 | **Hardening** | resource limits against decompression bombs and CPU exhaustion, SSRF-safe revocation fetching, fuzz-tested parser |
 | **Barcodes** | QR Code, EPC/GiroCode, Data Matrix (incl. GS1), Code 128/GS1-128, EAN-13/8, UPC-A, Code 39, ITF (vector output) |

@@ -9,7 +9,14 @@ public sealed class PdfDocumentInfo
 
     internal PdfDocumentInfo(PdfDocument document) => _document = document;
 
+    private PdfStream? _xmpSource;
+    private PdfDictionary? _xmpValues;
+
     /// <summary>The underlying dictionary; created on first write access.</summary>
+    /// <remarks>
+    /// Documents without a document information dictionary (PDF 2.0 deprecates it, PDF/A-4 forbids it) are read from
+    /// the XMP metadata instead; the first change then creates the dictionary from these values.
+    /// </remarks>
     public PdfDictionary? Dictionary => _document.Trailer.GetDictionary(PdfName.Info);
 
     private PdfDictionary GetOrCreate()
@@ -18,9 +25,24 @@ public sealed class PdfDocumentInfo
         if (info == null)
         {
             info = new PdfDictionary();
+            if (FromXmp() is { } values)
+                foreach (var (key, value) in values) info[key] = value;
             _document.Trailer[PdfName.Info] = _document.AddObject(info);
         }
         return info;
+    }
+
+    /// <summary>The information properties of the XMP metadata (cached until the metadata stream is replaced).</summary>
+    private PdfDictionary? FromXmp()
+    {
+        var stream = _document.Catalog.GetStream(PdfName.Metadata);
+        if (stream == null) return null;
+        if (!ReferenceEquals(stream, _xmpSource))
+        {
+            _xmpValues = PdfA.XmpMetadata.ReadInfo(stream.GetBytes());
+            _xmpSource = stream;
+        }
+        return _xmpValues;
     }
 
     /// <summary>Document title (/Title); <c>null</c> removes the entry.</summary>
@@ -56,17 +78,20 @@ public sealed class PdfDocumentInfo
     }
 
     /// <summary>Reads a custom entry.</summary>
-    public string? Get(PdfName key) => Dictionary?.GetText(key);
+    public string? Get(PdfName key) => (Dictionary ?? FromXmp())?.GetText(key);
 
     /// <summary>Removes an entry.</summary>
-    public void Remove(PdfName key) => Dictionary?.Remove(key);
+    public void Remove(PdfName key)
+    {
+        if (Dictionary != null || FromXmp()?.ContainsKey(key) == true) GetOrCreate().Remove(key);
+    }
 
     /// <summary>Writes a custom entry; <c>null</c> removes it.</summary>
     public void Set(PdfName key, string? value)
     {
         if (value == null)
         {
-            Dictionary?.Remove(key);
+            Remove(key);
             return;
         }
         GetOrCreate().SetText(key, value);
