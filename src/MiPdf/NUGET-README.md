@@ -23,10 +23,10 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
   without BouncyCastle.
 - **Archiving and e-invoices:** PDF/A, PDF/UA and ZUGFeRD / Factur-X / XRechnung hybrid invoices.
 - **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
-  and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
+  (also with PDFBox, PdfPig, PDFsharp/MigraDoc and QuestPDF) and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
 
-> **Versioning:** all planned feature areas are implemented and tested. Releases follow Semantic Versioning; until 1.0
-> the public API may still change between minor versions (see the [changelog](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)).
+> **Versioning:** all planned feature areas are implemented and tested. Releases follow Semantic Versioning; since 1.0
+> the public API is stable, breaking changes only in a new major version (see the [changelog](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md)).
 
 ## Features
 

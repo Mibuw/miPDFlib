@@ -4,7 +4,7 @@ using MiPdf.Objects;
 namespace MiPdf.Filters;
 
 /// <summary>FlateDecode (zlib/deflate).</summary>
-public static class FlateFilter
+internal static class FlateFilter
 {
     /// <summary>Compresses <paramref name="data"/> into a zlib stream (2-byte header, deflate data, Adler-32 checksum).</summary>
     public static byte[] Encode(byte[] data, CompressionLevel level = CompressionLevel.Optimal)
@@ -60,7 +60,7 @@ public static class FlateFilter
 }
 
 /// <summary>PNG and TIFF predictors for Flate/LZW (ISO 32000-2, 7.4.4.4).</summary>
-public static class Predictor
+internal static class Predictor
 {
     /// <summary>
     /// Reverses the predictor declared in the decode parameters (<c>/Predictor</c>, <c>/Colors</c>,
@@ -139,7 +139,7 @@ public static class Predictor
 }
 
 /// <summary>LZWDecode.</summary>
-public static class LzwFilter
+internal static class LzwFilter
 {
     /// <summary>
     /// Decodes LZW-compressed data. Stops at the end-of-data code or at the first invalid code and returns
@@ -197,7 +197,7 @@ public static class LzwFilter
 }
 
 /// <summary>ASCII85Decode.</summary>
-public static class Ascii85Filter
+internal static class Ascii85Filter
 {
     private static readonly byte[] ZeroGroup = new byte[4];
 
@@ -248,7 +248,7 @@ public static class Ascii85Filter
 }
 
 /// <summary>ASCIIHexDecode.</summary>
-public static class AsciiHexFilter
+internal static class AsciiHexFilter
 {
     /// <summary>
     /// Decodes hexadecimal data up to the <c>&gt;</c> end marker, ignoring white space and invalid characters.
@@ -291,7 +291,7 @@ public static class AsciiHexFilter
 }
 
 /// <summary>RunLengthDecode.</summary>
-public static class RunLengthFilter
+internal static class RunLengthFilter
 {
     /// <summary>Decodes run-length encoded data up to the end-of-data byte (128) or the end of the input.</summary>
     public static byte[] Decode(byte[] data)

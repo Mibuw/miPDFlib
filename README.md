@@ -27,10 +27,10 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 - **eIDAS-ready signatures:** PAdES B-B to B-LTA, HSM/cloud signers and two-step signing, built on .NET cryptography
   without BouncyCastle.
 - **Archiving and e-invoices:** PDF/A, PDF/UA and ZUGFeRD / Factur-X / XRechnung hybrid invoices.
-- **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) and the
-  [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
+- **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) (also with
+  PDFBox, PdfPig, PDFsharp/MigraDoc and QuestPDF) and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
 
-> Status: **0.6.0** – all planned feature areas are implemented and tested (359 unit tests, real-world
+> Status: **1.0.0** (stable) – all planned feature areas are implemented and tested (359 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
 ## Features
@@ -169,8 +169,8 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 Every release is also available as a [GitHub release](https://github.com/Mibuw/miPDFlib/releases) with the
 `.nupkg` and symbol package attached.
 
-> **Versioning:** releases follow [Semantic Versioning](https://semver.org). Until 1.0 the public API may still change
-> between minor versions (0.5 → 0.6); such changes are listed in
+> **Versioning:** releases follow [Semantic Versioning](https://semver.org). Since 1.0 the public API is stable:
+> breaking changes only in a new major version, recorded in
 > [CHANGELOG.md](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md). There is no guaranteed support.
 
 ## Building

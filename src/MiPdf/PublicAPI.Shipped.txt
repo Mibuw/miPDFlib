@@ -12,12 +12,16 @@ abstract MiPdf.Objects.PdfObject.ObjectType.get -> MiPdf.Objects.PdfObjectType
 const MiPdf.Invoicing.FacturX.NamespaceUri = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#" -> string!
 const MiPdf.Tagging.StructureType.Annotation = "Annot" -> string!
 const MiPdf.Tagging.StructureType.Article = "Art" -> string!
+const MiPdf.Tagging.StructureType.Aside = "Aside" -> string!
 const MiPdf.Tagging.StructureType.BibEntry = "BibEntry" -> string!
 const MiPdf.Tagging.StructureType.BlockQuote = "BlockQuote" -> string!
 const MiPdf.Tagging.StructureType.Caption = "Caption" -> string!
 const MiPdf.Tagging.StructureType.Code = "Code" -> string!
 const MiPdf.Tagging.StructureType.Div = "Div" -> string!
 const MiPdf.Tagging.StructureType.Document = "Document" -> string!
+const MiPdf.Tagging.StructureType.DocumentFragment = "DocumentFragment" -> string!
+const MiPdf.Tagging.StructureType.Emphasis = "Em" -> string!
+const MiPdf.Tagging.StructureType.FENote = "FENote" -> string!
 const MiPdf.Tagging.StructureType.Figure = "Figure" -> string!
 const MiPdf.Tagging.StructureType.Form = "Form" -> string!
 const MiPdf.Tagging.StructureType.Formula = "Formula" -> string!
@@ -47,6 +51,8 @@ const MiPdf.Tagging.StructureType.RubyPunctuation = "RP" -> string!
 const MiPdf.Tagging.StructureType.RubyText = "RT" -> string!
 const MiPdf.Tagging.StructureType.Sect = "Sect" -> string!
 const MiPdf.Tagging.StructureType.Span = "Span" -> string!
+const MiPdf.Tagging.StructureType.Strong = "Strong" -> string!
+const MiPdf.Tagging.StructureType.Sub = "Sub" -> string!
 const MiPdf.Tagging.StructureType.Table = "Table" -> string!
 const MiPdf.Tagging.StructureType.TableBody = "TBody" -> string!
 const MiPdf.Tagging.StructureType.TableDataCell = "TD" -> string!
@@ -56,9 +62,22 @@ const MiPdf.Tagging.StructureType.TableHeaderCell = "TH" -> string!
 const MiPdf.Tagging.StructureType.TableOfContents = "TOC" -> string!
 const MiPdf.Tagging.StructureType.TableOfContentsItem = "TOCI" -> string!
 const MiPdf.Tagging.StructureType.TableRow = "TR" -> string!
+const MiPdf.Tagging.StructureType.Title = "Title" -> string!
 const MiPdf.Tagging.StructureType.Warichu = "Warichu" -> string!
 const MiPdf.Tagging.StructureType.WarichuPunctuation = "WP" -> string!
 const MiPdf.Tagging.StructureType.WarichuText = "WT" -> string!
+MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.Hidden = 2 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.Invisible = 1 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.Locked = 128 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.LockedContents = 512 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.None = 0 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.NoRotate = 16 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.NoView = 32 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.NoZoom = 8 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.Print = 4 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.ReadOnly = 64 -> MiPdf.AnnotationFlags
+MiPdf.AnnotationFlags.ToggleNoView = 256 -> MiPdf.AnnotationFlags
 MiPdf.AnnotationOptions
 MiPdf.AnnotationOptions.AnnotationOptions() -> void
 MiPdf.AnnotationOptions.Author.get -> string?
@@ -156,13 +175,6 @@ MiPdf.Content.ContentOperation.Operands.get -> System.Collections.Generic.IReadO
 MiPdf.Content.ContentOperation.Operator.get -> string!
 MiPdf.Content.ContentParser
 MiPdf.Content.FreeSpaceFinder
-MiPdf.Filters.Ascii85Filter
-MiPdf.Filters.AsciiHexFilter
-MiPdf.Filters.FlateFilter
-MiPdf.Filters.LzwFilter
-MiPdf.Filters.Predictor
-MiPdf.Filters.RunLengthFilter
-MiPdf.Filters.StreamFilters
 MiPdf.Fonts.PdfFont
 MiPdf.Fonts.PdfFont.GetAscent(double fontSize) -> double
 MiPdf.Fonts.PdfFont.GetDescent(double fontSize) -> double
@@ -262,9 +274,7 @@ MiPdf.Forms.PdfFormField.ReadOnly.set -> void
 MiPdf.Forms.PdfFormField.Required.get -> bool
 MiPdf.Forms.PdfFormField.Required.set -> void
 MiPdf.Forms.PdfFormField.ToolTip.get -> string?
-MiPdf.Forms.PdfFormField.Tooltip.get -> string?
 MiPdf.Forms.PdfFormField.ToolTip.set -> void
-MiPdf.Forms.PdfFormField.Tooltip.set -> void
 MiPdf.Forms.PdfFormField.Widgets.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Forms.PdfWidget!>!
 MiPdf.Forms.PdfPushButton
 MiPdf.Forms.PdfPushButton.Caption.get -> string?
@@ -574,6 +584,8 @@ MiPdf.Layout.LayoutDocument.Footer.get -> System.Action<MiPdf.Layout.PageContext
 MiPdf.Layout.LayoutDocument.Footer.set -> void
 MiPdf.Layout.LayoutDocument.Header.get -> System.Action<MiPdf.Layout.PageContext!>?
 MiPdf.Layout.LayoutDocument.Header.set -> void
+MiPdf.Layout.LayoutDocument.HeadingBookmarks.get -> bool
+MiPdf.Layout.LayoutDocument.HeadingBookmarks.set -> void
 MiPdf.Layout.LayoutDocument.LayoutDocument(MiPdf.PdfDocument! document, MiPdf.PdfRectangle? pageSize = null, MiPdf.Layout.Thickness? margins = null) -> void
 MiPdf.Layout.LayoutDocument.Margins.get -> MiPdf.Layout.Thickness
 MiPdf.Layout.LayoutDocument.Margins.set -> void
@@ -645,6 +657,7 @@ MiPdf.Layout.Paragraph
 MiPdf.Layout.Paragraph.Add(MiPdf.Layout.TextRun! run) -> MiPdf.Layout.Paragraph!
 MiPdf.Layout.Paragraph.Add(string! text) -> MiPdf.Layout.Paragraph!
 MiPdf.Layout.Paragraph.Add(string! text, MiPdf.Fonts.PdfFont! font, double? fontSize = null, MiPdf.Graphics.PdfColor? color = null) -> MiPdf.Layout.Paragraph!
+MiPdf.Layout.Paragraph.AddLink(string! text, string! uri) -> MiPdf.Layout.Paragraph!
 MiPdf.Layout.Paragraph.Alignment.get -> MiPdf.Graphics.TextAlignment
 MiPdf.Layout.Paragraph.Alignment.set -> void
 MiPdf.Layout.Paragraph.AsHeading(int level) -> MiPdf.Layout.Paragraph!
@@ -728,6 +741,8 @@ MiPdf.Layout.TextRun.Text.set -> void
 MiPdf.Layout.TextRun.TextRun(string! text, MiPdf.Fonts.PdfFont? font = null, double? fontSize = null, MiPdf.Graphics.PdfColor? color = null) -> void
 MiPdf.Layout.TextRun.Underline.get -> bool
 MiPdf.Layout.TextRun.Underline.set -> void
+MiPdf.Layout.TextRun.Uri.get -> string?
+MiPdf.Layout.TextRun.Uri.set -> void
 MiPdf.Layout.Thickness
 MiPdf.Layout.Thickness.Bottom.get -> double
 MiPdf.Layout.Thickness.Bottom.init -> void
@@ -872,6 +887,8 @@ MiPdf.PdfA.PdfAConformance.PdfA2B = 1 -> MiPdf.PdfA.PdfAConformance
 MiPdf.PdfA.PdfAConformance.PdfA2U = 2 -> MiPdf.PdfA.PdfAConformance
 MiPdf.PdfA.PdfAConformance.PdfA3B = 3 -> MiPdf.PdfA.PdfAConformance
 MiPdf.PdfA.PdfAConformance.PdfA3U = 4 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA4 = 5 -> MiPdf.PdfA.PdfAConformance
+MiPdf.PdfA.PdfAConformance.PdfA4F = 6 -> MiPdf.PdfA.PdfAConformance
 MiPdf.PdfA.PdfAIdentification
 MiPdf.PdfA.PdfAIdentification.<Clone>$() -> MiPdf.PdfA.PdfAIdentification!
 MiPdf.PdfA.PdfAIdentification.Conformance.get -> string!
@@ -914,12 +931,12 @@ MiPdf.PdfA.XmpProperty.XmpProperty(string! Name, string! Value, string! ValueTyp
 MiPdf.PdfAnnotation
 MiPdf.PdfAnnotation.Author.get -> string?
 MiPdf.PdfAnnotation.Author.set -> void
-MiPdf.PdfAnnotation.Color.get -> double[]?
+MiPdf.PdfAnnotation.Color.get -> MiPdf.Graphics.PdfColor?
 MiPdf.PdfAnnotation.Contents.get -> string?
 MiPdf.PdfAnnotation.Contents.set -> void
 MiPdf.PdfAnnotation.Dictionary.get -> MiPdf.Objects.PdfDictionary!
 MiPdf.PdfAnnotation.ExtractImages() -> System.Collections.Generic.IReadOnlyList<MiPdf.Images.PdfExtractedImage!>!
-MiPdf.PdfAnnotation.Flags.get -> int
+MiPdf.PdfAnnotation.Flags.get -> MiPdf.AnnotationFlags
 MiPdf.PdfAnnotation.Flags.set -> void
 MiPdf.PdfAnnotation.ModificationDate.get -> System.DateTimeOffset?
 MiPdf.PdfAnnotation.Rect.get -> MiPdf.PdfRectangle
@@ -1192,6 +1209,7 @@ MiPdf.PdfRectangle.Top.init -> void
 MiPdf.PdfRectangle.Width.get -> double
 MiPdf.PdfUAConformance
 MiPdf.PdfUAConformance.PdfUA1 = 0 -> MiPdf.PdfUAConformance
+MiPdf.PdfUAConformance.PdfUA2 = 1 -> MiPdf.PdfUAConformance
 MiPdf.PdfViewerPreferences
 MiPdf.PdfViewerPreferences.CenterWindow.get -> bool
 MiPdf.PdfViewerPreferences.CenterWindow.set -> void
@@ -1726,17 +1744,6 @@ static MiPdf.Barcodes.QrCode.Create(string! text, MiPdf.Barcodes.QrErrorCorrecti
 static MiPdf.Content.ContentParser.Parse(byte[]! content, bool strict = false) -> System.Collections.Generic.IEnumerable<MiPdf.Content.ContentOperation!>!
 static MiPdf.Content.FreeSpaceFinder.Find(MiPdf.PdfPage! page, double minWidth, double minHeight, bool includeAnnotations = true) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
 static MiPdf.Content.FreeSpaceFinder.Find(MiPdf.PdfRectangle area, System.Collections.Generic.IEnumerable<MiPdf.PdfRectangle>! occupied, double minWidth, double minHeight) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
-static MiPdf.Filters.Ascii85Filter.Decode(byte[]! data) -> byte[]!
-static MiPdf.Filters.AsciiHexFilter.Decode(byte[]! data) -> byte[]!
-static MiPdf.Filters.AsciiHexFilter.Encode(byte[]! data) -> byte[]!
-static MiPdf.Filters.FlateFilter.Decode(byte[]! data) -> byte[]!
-static MiPdf.Filters.FlateFilter.Encode(byte[]! data, System.IO.Compression.CompressionLevel level = System.IO.Compression.CompressionLevel.Optimal) -> byte[]!
-static MiPdf.Filters.LzwFilter.Decode(byte[]! data, int earlyChange = 1) -> byte[]!
-static MiPdf.Filters.Predictor.Apply(byte[]! data, MiPdf.Objects.PdfDictionary? parms) -> byte[]!
-static MiPdf.Filters.RunLengthFilter.Decode(byte[]! data) -> byte[]!
-static MiPdf.Filters.StreamFilters.Decode(byte[]! data, MiPdf.Objects.PdfDictionary! dict, out MiPdf.Objects.PdfName? remainingImageFilter) -> byte[]!
-static MiPdf.Filters.StreamFilters.DecodeOne(byte[]! data, MiPdf.Objects.PdfName! filter, MiPdf.Objects.PdfDictionary? parms) -> byte[]!
-static MiPdf.Filters.StreamFilters.GetFilterNames(MiPdf.Objects.PdfDictionary! dict) -> System.Collections.Generic.IReadOnlyList<MiPdf.Objects.PdfName!>!
 static MiPdf.Fonts.PdfStandardFont.FromName(string! name) -> MiPdf.Fonts.PdfStandardFont!
 static MiPdf.Fonts.PdfTrueTypeFont.FromBytes(byte[]! data, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
 static MiPdf.Fonts.PdfTrueTypeFont.FromFile(string! path, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
@@ -1791,8 +1798,6 @@ static MiPdf.Objects.PdfNumber.implicit operator MiPdf.Objects.PdfNumber!(double
 static MiPdf.Objects.PdfNumber.implicit operator MiPdf.Objects.PdfNumber!(int value) -> MiPdf.Objects.PdfNumber!
 static MiPdf.Objects.PdfString.DecodeText(System.ReadOnlySpan<byte> bytes) -> string!
 static MiPdf.Objects.PdfString.EncodeText(string! text) -> byte[]!
-static MiPdf.Objects.PdfString.FromBytes(byte[]! bytes, bool hex = false) -> MiPdf.Objects.PdfString!
-static MiPdf.Objects.PdfString.FromText(string! text) -> MiPdf.Objects.PdfString!
 static MiPdf.PageSize.FromMillimeters(double width, double height) -> MiPdf.PdfRectangle
 static MiPdf.PageSize.Landscape(MiPdf.PdfRectangle size) -> MiPdf.PdfRectangle
 static MiPdf.PdfA.PdfAChecker.Check(MiPdf.PdfDocument! document, MiPdf.PdfA.PdfAConformance conformance) -> System.Collections.Generic.IReadOnlyList<string!>!

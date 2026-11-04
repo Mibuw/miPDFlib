@@ -4,6 +4,44 @@ using MiPdf.Objects;
 
 namespace MiPdf;
 
+/// <summary>Annotation flags (/F, ISO 32000-1 12.5.3).</summary>
+[Flags]
+public enum AnnotationFlags
+{
+    /// <summary>No flags.</summary>
+    None = 0,
+
+    /// <summary>Do not display an unknown annotation type with a fallback appearance.</summary>
+    Invisible = 1,
+
+    /// <summary>Neither displayed nor printed.</summary>
+    Hidden = 2,
+
+    /// <summary>Printed.</summary>
+    Print = 4,
+
+    /// <summary>The appearance is not scaled with the page zoom.</summary>
+    NoZoom = 8,
+
+    /// <summary>The appearance is not rotated with the page.</summary>
+    NoRotate = 16,
+
+    /// <summary>Not displayed on screen (may be printed).</summary>
+    NoView = 32,
+
+    /// <summary>No interaction with the user.</summary>
+    ReadOnly = 64,
+
+    /// <summary>Cannot be deleted or changed in size and position.</summary>
+    Locked = 128,
+
+    /// <summary>Inverts <see cref="NoView"/> for certain events.</summary>
+    ToggleNoView = 256,
+
+    /// <summary>The contents cannot be changed.</summary>
+    LockedContents = 512,
+}
+
 /// <summary>A read/write view of an annotation dictionary.</summary>
 public sealed class PdfAnnotation
 {
@@ -43,17 +81,23 @@ public sealed class PdfAnnotation
         set => Dictionary.SetText(PdfName.T, value);
     }
 
-    /// <summary>Color (/C) as RGB, gray or CMYK components.</summary>
-    public double[]? Color => Dictionary.GetArray(PdfName.C)?.Select(o => (o.Resolve() as PdfNumber)?.Value ?? 0).ToArray();
+    /// <summary>Color (/C) as gray, RGB or CMYK color; null if none is set (missing or empty /C).</summary>
+    public PdfColor? Color => Dictionary.GetArray(PdfName.C)?.Select(o => (o.Resolve() as PdfNumber)?.Value ?? 0).ToArray() switch
+    {
+        [var gray] => PdfColor.Gray(gray),
+        [var r, var g, var b] => PdfColor.Rgb(r, g, b),
+        [var c, var m, var y, var k] => PdfColor.Cmyk(c, m, y, k),
+        _ => null,
+    };
 
     /// <summary>Last modification date (/M).</summary>
     public DateTimeOffset? ModificationDate => PdfDate.Parse(Dictionary.GetText(PdfName.M));
 
-    /// <summary>Annotation flags (/F): 1 invisible, 2 hidden, 4 print, 8 no zoom, 16 no rotate, 32 no view, 64 read-only, 128 locked.</summary>
-    public int Flags
+    /// <summary>Annotation flags (/F).</summary>
+    public AnnotationFlags Flags
     {
-        get => Dictionary.GetInt(PdfName.F);
-        set => Dictionary.Set(PdfName.F, value);
+        get => (AnnotationFlags)Dictionary.GetInt(PdfName.F);
+        set => Dictionary.Set(PdfName.F, (int)value);
     }
 
     /// <summary>Images in the annotation's appearance (e.g. the image of a visible signature), with page coordinates.</summary>

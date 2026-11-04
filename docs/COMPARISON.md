@@ -1,6 +1,9 @@
-# miPDFlib compared with iText and Syncfusion PDF
+# miPDFlib compared with other PDF libraries
 
-A short, practical comparison for the tasks that matter in form and signing projects. It is not a benchmark. A
+A short, practical comparison: first with the commercial libraries iText and Syncfusion PDF for the tasks that
+matter in form and signing projects, then with the open-source and community alternatives
+[Apache PDFBox, PdfPig, PDFsharp/MigraDoc and QuestPDF](#open-source-and-community-alternatives). It is not a
+benchmark. A
 detailed version with background and examples is the article
 [iText or Syncfusion PDF? A practical comparison for forms and digital signatures in .NET](https://www.mitterbucher.com/en/articles/itext-vs-syncfusion-pdf/)
 ([German](https://www.mitterbucher.com/artikel/itext-vs-syncfusion-pdf/)). For switching code over, see the
@@ -47,12 +50,48 @@ miPDFlib is young; its strengths are the licence, signatures without BouncyCastl
 | Validation | validation module (since 9) | built in | `PdfSignatureValidator` (integrity, chain, coverage, timestamp, PAdES level, field locks, revocation status from the embedded OCSP responses and CRLs) |
 | Cryptography | BouncyCastle (mandatory adapter) | own implementation; BouncyCastle or .NET for custom CMS | .NET (`System.Security.Cryptography.Pkcs`), no BouncyCastle |
 
+## Open-source and community alternatives
+
+Apache PDFBox is the established open-source library in the Java world; PdfPig, PDFsharp/MigraDoc and QuestPDF are
+widely used in .NET. Each has a different focus, and in several areas they are ahead of miPDFlib.
+
+| | Apache PDFBox 3.0 | PdfPig 0.1 | PDFsharp 6.5 / MigraDoc | QuestPDF 2026.9 | miPDFlib |
+|---|---|---|---|---|---|
+| Platform, licence | Java, Apache-2.0 | .NET, Apache-2.0 | .NET, AGPL-3.0 or commercial (since 6.5; MIT up to 6.2) | .NET, Community License (free below USD 1M revenue, with exclusions) or commercial | .NET, Apache-2.0 |
+| Native dependencies | none | none | none | Skia, qpdf, HarfBuzz (bundled) | none |
+| Create PDFs | low-level content | low-level, simple text | low-level (PDFsharp), layout engine (MigraDoc) | layout engine | low-level canvas and layout engine |
+| Modify, merge, split | yes, incremental saving | merge; incremental saving not yet released | yes | merge, overlay via qpdf | yes, incremental saving |
+| Text extraction | with positions | with positions and layout analysis | – | – | with positions, reading order |
+| Render pages to images, print | **yes** | – | – | only its own documents | – |
+| AcroForms | fill, create, flatten | read only | fill, flatten | – | fill, create, flatten, FDF/XFDF |
+| Signatures | signing framework; PAdES levels and LTV only as example code with BouncyCastle; no validation | – | CMS (`adbe.pkcs7.detached`), optional time-stamp; no LTV, no validation | – | PAdES B-B to B-LTA, LTV, validation, no BouncyCastle |
+| Encryption | password (AES-256), certificate | decrypt only | password (AES-256) | password via qpdf | password (AES-256); no certificate encryption |
+| PDF/A output | manual (example for PDF/A-1b) | A-1, A-2, A-3 (a/b) | `SetPdfA()`, level not selectable | A-2, A-3 (a/b/u) | A-1b, A-2b/u, A-3b/u, **A-4/4f** |
+| PDF/UA | manual tagging | – | manual tagging, PDF/UA-1 | semantic API, PDF/UA-1 | automatic tagging by the layout engine, **PDF/UA-1 and PDF/UA-2** |
+| Optional content (layers) | **yes** | read | – | – | – |
+| CCITT / JBIG2 / JPEG 2000 images | decoded (JBIG2/JPX via plugins) | CCITT only | – | – | raw data only |
+| Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | – |
+| ZUGFeRD, redaction, barcodes | – | – | barcodes | PDF/A-3 attachments for ZUGFeRD | all three |
+
+In short: **PDFBox** is the choice for rendering and printing and the most complete low-level toolkit, but in Java
+and with signatures assembled from examples. **PdfPig** is strong at reading and analysing text. **MigraDoc** and
+**QuestPDF** are good at document generation; QuestPDF also handles complex scripts, but needs native libraries and a
+paid licence above its revenue limit, and since 6.5 PDFsharp is AGPL or commercial. miPDFlib covers creating,
+modifying, forms, signatures and archiving in one managed library; it does not render PDFs and does not shape complex
+scripts.
+
+Information as of November 2026, from the projects' documentation, release notes and source code; the binding
+licence terms are those of the projects.
+
 ## When to choose what
 
 - **Open-source project under the AGPL:** iText – mature, with very comprehensive signature support.
 - **Closed product of a small company within the Community License limits:** Syncfusion PDF.
 - **Office conversion in the same workflow:** Syncfusion.
 - **Commercial support, FIPS or the widest feature set:** iText or Syncfusion with a commercial licence.
+- **Rendering PDFs to images or printing:** PDFBox (Java) – or a PDFium-based .NET library.
+- **Reading and analysing text in .NET:** PdfPig.
+- **Document generation with complex scripts (Arabic, Indic):** QuestPDF, within its licence terms.
 - **Closed product without licence costs and without revenue or size limits, focused on forms, PAdES signatures,
   PDF/A, PDF/UA or e-invoices:** miPDFlib – test it with your own documents before going live.
 

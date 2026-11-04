@@ -7,8 +7,8 @@ Please report security problems privately via a GitHub security advisory of this
 
 ## Supported versions
 
-Security fixes are released for the latest version on nuget.org. Until 1.0 there are no maintenance branches for
-older minor versions.
+Security fixes are released for the latest version on nuget.org. There are no maintenance branches for older
+versions.
 
 ## Threat model
 

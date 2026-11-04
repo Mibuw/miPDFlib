@@ -225,14 +225,6 @@ public abstract class PdfFormField
         set => Flags = value ? Flags | FieldFlags.Required : Flags & ~FieldFlags.Required;
     }
 
-    /// <summary>Same as <see cref="ToolTip"/>.</summary>
-    [Obsolete("Use ToolTip.")]
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public string? Tooltip
-    {
-        get => Dictionary.GetText(PdfName.Get("TU"));
-        set => Dictionary.SetText(PdfName.Get("TU"), value);
-    }
 
     /// <summary>The field value as text (for buttons: the selected state name, "Off" if unchecked).</summary>
     public virtual string? Value

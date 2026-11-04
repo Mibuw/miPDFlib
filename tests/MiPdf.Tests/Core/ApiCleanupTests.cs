@@ -50,9 +50,7 @@ public class ApiCleanupTests
         Assert.Equal(flags, widget.Dictionary.GetInt(PdfName.F));
 
         field.ToolTip = "Your name";
-#pragma warning disable CS0618 // the obsolete alias still works
-        Assert.Equal("Your name", field.Tooltip);
-#pragma warning restore CS0618
+        Assert.Equal("Your name", field.ToolTip);
     }
 
     [Fact]

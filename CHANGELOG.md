@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
+
+First stable release. The public API is recorded in `PublicAPI.Shipped.txt` and follows Semantic Versioning: no
+breaking changes before 2.0.
+
+Breaking changes compared with 0.6.0 (API review before 1.0):
+
+- `PdfAnnotation.Flags` is an `AnnotationFlags` enum instead of `int`, and `PdfAnnotation.Color` a `PdfColor?`
+  instead of `double[]` (consistent with form fields and the rest of the API).
+- The stream filter classes (`MiPdf.Filters`: `FlateFilter`, `LzwFilter`, `Ascii85Filter`, ...) are internal;
+  use `PdfStream.GetDecodedData()`.
+- The obsolete members `PdfFormField.Tooltip` (use `ToolTip`), `PdfString.FromText` and `PdfString.FromBytes` (use
+  the constructors) are removed.
 
 - PDF/A-4 and PDF/A-4f (`PdfAConformance.PdfA4`, `PdfA4F`): written as PDF 2.0 with `pdfaid:rev`, without the document
   information dictionary (the information is in the XMP metadata only). `CheckPdfA` knows the attachment rules of

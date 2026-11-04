@@ -41,7 +41,7 @@ public static class FreeSpaceFinder
         }.Walk(page.GetContentBytes(), page.GetInheritable(PdfName.Resources) as PdfDictionary, Matrix.Identity);
         if (includeAnnotations)
             foreach (var annotation in page.Annotations)
-                if (annotation.Subtype != "Popup" && (annotation.Flags & 2) == 0 && annotation.Rect.Width > 0) occupied.Add(annotation.Rect);
+                if (annotation.Subtype != "Popup" && (annotation.Flags & AnnotationFlags.Hidden) == 0 && annotation.Rect.Width > 0) occupied.Add(annotation.Rect);
         return Find(page.CropBox, occupied, minWidth, minHeight);
     }
 

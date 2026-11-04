@@ -42,7 +42,10 @@ public class AnnotationTests
         Assert.Equal(bounds.Left, quads.GetDouble(0), 3);
         Assert.Equal(bounds.Top, quads.GetDouble(1), 3);
         Assert.All(annots, a => Assert.NotNull(a.Dictionary.GetDictionary(PdfName.AP)?.GetStream(PdfName.N)));
-        Assert.Equal(4, annots[0].Flags);
+        Assert.Equal(AnnotationFlags.Print, annots[0].Flags);
+        Assert.Equal(PdfColorSpace.Rgb, annots[0].Color!.Value.ColorSpace); // default highlight color
+        annots[0].Dictionary.Remove(PdfName.C);
+        Assert.Null(annots[0].Color);
     }
 
     [Fact]
@@ -64,7 +67,7 @@ public class AnnotationTests
         Assert.Equal(new[] { "FreeText", "Stamp", "Stamp", "Ink", "Square", "Circle", "Line", "FileAttachment", "Text" }, annots.Select(a => a.Subtype));
         Assert.All(annots, a => Assert.NotNull(a.Dictionary.GetDictionary(PdfName.AP)?.GetStream(PdfName.N)));
         Assert.Equal("Freitext", annots[0].Contents);
-        Assert.Equal(4 | 128, annots[1].Flags);
+        Assert.Equal(AnnotationFlags.Print | AnnotationFlags.Locked, annots[1].Flags);
         Assert.Equal("GENEHMIGT", annots[1].Dictionary.GetName(PdfName.Name)!.Value);
         Assert.Equal(2, annots[3].Dictionary.GetArray(PdfName.Get("InkList"))!.Count);
         Assert.Equal(new[] { "Circle", "ClosedArrow" }, annots[6].Dictionary.GetArray(PdfName.Get("LE"))!.Select(n => ((PdfName)n).Value));

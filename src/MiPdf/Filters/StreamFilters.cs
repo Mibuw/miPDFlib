@@ -3,7 +3,7 @@ using MiPdf.Objects;
 namespace MiPdf.Filters;
 
 /// <summary>Applies the decoding filters of a stream (ISO 32000-2, 7.4).</summary>
-public static class StreamFilters
+internal static class StreamFilters
 {
     /// <summary>Filters whose output is image data that is kept encoded.</summary>
     private static readonly HashSet<string> ImageFilters = new(StringComparer.Ordinal)
