@@ -227,12 +227,34 @@ files of any size.
 | `IsIntegrityValid` | signed bytes unchanged, message digest and signature value correct (RSA PKCS#1 v1.5 and PSS, ECDSA), byte range excludes exactly the container |
 | `CoversWholeDocument` | no incremental updates after this signature; otherwise `GetSignedRevision` returns the signed version |
 | `TimestampTime` | verified signature time-stamp or document time-stamp |
-| `IsCertificateTrusted` | chain built against the system store or `TrustedRoots` (when `CheckCertificateChain` is set) |
+| `IsCertificateTrusted` | chain built against the system store or `TrustedRoots` (when `CheckCertificateChain` is set); chain problems are listed in `Errors` but do not change `IsIntegrityValid` |
 | `CertificationLevel` | DocMDP level of a certification signature |
 | `FieldLock`, `ModifiedLockedFields` | FieldMDP lock of the signature and the locked fields whose value was changed or that were removed after signing |
 | `Level` | PAdES level (B-B, B-T, B-LT, B-LTA) derived from time-stamps, DSS and later document time-stamps |
 | `Revocation`, `RevocationDetails` | revocation status at the time of signing from the OCSP responses and CRLs stored in the document (see below) |
 | `Cms`, `Certificates`, `GetSignedAttribute(oid)` | raw container, embedded certificates, attribute values (e.g. biometric data) |
+
+### Signatures from EU trusted list CAs
+
+EU trusted lists name the CA certificates that issue qualified certificates; these trust anchors are usually not
+self-signed. Add them to `TrustedRoots`: the chain is trusted when it reaches one of them, the part above it is not
+evaluated.
+
+```csharp
+var options = new SignatureValidationOptions { CheckCertificateChain = true };
+options.TrustedRoots.Add(issuingCaFromTrustedList);     // X509Certificate2 from the trusted list
+var results = PdfSignatureValidator.Validate(File.ReadAllBytes("qualified.pdf"), options);
+
+// CA certificates often do not name where their issuer can be downloaded (no AIA "CA Issuers"):
+// pass the root, so that the validation data for the CA certificate is complete
+var ltvOptions = new LtvOptions();
+ltvOptions.AdditionalCertificates.Add(root);
+var ltv = PdfLtv.AddValidationData(File.ReadAllBytes("qualified.pdf"), ltvOptions);
+```
+
+Tested with a qualified signature from a CA of the Austrian trusted list, created with another application: it is
+validated as trusted, and stays valid after adding B-LT and B-LTA data, filling a form field and adding a second
+signature with miPDFlib.
 
 ### Revocation status from the stored validation data
 
@@ -248,7 +270,7 @@ foreach (var r in PdfSignatureValidator.Validate(File.ReadAllBytes("signed-lt.pd
 The validator evaluates the OCSP responses and CRLs of the Document Security Store and of the
 `adbe-revocationInfoArchival` signature attribute – offline, without contacting any service:
 
-- Every certificate of the signer's chain is checked up to a self-signed root or a root in `TrustedRoots`. For
+- Every certificate of the signer's chain is checked up to a self-signed root or a certificate in `TrustedRoots`. For
   document time-stamps, the chain of the time-stamping authority is checked.
 - Only validly signed revocation data counts: CRLs signed by the issuer, OCSP responses signed by the issuer or by
   a responder certificate the issuer authorised (extended key usage OCSP signing). Everything else is ignored, and

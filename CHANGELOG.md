@@ -17,6 +17,11 @@
   for documents with headings (`LayoutDocument.HeadingBookmarks`, default true). Documents with headings now open
   with the bookmarks panel. In tagged documents the bookmarks point to the heading's structure element (structure
   destination, required by PDF/UA-2); `CheckPdfUA` reports bookmarks and internal links without one in PDF/UA-2.
+- Signature validation: `TrustedRoots` also accepts CA certificates that are not self-signed, such as the trust
+  anchors of EU trusted lists (the chain is trusted when it reaches one of them). Tested with a qualified signature
+  from the Austrian trusted list, also after B-LT/B-LTA, a form change and a second signature with miPDFlib.
+- Fixed: a certificate chain that could not be built set `IsIntegrityValid` to false. Chain problems now only
+  affect `IsCertificateTrusted` (and are listed in `Errors`), as documented.
 - `doc.Info` of documents without a document information dictionary (PDF 2.0, PDF/A-4) is read from the XMP metadata.
 - Saving an opened PDF/A document also writes changed title, author, subject, keywords and creator into its XMP
   metadata (before, only the dates and the producer were updated, so the information and the XMP metadata differed).

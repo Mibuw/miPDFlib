@@ -119,7 +119,10 @@ public sealed class SignatureValidationOptions
     /// <summary>Revocation checking used when building chains (default: none, offline).</summary>
     public X509RevocationMode RevocationMode { get; set; } = X509RevocationMode.NoCheck;
 
-    /// <summary>Additional trusted root certificates (custom trust store).</summary>
+    /// <summary>
+    /// Trusted certificates (custom trust store; the system store is then not used). Besides root certificates, these
+    /// can be CA certificates that are not self-signed, such as the trust anchors of EU trusted lists.
+    /// </summary>
     public X509Certificate2Collection TrustedRoots { get; } = new();
 }
 
@@ -234,6 +237,7 @@ public static class PdfSignatureValidator
     private static SignatureValidationResult Verify(string fieldName, PdfDictionary sig, PdfFileData file, SignatureValidationOptions options)
     {
         var errors = new List<string>();
+        var chainErrors = new List<string>(); // reported in Errors, but not part of IsIntegrityValid
         string subFilter = sig.GetName(PdfName.SubFilter)?.Value ?? "";
         var br = sig.GetArray(PdfName.ByteRange)?.Select(o => (o.Resolve() as PdfNumber)?.LongValue ?? -1).ToArray();
         var contents = CmsBuilder.TrimDer(sig.GetString(PdfName.Contents)?.Bytes ?? Array.Empty<byte>());
@@ -315,7 +319,7 @@ public static class PdfSignatureValidator
                     else errors.Add("The signature time-stamp is invalid.");
                 }
                 if (options.CheckCertificateChain && signer != null)
-                    trusted = CheckChain(signer, cms.Certificates, options, timestamp ?? signingTime, errors);
+                    trusted = CheckChain(signer, cms.Certificates, options, timestamp ?? signingTime, chainErrors);
             }
         }
         catch (CryptographicException ex)
@@ -340,7 +344,7 @@ public static class PdfSignatureValidator
             Location = sig.GetText(PdfName.Get("Location")),
             CertificationLevel = certification,
             FieldLock = fieldLock,
-            Errors = errors,
+            Errors = errors.Concat(chainErrors).ToList(),
             Cms = contents,
             Certificates = embedded,
             SignatureDictionary = sig,
@@ -394,9 +398,27 @@ public static class PdfSignatureValidator
             chain.ChainPolicy.CustomTrustStore.AddRange(options.TrustedRoots);
         }
         if (time.HasValue) chain.ChainPolicy.VerificationTime = time.Value.LocalDateTime;
-        bool ok = chain.Build(certificate);
+        bool ok = chain.Build(certificate) || EndsAtTrustAnchor(chain, options.TrustedRoots);
         if (!ok) errors.Add("Certificate chain: " + string.Join(", ", chain.ChainStatus.Select(s => s.StatusInformation.Trim())));
         return ok;
+    }
+
+    /// <summary>
+    /// Trust anchors need not be self-signed: EU trusted lists name the issuing CA certificates. The chain is trusted if
+    /// it reaches one of <paramref name="anchors"/> and the certificates up to the anchor have no errors (the part
+    /// above the anchor, which may be missing or untrusted, is not evaluated).
+    /// </summary>
+    private static bool EndsAtTrustAnchor(X509Chain chain, X509Certificate2Collection anchors)
+    {
+        foreach (var element in chain.ChainElements)
+        {
+            if (element.ChainElementStatus.Any(s => s.Status is not (X509ChainStatusFlags.NoError or X509ChainStatusFlags.PartialChain
+                    or X509ChainStatusFlags.UntrustedRoot)))
+                return false;
+            if (anchors.Cast<X509Certificate2>().Any(anchor => anchor.RawData.AsSpan().SequenceEqual(element.Certificate.RawData)))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>Returns the document as it was when the given signature was applied (the signed revision).</summary>
