@@ -45,6 +45,8 @@ Last update: 2026-11-05
 | 36 JPEG and CCITT decoding (1.1.0) | ✅ done (409 tests; JPEG baseline/progressive identical to libjpeg-turbo for the test variants and all 17 corpus images, 12 MP in about 0.3 s; CCITT G3 1D/2D and G4 identical to Ghostscript; partial redaction of scans, PNG export) |
 | 37 Rendering, stage 1 (core) | ✅ done (package `miPDFlib.Rendering`, preview: anti-aliased rasterizer, fills, strokes with joins/caps/dashes, clipping, colors, opacity, images, form XObjects, annotations, layers; mean difference to Ghostscript below one level; 85 corpus pages without errors, about 30 ms per page at 150 dpi) |
 | 38 Rendering, stage 2 (fonts and text) | ✅ done (429 tests; glyph outlines of TrueType/OpenType, CFF (also CID-keyed), Type 1 and Type 3 fonts, all text rendering modes, substitutes for non-embedded fonts; corpus compared with Ghostscript: text pages identical apart from hinting; fixed DCT-encoded soft masks, crop box offsets and page size rounding; ZapfDingbats Unicode table for text extraction) |
+| 39 Rendering, stage 3 (shadings, patterns, transparency) | ✅ done (451 tests; shading types 1-7, tiling and shading patterns, PDF functions 0/2/3/4, all blend modes, soft masks, isolated/non-isolated and knockout groups, page group on a transparent backdrop; checked with Ghostscript and 56 shading/transparency test files of pdf.js; shadings limited to the clip bounds: a page with 2,000 clipped shadings from 12 s to 0.5 s) |
+| 40 Rendering, stage 4 (color) | ✅ done (455 tests; Separation/DeviceN through tint transforms, colorant None, CMYK approximating SWOP (pdf.js coefficients; naive formula was off by 25 levels on average), Lab range, ICC-based by component count; images in the core decoder through the same color spaces with full Decode arrays; Ghostscript spots2 from 9.6 to 1.9, CMYK example from 4.7 to 1.5) |
 
 Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
@@ -74,7 +76,9 @@ decoded (1.1.0, released). Next steps:
    3. Transparency groups, blend modes, soft masks, shadings (types 1-7), patterns, annotation appearances.
    4. Color: CMYK, Separation/DeviceN with PDF functions (types 0, 2, 3, 4), ICC-based color approximated.
 
-   Stages 1 and 2 are released as preview `1.2.0-preview.1` (miPDFlib and miPDFlib.Rendering).
+   Stages 1 and 2 are released as preview `1.2.0-preview.1` (miPDFlib and miPDFlib.Rendering); stages 3 and 4 in
+   `1.2.0-preview.2`. PDF functions moved from stage 4 to stage 3 (shadings need them); color
+   spaces and functions are part of the core library, so that image export uses the same colors.
 2. **Diagnostics**: today errors raise `PdfException` (`PdfParseException`, `PdfPasswordException`), while damaged
    input that can be tolerated is handled silently (repaired cross-reference table, substituted fonts, skipped
    images or content). Planned: an opt-in diagnostics channel that reports these tolerated problems (warnings with

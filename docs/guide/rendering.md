@@ -33,9 +33,15 @@ render at the printer resolution and send the image to the printer.
 ## What is rendered
 
 This preview renders vector graphics (fills with the nonzero and even-odd rule, strokes with all joins, caps and dash
-patterns, minimum line width of one pixel), clipping, colors (gray, RGB, CMYK, Lab, ICC-based by their number of
-components, indexed), constant opacity, images (all formats miPDFlib decodes, with soft masks and stencil masks),
-form XObjects, annotation appearances and layers (hidden layers are not drawn). Edges are anti-aliased.
+patterns, minimum line width of one pixel), clipping, images (all formats miPDFlib decodes, with soft masks and
+stencil masks), form XObjects, annotation appearances and layers (hidden layers are not drawn). Edges are
+anti-aliased.
+
+**Colors** are converted to sRGB: gray, RGB, CMYK (approximating the U.S. Web Coated (SWOP) press profile that PDF
+viewers commonly use, so that pure cyan or black ink look as on paper), CIE L\*a\*b\*, ICC-based colors by their
+number of components (gray, RGB or CMYK; the embedded profile itself is not evaluated), Indexed, and spot colors:
+Separation and DeviceN through their tint transforms into the alternate color space. The colorant `None` paints
+nothing. The same conversion applies to images, also when they are exported with `ToPng`.
 
 **Text** is drawn from the glyph outlines of the embedded fonts: TrueType, OpenType (CFF), CFF/Type1C (also
 CID-keyed), Type 1 (PFA/PFB, including seac accents and flex) and Type 3 fonts, simple and composite (Type0). All
@@ -48,10 +54,21 @@ Sans for ZapfDingbats. If no substitute is installed (e.g. a minimal container i
 fonts such as `fonts-liberation` there. Glyphs are not hinted, so small text looks slightly lighter than in
 renderers that use hinting.
 
-Not yet rendered, following in the next previews (see the [roadmap](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md#roadmap)): shadings and
-patterns, transparency groups, blend modes and soft masks; Separation and DeviceN colors are approximated as gray,
-CMYK is converted without a color profile. JPEG 2000 and JBIG2 images are not drawn.
+**Shadings and patterns**: all shading types – function-based (1), axial (2), radial (3), free-form and
+lattice-form triangle meshes (4, 5), Coons and tensor-product patch meshes (6, 7) – with the `sh` operator and as
+shading patterns, and tiling patterns (colored and uncolored, any matrix). PDF functions of all types are evaluated:
+sampled (0), exponential (2), stitching (3) and PostScript calculator functions (4).
+
+**Transparency**: constant opacity, all 16 blend modes, soft masks (alpha and luminosity, with backdrop color and
+transfer function) and transparency groups, isolated and non-isolated, including knockout groups. As in Acrobat, the
+page itself is composited on a transparent backdrop before it is put on the paper, so blend modes leave the source
+color where nothing was painted below.
+
+Not rendered: JPEG 2000 and JBIG2 images (not decoded yet), overprint, and color management with the embedded ICC
+profiles.
 
 The output is checked against Ghostscript: for vector graphics and images the mean difference is below one level
-of 255; differences are at anti-aliased edges and in CMYK colors (Ghostscript uses a color profile). Text pages
-differ mainly by hinting; pages with shadings or spot colors differ until the next stages.
+of 255; differences are at anti-aliased edges. CMYK colors differ by a few levels because Ghostscript uses its own
+default press profile. Text pages differ mainly by hinting. Shadings, patterns and transparency are also checked with the shading and transparency
+test files of pdf.js: most match Ghostscript within one or two levels; tiling patterns are drawn anti-aliased and at
+their exact position, where Ghostscript snaps tiles to whole pixels and draws them without anti-aliasing.

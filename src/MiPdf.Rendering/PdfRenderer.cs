@@ -96,12 +96,31 @@ public static class PdfRenderer
         matrix = matrix.Multiply(Matrix.Translate(-minX, -maxY)).Multiply(Matrix.Scale(scale, -scale));
 
         (byte, byte, byte)? background = options.Background is { } bg ? ToBytes(ImageDecoder.ToRgb(bg)) : null;
-        var surface = new Surface(width, height, background);
+        // the page is rendered on a transparent backdrop (the page group) and then put on the paper: blend modes see
+        // no backdrop where nothing was painted, as in Acrobat
+        var surface = new Surface(width, height, null);
         var renderer = new ContentRenderer(surface, page.Document);
         page.Document.PrepareFontsForReading();
         renderer.Render(page.GetContentBytes(), page.GetInheritable(PdfName.Resources) as PdfDictionary, matrix, null);
         if (options.RenderAnnotations) RenderAnnotations(page, renderer, matrix, options);
+        if (background is { } paper) Flatten(surface.Pixels, paper);
         return new RenderedPage(width, height, surface.Pixels, background != null);
+    }
+
+    /// <summary>Composites the pixels over an opaque color (in place).</summary>
+    private static void Flatten(byte[] px, (byte R, byte G, byte B) paper)
+    {
+        for (long i = 0; i < px.Length; i += 4)
+        {
+            int a = px[i + 3];
+            if (a != 255)
+            {
+                px[i] = (byte)((px[i] * a + paper.R * (255 - a) + 127) / 255);
+                px[i + 1] = (byte)((px[i + 1] * a + paper.G * (255 - a) + 127) / 255);
+                px[i + 2] = (byte)((px[i + 2] * a + paper.B * (255 - a) + 127) / 255);
+            }
+            px[i + 3] = 255;
+        }
     }
 
     private static (byte, byte, byte) ToBytes((int R, int G, int B) c) => ((byte)c.R, (byte)c.G, (byte)c.B);

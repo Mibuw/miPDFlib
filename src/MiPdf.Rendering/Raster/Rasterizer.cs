@@ -20,6 +20,9 @@ internal sealed class Rasterizer
 
     public bool IsEmpty => _edges.Count == 0;
 
+    /// <summary>The bounding box of the added edges (device pixels).</summary>
+    public (double MinX, double MinY, double MaxX, double MaxY) Bounds => (_minX, _minY, _maxX, _maxY);
+
     public void Clear()
     {
         _edges.Clear();

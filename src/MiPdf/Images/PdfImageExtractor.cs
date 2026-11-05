@@ -229,102 +229,90 @@ internal static class ImageDecoder
         return result;
     }
 
+    /// <summary>
+    /// Converts image samples to 8-bit RGB through the image's color space (Decode applied): device spaces, Lab,
+    /// ICC-based by component count, Indexed, Separation and DeviceN through their tint transforms. Returns false for
+    /// unsupported data and for the colorant None (nothing is painted).
+    /// </summary>
     private static bool Convert(byte[] data, int width, int height, int bpc, PdfObject? colorSpace, PdfArray? decode, byte[] rgb)
     {
-        var cs = colorSpace?.Resolve();
-        string family = cs switch
+        var space = ColorSpace.Resolve(colorSpace, null);
+        if (space.IsPattern || space.IsNone) return false;
+        int n = space.Components;
+        if (n <= 0) return false;
+        var samples = Samples(data, width, height, n, bpc, raw: true);
+        if (samples == null) return false;
+        int max = bpc == 16 ? 255 : (1 << bpc) - 1; // 16-bit samples keep their high byte
+        var range = space.DefaultDecode(bpc);
+        if (decode != null && decode.Count >= 2 * n) range = decode.Take(2 * n).Select(v => (v.Resolve() as PdfNumber)?.Value ?? 0).ToArray();
+        // decoded value of every sample value, per component
+        var values = new double[n][];
+        for (int c = 0; c < n; c++)
         {
-            PdfName n => n.Value,
-            PdfArray a when a.Count > 0 && a[0].Resolve() is PdfName f => f.Value,
-            _ => "DeviceGray",
-        };
-        if (family is "ICCBased" && cs is PdfArray icc && icc.Count > 1 && icc[1].Resolve() is PdfStream profile)
-        {
-            family = profile.GetInt(PdfName.N, 3) switch { 1 => "DeviceGray", 4 => "DeviceCMYK", _ => "DeviceRGB" };
+            values[c] = new double[max + 1];
+            for (int v = 0; v <= max; v++) values[c][v] = range[2 * c] + v * (range[2 * c + 1] - range[2 * c]) / max;
         }
-        family = family switch { "G" or "CalGray" => "DeviceGray", "RGB" or "CalRGB" => "DeviceRGB", "CMYK" => "DeviceCMYK", "I" => "Indexed", _ => family };
-
-        if (family == "Indexed" && cs is PdfArray indexed && indexed.Count >= 4)
+        int pixels = width * height;
+        if (ReferenceEquals(space, ColorSpace.Gray) || ReferenceEquals(space, ColorSpace.Rgb))
         {
-            var baseSpace = indexed[1].Resolve();
-            int hival = (indexed[2].Resolve() as PdfNumber)?.IntValue ?? 255;
-            byte[] lookup = indexed[3].Resolve() switch { PdfString s => s.Bytes, PdfStream s => s.GetBytes(), _ => Array.Empty<byte>() };
-            int baseComponents = baseSpace switch
+            var bytes = values.Select(t => t.Select(v => (byte)Math.Round(Math.Clamp(v, 0, 1) * 255)).ToArray()).ToArray();
+            for (int i = 0; i < pixels; i++)
             {
-                PdfName { Value: "DeviceGray" or "G" } => 1,
-                PdfName { Value: "DeviceCMYK" or "CMYK" } => 4,
-                PdfArray b when b.Count > 1 && b[0].Resolve() is PdfName { Value: "ICCBased" } && b[1].Resolve() is PdfStream p => p.GetInt(PdfName.N, 3),
-                _ => 3,
-            };
-            var indices = Samples(data, width, height, 1, bpc, raw: true);
-            if (indices == null) return false;
-            for (int i = 0; i < width * height; i++)
-            {
-                int index = Math.Min(indices[i], hival) * baseComponents;
-                if (index + baseComponents > lookup.Length) continue;
-                SetPixel(rgb, i, lookup.AsSpan(index, baseComponents));
+                rgb[i * 3] = bytes[0][samples[i * n]];
+                rgb[i * 3 + 1] = n == 1 ? rgb[i * 3] : bytes[1][samples[i * n + 1]];
+                rgb[i * 3 + 2] = n == 1 ? rgb[i * 3] : bytes[2][samples[i * n + 2]];
             }
             return true;
         }
-
-        int components = family switch
+        if (n == 1)
         {
-            "DeviceGray" or "Separation" => 1,
-            "DeviceRGB" => 3,
-            "DeviceCMYK" => 4,
-            "DeviceN" when cs is PdfArray dn && dn.Count > 1 && dn[1].Resolve() is PdfArray names => names.Count,
-            _ => -1,
-        };
-        if (components <= 0) return false;
-        var samples = Samples(data, width, height, components, bpc);
-        if (samples == null) return false;
-        if (bpc == 1)
-            for (int i = 0; i < samples.Length; i++) samples[i] = (byte)(samples[i] * 255);
-        if (decode is { Count: >= 2 } && decode.GetDouble(0) > decode.GetDouble(1))
-            for (int i = 0; i < samples.Length; i++) samples[i] = (byte)(255 - samples[i]);
-        for (int i = 0; i < width * height; i++)
-        {
-            var pixel = samples.AsSpan(i * components, components);
-            if (family is "Separation" or "DeviceN")
+            // one component (Indexed, Separation, ...): one color per sample value
+            var palette = new Rgb[max + 1];
+            Span<double> one = stackalloc double[1];
+            for (int v = 0; v <= max; v++)
             {
-                // tint 1 = full colorant: show as dark
-                int tint = 0;
-                foreach (var t in pixel) tint = Math.Max(tint, t);
-                rgb[i * 3] = rgb[i * 3 + 1] = rgb[i * 3 + 2] = (byte)(255 - tint);
+                one[0] = values[0][v];
+                palette[v] = space.ToRgb(one);
             }
-            else SetPixel(rgb, i, pixel);
+            for (int i = 0; i < pixels; i++) SetPixel(rgb, i, palette[samples[i]]);
+            return true;
+        }
+        // several components: per pixel, with a cache of the colors seen (images often repeat colors)
+        var cache = new Dictionary<long, Rgb>();
+        Span<double> components = stackalloc double[n];
+        for (int i = 0; i < pixels; i++)
+        {
+            long key = 0;
+            for (int c = 0; c < n && c < 8; c++) key = (key << 8) | samples[i * n + c];
+            if (n > 8 || !cache.TryGetValue(key, out var color))
+            {
+                for (int c = 0; c < n; c++) components[c] = values[c][samples[i * n + c]];
+                color = space.ToRgb(components);
+                if (n <= 8 && cache.Count < 1 << 18) cache[key] = color;
+            }
+            SetPixel(rgb, i, color);
         }
         return true;
     }
 
-    private static void SetPixel(byte[] rgb, int i, ReadOnlySpan<byte> c)
+    private static void SetPixel(byte[] rgb, int i, Rgb color)
     {
-        switch (c.Length)
-        {
-            case 1:
-                rgb[i * 3] = rgb[i * 3 + 1] = rgb[i * 3 + 2] = c[0];
-                break;
-            case 4:
-                int k = c[3];
-                rgb[i * 3] = (byte)((255 - c[0]) * (255 - k) / 255);
-                rgb[i * 3 + 1] = (byte)((255 - c[1]) * (255 - k) / 255);
-                rgb[i * 3 + 2] = (byte)((255 - c[2]) * (255 - k) / 255);
-                break;
-            default:
-                rgb[i * 3] = c[0];
-                rgb[i * 3 + 1] = c[1];
-                rgb[i * 3 + 2] = c[2];
-                break;
-        }
+        rgb[i * 3] = color.R;
+        rgb[i * 3 + 1] = color.G;
+        rgb[i * 3 + 2] = color.B;
     }
 
     internal static (int R, int G, int B) ToRgb(PdfColor color)
     {
         var c = color.Components;
+        if (c.Length == 4)
+        {
+            var rgb = ColorSpace.CmykToRgb(c[0], c[1], c[2], c[3]);
+            return (rgb.R, rgb.G, rgb.B);
+        }
         return c.Length switch
         {
             1 => ((int)(c[0] * 255), (int)(c[0] * 255), (int)(c[0] * 255)),
-            4 => ((int)((1 - c[0]) * (1 - c[3]) * 255), (int)((1 - c[1]) * (1 - c[3]) * 255), (int)((1 - c[2]) * (1 - c[3]) * 255)),
             _ => ((int)(c[0] * 255), (int)(c[1] * 255), (int)(c[2] * 255)),
         };
     }

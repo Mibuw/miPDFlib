@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0-preview.2
+
+Second preview of the rendering package: shadings, patterns, transparency and colors complete the renderer
+(miPDFlib itself gets the image color fixes below; the stable version stays 1.1.0).
+
+- miPDFlib.Rendering: shadings (all seven types, with the `sh` operator and as shading patterns), tiling patterns
+  (colored and uncolored), PDF functions (sampled, exponential, stitching, PostScript calculator), all blend modes,
+  soft masks (alpha and luminosity) and transparency groups including knockout groups. Pages are composited on a
+  transparent backdrop like in Acrobat.
+- miPDFlib.Rendering: spot colors (Separation, DeviceN) through their tint transforms, the colorant None, CMYK
+  approximating the SWOP press profile (coefficients from pdf.js, see NOTICE), Lab with its range.
+- Images: `ToPng` and the renderer convert Separation, DeviceN, Lab and Indexed images (also with spot-color or Lab
+  bases) through their color spaces and apply any Decode array; CMYK images use the SWOP approximation. Before,
+  spot-color images were shown as gray and CMYK colors too bright.
+
 ## 1.2.0-preview.1
 
 Preview release of the new rendering package; miPDFlib itself only has the fixes below (the stable version stays
