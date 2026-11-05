@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Changes after signing (DocMDP): `SignatureValidationResult.ChangesAfterSigning` lists what the incremental updates
+  after a signature changed – validation data, document time-stamps, signatures, form filling, annotations,
+  metadata, page content, pages, ... – and whether each change is permitted by the certification level;
+  `HasDisallowedChanges` summarises it (including modified locked fields). Without certification, page content
+  changes after a signature are reported as not permitted.
+
 ## 1.0.0
 
 First stable release. The public API is recorded in `PublicAPI.Shipped.txt` and follows Semantic Versioning: no

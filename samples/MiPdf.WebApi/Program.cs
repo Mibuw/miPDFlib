@@ -62,6 +62,8 @@ app.MapPost("/validate", async (IFormFile file) =>
             r.SignerName,
             r.IsIntegrityValid,
             r.CoversWholeDocument,
+            r.HasDisallowedChanges,
+            ChangesAfterSigning = r.ChangesAfterSigning.Select(c => c.ToString()),
             Level = r.Level?.ToString(),
             r.SigningTime,
             r.TimestampTime,

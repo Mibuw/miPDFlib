@@ -64,6 +64,21 @@ public sealed class SignatureValidationResult
     /// </summary>
     public IReadOnlyList<string> ModifiedLockedFields { get; internal set; } = Array.Empty<string>();
 
+    /// <summary>
+    /// The changes made in the incremental updates after this signature (empty if it covers the whole document), each
+    /// with its kind and whether it is permitted by the certification level (DocMDP) – see
+    /// <see cref="DocumentChange.IsPermitted"/>. The signed bytes stay intact (<see cref="IsIntegrityValid"/>); this
+    /// tells whether the later changes are acceptable.
+    /// </summary>
+    public IReadOnlyList<DocumentChange> ChangesAfterSigning { get; internal set; } = Array.Empty<DocumentChange>();
+
+    /// <summary>
+    /// True if a change after signing is not permitted (<see cref="ChangesAfterSigning"/>) or a locked field was
+    /// modified (<see cref="ModifiedLockedFields"/>). Validators such as Adobe Acrobat and EU DSS then report the
+    /// signature as invalid or the document as modified.
+    /// </summary>
+    public bool HasDisallowedChanges => ModifiedLockedFields.Count > 0 || ChangesAfterSigning.Any(c => !c.IsPermitted);
+
     /// <summary>Problems found during verification (invalid byte range, digest mismatch, invalid time-stamp, untrusted chain, ...).</summary>
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();
 
@@ -173,8 +188,7 @@ public static class PdfSignatureValidator
         {
             if (field.SignatureDictionary is { } sig) results.Add(Verify(field.FullName, sig, file, options));
         }
-        foreach (var result in results.Where(r => r.FieldLock != null && r.IsIntegrityValid && !r.CoversWholeDocument))
-            result.ModifiedLockedFields = FindModifiedLockedFields(form, file, result, password);
+        AnalyzeChanges(results, file, password);
         var dss = document.Catalog.GetDictionary(PdfName.Get("DSS"));
         bool validationData = dss?.GetArray(PdfName.Get("OCSPs")) is { Count: > 0 } || dss?.GetArray(PdfName.Get("CRLs")) is { Count: > 0 };
         foreach (var result in results.Where(r => !r.IsDocumentTimestamp))
@@ -351,20 +365,46 @@ public static class PdfSignatureValidator
         };
     }
 
-    /// <summary>Compares the locked fields of the signed revision with the current document.</summary>
-    private static IReadOnlyList<string> FindModifiedLockedFields(PdfAcroForm current, PdfFileData file, SignatureValidationResult result, string? password)
+    /// <summary>
+    /// Compares the signed revision of each signature that does not cover the whole file with the file as saved:
+    /// changes after signing (<see cref="SignatureValidationResult.ChangesAfterSigning"/>) and modified locked fields.
+    /// </summary>
+    private static void AnalyzeChanges(List<SignatureValidationResult> results, PdfFileData file, string? password)
     {
-        PdfAcroForm? signed;
-        try
+        var certification = results.FirstOrDefault(r => r.CertificationLevel != null && r.IsIntegrityValid)?.CertificationLevel;
+        PdfDocument? saved = null;
+        foreach (var result in results.Where(r => r.IsIntegrityValid && !r.CoversWholeDocument))
         {
-            // a view of the signed revision, not a copy
-            signed = PdfDocument.Open(file.Slice(0, result.SignedRevisionLength), password).GetForm();
+            try
+            {
+                // views of the file, not copies; the file as saved, without unsaved changes of the opened document
+                saved ??= PdfDocument.Open(file.Slice(0, file.Length), password);
+                var signed = PdfDocument.Open(file.Slice(0, result.SignedRevisionLength), password);
+                var changes = ChangeAnalyzer.Analyze(signed, saved, certification);
+                if (result.FieldLock != null && saved.GetForm() is { } form)
+                {
+                    result.ModifiedLockedFields = FindModifiedLockedFields(form, signed.GetForm(), result.FieldLock);
+                    // changes of locked fields are not permitted, whatever the certification level allows
+                    var locked = result.ModifiedLockedFields.Select(name => $"field '{name}':").ToList();
+                    changes = changes.Select(c => c.IsPermitted && locked.Any(prefix => c.Description.StartsWith(prefix, StringComparison.Ordinal))
+                        ? new DocumentChange(c.Kind, c.Description + " (locked)", isPermitted: false) : c).ToList();
+                }
+                result.ChangesAfterSigning = changes;
+            }
+            catch (PdfException)
+            {
+                result.ChangesAfterSigning = new[]
+                {
+                    new DocumentChange(DocumentChangeKind.Other, "the signed revision cannot be read", isPermitted: false),
+                };
+                if (result.FieldLock != null) result.ModifiedLockedFields = new[] { "(the signed revision cannot be read)" };
+            }
         }
-        catch (PdfException)
-        {
-            return new[] { "(the signed revision cannot be read)" };
-        }
-        var fieldLock = result.FieldLock!;
+    }
+
+    /// <summary>Compares the locked fields of the signed revision with the current document.</summary>
+    private static IReadOnlyList<string> FindModifiedLockedFields(PdfAcroForm current, PdfAcroForm? signed, PdfFieldLock fieldLock)
+    {
         var currentFields = current.Fields.Where(f => f is not PdfSignatureField)
             .GroupBy(f => f.FullName, StringComparer.Ordinal).ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
         var modified = new List<string>();

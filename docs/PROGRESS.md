@@ -39,7 +39,9 @@ Last update: 2026-11-03
 | 30 API cleanup and small features (0.6.0) | ✅ done (340 tests; issues #7–#10 and #13: page labels, viewer settings, page sizes, redaction and split samples, consistent API before 1.0) |
 | 31 PDF/A-4, PDF/UA-2, API baseline (1.0.0) | ✅ done (359 tests; PDF/A-4/4f and PDF/UA-2 with the PDF 2.0 structure namespace, validated with veraPDF also after signing; public API recorded with PublicApiAnalyzers; links in running text; bookmarks for headings; trust anchors from EU trusted lists) |
 
-Current state: 359 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+| 32 Changes after signing (DocMDP) | ✅ done (368 tests; `ChangesAfterSigning` / `HasDisallowedChanges`: object-level comparison of the signed revision with the file, classified and evaluated by certification level; checked with signatures of miPDFlib and PDF-Over) |
+
+Current state: 368 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -53,14 +55,13 @@ Current state: 359 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Roadmap
 
-1.0.0 is released. Planned for 1.x (all without breaking changes):
+1.0.0 is released; changes after signing (DocMDP) are evaluated since then. Planned for 1.x (all without breaking
+changes):
 
-1. Evaluation of permitted changes after signing (DocMDP): report whether later revisions only contain changes
-   the certification level allows (form filling, annotations, signatures).
-2. Keep the tagged structure when importing pages (merge, split, extract), so that PDF/UA documents stay
+1. Keep the tagged structure when importing pages (merge, split, extract), so that PDF/UA documents stay
    accessible.
-3. Certificate (public-key) encryption and optional content (reading and switching layers).
-4. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
+2. Certificate (public-key) encryption and optional content (reading and switching layers).
+3. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
 
 Larger, separate topics, decided on user demand: rendering pages to images and printing; text shaping for
 complex scripts (Arabic, Indic) and ligatures.

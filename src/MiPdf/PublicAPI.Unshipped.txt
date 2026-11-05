@@ -1,1 +1,20 @@
 #nullable enable
+MiPdf.Signatures.DocumentChange
+MiPdf.Signatures.DocumentChange.Description.get -> string!
+MiPdf.Signatures.DocumentChange.IsPermitted.get -> bool
+MiPdf.Signatures.DocumentChange.Kind.get -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.Annotation = 4 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.DocumentTimestamp = 1 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.FormFields = 7 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.FormFill = 3 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.Metadata = 5 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.Other = 10 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.PageContent = 8 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.Pages = 9 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.Signature = 2 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.Structure = 6 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.DocumentChangeKind.ValidationData = 0 -> MiPdf.Signatures.DocumentChangeKind
+MiPdf.Signatures.SignatureValidationResult.ChangesAfterSigning.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.DocumentChange!>!
+MiPdf.Signatures.SignatureValidationResult.HasDisallowedChanges.get -> bool
+override MiPdf.Signatures.DocumentChange.ToString() -> string!

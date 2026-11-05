@@ -230,6 +230,7 @@ files of any size.
 | `IsCertificateTrusted` | chain built against the system store or `TrustedRoots` (when `CheckCertificateChain` is set); chain problems are listed in `Errors` but do not change `IsIntegrityValid` |
 | `CertificationLevel` | DocMDP level of a certification signature |
 | `FieldLock`, `ModifiedLockedFields` | FieldMDP lock of the signature and the locked fields whose value was changed or that were removed after signing |
+| `ChangesAfterSigning`, `HasDisallowedChanges` | what was changed in later revisions and whether it is permitted (see [changes after signing](#changes-after-signing)) |
 | `Level` | PAdES level (B-B, B-T, B-LT, B-LTA) derived from time-stamps, DSS and later document time-stamps |
 | `Revocation`, `RevocationDetails` | revocation status at the time of signing from the OCSP responses and CRLs stored in the document (see below) |
 | `Cms`, `Certificates`, `GetSignedAttribute(oid)` | raw container, embedded certificates, attribute values (e.g. biometric data) |
@@ -287,8 +288,41 @@ The validator evaluates the OCSP responses and CRLs of the Document Security Sto
   `SignatureValidationOptions.RevocationMode` together with `CheckCertificateChain`.
 - Tested with real DigiCert OCSP responses and CRLs (time-stamping chain with three certificates).
 
-Apart from the values of locked fields (`ModifiedLockedFields`), whether changes after a signature are *permitted*
-(DocMDP analysis, other object changes) is not evaluated; the validator reports that later revisions exist.
+### Changes after signing
+
+A signature that does not cover the whole file (`CoversWholeDocument` false) was followed by incremental updates.
+The signed bytes stay intact, so `IsIntegrityValid` is still true; `ChangesAfterSigning` lists what the later
+revisions changed, and whether each change is permitted:
+
+```csharp
+foreach (var r in PdfSignatureValidator.Validate(File.ReadAllBytes("signed-and-filled.pdf")))
+{
+    Console.WriteLine($"{r.FieldName}: disallowed changes = {r.HasDisallowedChanges}");
+    foreach (var change in r.ChangesAfterSigning)
+        Console.WriteLine($"  {change}");   // e.g. "FormFill: field 'name': value changed"
+                                            //      "PageContent: page 1: content changed (not permitted)"
+}
+```
+
+The validator compares the signed revision with the file object by object and assigns each changed object to the
+part of the document it belongs to:
+
+| Kind | Changes | Permitted |
+|---|---|---|
+| `ValidationData`, `DocumentTimestamp`, `Metadata` | Document Security Store, document time-stamps, document information and XMP | always |
+| `Signature`, `FormFill`, `Structure` | signing, new signature fields, field values and appearances, tags | from certification level `FormFilling`, and without certification |
+| `Annotation` | comments, markup, stamps added, changed or removed | at `FormFillingAndAnnotations`, and without certification |
+| `FormFields`, `PageContent`, `Pages`, `Other` | other form fields added or removed, page content and resources, pages added or removed, embedded files, actions, permissions, ... | never |
+
+The certification level is the DocMDP level of the certification signature (`CertificationLevel`). Without
+certification, the changes that do not alter the signed content are permitted – page content changes after a
+signature are reported as not permitted, so that content added later (for example to imitate signed content) does
+not go unnoticed. Changes of locked fields (`FieldLock`) are not permitted at any level. `HasDisallowedChanges` is
+true if a change is not permitted or a locked field was modified; Adobe Acrobat and EU DSS then report the signature
+as invalid or the document as modified. Tested with documents signed by miPDFlib and by other applications
+(PDF-Over/PDF-AS), and compared with EU DSS: the same changes are reported there as permitted or not. EU DSS
+classifies changes of form fields that it reaches through the structure tree of a tagged document as "undefined"
+and warns about them, even when they belong to signing or form filling.
 
 ## Standards and verification
 

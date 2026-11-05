@@ -57,6 +57,7 @@ public class LayoutBookmarkTests
         var bookmark = Assert.Single(PdfDocument.Open(doc.ToArray()).Outlines.Children);
         Assert.Equal(2, bookmark.PageNumber);
     }
+
     [Fact]
     public void TaggedHeadingBookmarksHaveStructureDestinations()
     {

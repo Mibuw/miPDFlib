@@ -243,6 +243,27 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver, IDisposable
 
     public bool ExistsInFile(int number) => _xref.TryGetValue(number, out var e) && e.Type != XrefEntryType.Free;
 
+    /// <summary>
+    /// True if <paramref name="number"/> has the same cross-reference entry in both stores, i.e. the object was not
+    /// redefined or deleted in between (used to find the changes made after a signature: <paramref name="other"/>
+    /// is the signed revision of the same file).
+    /// </summary>
+    public bool HasSameEntry(int number, PdfObjectStore other)
+    {
+        if (!_xref.TryGetValue(number, out var a) || !other._xref.TryGetValue(number, out var b) || a.Type != b.Type) return false;
+        switch (a.Type)
+        {
+            case XrefEntryType.InUse:
+                return a.Offset == b.Offset && a.Generation == b.Generation;
+            case XrefEntryType.Compressed:
+                return a.StreamNumber == b.StreamNumber && a.StreamIndex == b.StreamIndex
+                    && _xref.TryGetValue(a.StreamNumber, out var sa) && other._xref.TryGetValue(a.StreamNumber, out var sb)
+                    && sa.Type == XrefEntryType.InUse && sb.Type == XrefEntryType.InUse && sa.Offset == sb.Offset;
+            default:
+                return false;
+        }
+    }
+
     /// <summary>Loads a fresh copy of an object from the original file (used for change detection).</summary>
     public PdfObject? LoadOriginal(int number)
     {
