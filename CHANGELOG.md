@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.1.0
+
+New features, no breaking changes.
 
 - Changes after signing (DocMDP): `SignatureValidationResult.ChangesAfterSigning` lists what the incremental updates
   after a signature changed – validation data, document time-stamps, signatures, form filling, annotations,
@@ -22,7 +24,8 @@
 - Certificate encryption (public-key security handler, `/Adobe.PubSec`): `PdfEncryptionOptions.Recipients` encrypts a
   document for the certificates of its recipients (AES-256, AES-128 or RC4, with permissions);
   `PdfOpenOptions.Certificate` opens such documents with the private key, also from byte arrays and streams (new
-  `Open` overloads with `PdfOpenOptions`). `PdfDocument.IsCertificateEncrypted` tells the kind of encryption. Cross-checked with Apache PDFBox in both directions.
+  `Open` overloads with `PdfOpenOptions`). `PdfDocument.IsCertificateEncrypted` tells the kind of encryption.
+  Cross-checked with Apache PDFBox in both directions.
 
 ## 1.0.0
 
