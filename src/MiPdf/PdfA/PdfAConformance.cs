@@ -381,6 +381,17 @@ public static class PdfAChecker
                     CheckResources(apRes, where + " annotation", conformance, issues, visitedFonts, visitedResources);
             }
         }
+        if (document.Catalog.GetDictionary(PdfName.Get("OCProperties")) is { } optionalContent)
+        {
+            if (conformance.Part() == 1) issues.Add("Optional content (layers) is not allowed in PDF/A-1.");
+            var configurations = new[] { optionalContent.GetDictionary(PdfName.Get("D")) }
+                .Concat(optionalContent.GetArray(PdfName.Get("Configs"))?.Select(c => c.Resolve() as PdfDictionary) ?? Enumerable.Empty<PdfDictionary?>());
+            foreach (var configuration in configurations.OfType<PdfDictionary>())
+            {
+                if (string.IsNullOrEmpty(configuration.GetText(PdfName.Name))) issues.Add("Optional content configuration without /Name.");
+                if (configuration.ContainsKey(PdfName.Get("AS"))) issues.Add("Optional content configuration with /AS (automatic state changes).");
+            }
+        }
         var names = document.Catalog.GetDictionary(PdfName.Get("Names"));
         if (names?.ContainsKey(PdfName.Get("JavaScript")) == true) issues.Add("Document-level JavaScript is not allowed.");
         if (conformance.Part() is 2 or 4 && !conformance.AllowsAnyAttachment() && names?.ContainsKey(PdfName.Get("EmbeddedFiles")) == true)

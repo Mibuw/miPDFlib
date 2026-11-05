@@ -595,6 +595,29 @@ public sealed class PdfCanvas : IDisposable
         return EndArtifact();
     }
 
+    /// <summary>
+    /// Starts content of a layer (<see cref="PdfDocument.AddLayer"/>): viewers show or hide everything drawn until
+    /// <see cref="EndLayer"/> together with the layer. Layers can be combined with tags.
+    /// </summary>
+    public PdfCanvas BeginLayer(PdfLayer layer)
+    {
+        ArgumentNullException.ThrowIfNull(layer);
+        var name = Target.AddResource(PdfName.Get("Properties"), layer.Reference, "OC");
+        _content.Append("/OC ");
+        return Name(name).WriteRaw("BDC");
+    }
+
+    /// <summary>Ends the layer content started with <see cref="BeginLayer"/> (EMC).</summary>
+    public PdfCanvas EndLayer() => WriteRaw("EMC");
+
+    /// <summary>Draws the content produced by <paramref name="draw"/> as content of <paramref name="layer"/>.</summary>
+    public PdfCanvas Layer(PdfLayer layer, Action<PdfCanvas> draw)
+    {
+        BeginLayer(layer);
+        draw(this);
+        return EndLayer();
+    }
+
     // ------------------------------------------------------------------ output
 
     /// <summary>Returns the content written so far.</summary>

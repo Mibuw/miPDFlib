@@ -45,7 +45,9 @@ Last update: 2026-11-03
 
 | 34 Certificate encryption | ✅ done (382 tests; public-key security handler `/Adobe.PubSec` with `adbe.pkcs7.s5`: encrypting for recipients' certificates and opening with the private key, AES-256/AES-128/RC4, permissions per document; cross-checked with Apache PDFBox 3.0.8 in both directions, also its older V1/V2 format and restricted permissions) |
 
-Current state: 382 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+| 35 Layers (optional content) | ✅ done (388 tests; create, read and switch layers, content and annotations on layers, text extraction without hidden layers, PDF/A rules; veraPDF PDF/A-2b conformant, Ghostscript hides the hidden layers) |
+
+Current state: 388 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -60,10 +62,9 @@ Current state: 382 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 ## Roadmap
 
 1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
-structure, and documents can be encrypted for certificates. Planned for 1.x (all without breaking changes):
+structure, documents can be encrypted for certificates, and layers are supported. Planned for 1.x (all without breaking changes):
 
-1. Optional content (reading and switching layers).
-2. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
+1. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
 
 Larger, separate topics, decided on user demand: rendering pages to images and printing; text shaping for
 complex scripts (Arabic, Indic) and ligatures.

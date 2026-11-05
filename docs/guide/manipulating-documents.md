@@ -180,6 +180,30 @@ page.AddTextNote(500, 800, "Please check", author: "QA");
 foreach (var a in page.Annotations) Console.WriteLine($"{a.Subtype} {a.Rect} {a.Uri ?? a.Contents}");
 ```
 
+## Layers
+
+Layers (optional content groups) are content that viewers can show or hide – language versions, watermarks,
+dimensions of a drawing, comments.
+
+```csharp
+var english = doc.AddLayer("English");
+var german = doc.AddLayer("Deutsch", visible: false);     // hidden when the document is opened
+using (var canvas = page.GetCanvas())
+{
+    canvas.Layer(english, c => c.DrawText("Invoice", font, 16, 40, 780));
+    canvas.Layer(german, c => c.DrawText("Rechnung", font, 16, 40, 780));
+}
+page.AddStamp(new PdfRectangle(40, 300, 300, 360), "DRAFT").Layer = german;   // annotations, too
+
+foreach (var layer in doc.Layers)
+    Console.WriteLine($"{layer.Name}: visible {layer.IsVisible}, locked {layer.IsLocked}");
+doc.Layers[0].IsVisible = false;                           // switch the initial state of existing documents
+```
+
+`IsVisible` and `IsLocked` are the state of the default configuration that viewers apply when the document is opened.
+Text extraction includes all layers by default; `new TextExtractionOptions { IncludeHiddenLayers = false }` returns
+only the text of visible layers. Layers are allowed in PDF/A-2 and later (`CheckPdfA` reports them for PDF/A-1).
+
 ## Comments and markup annotations
 
 All annotations are created with an appearance stream (so they look the same in every viewer, print and are

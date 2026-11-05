@@ -25,6 +25,12 @@ public sealed class TextExtractionOptions
 
     /// <summary>Include text in annotation appearances (e.g. filled form fields). Default: false.</summary>
     public bool IncludeAnnotations { get; set; }
+
+    /// <summary>
+    /// Include text of layers that are hidden when the document is opened (default true: all text, as in the file;
+    /// false: only the text a viewer shows, see <see cref="PdfDocument.Layers"/>).
+    /// </summary>
+    public bool IncludeHiddenLayers { get; set; } = true;
 }
 
 /// <summary>Extracts text, words and their positions from pages.</summary>
@@ -168,6 +174,9 @@ internal sealed class GlyphCollector
 {
     private readonly TextExtractionOptions _options;
     private readonly List<TextGlyph> _glyphs = new();
+    private PdfDocument? _document;
+    // nesting depth of marked content of hidden layers; glyphs inside are positioned but not collected
+    private int _hidden;
     private readonly Dictionary<PdfDictionary, FontDecoder> _decoders = new(ReferenceEqualityComparer.Instance);
 
     private sealed class State
@@ -183,13 +192,14 @@ internal sealed class GlyphCollector
     public List<TextGlyph> Collect(PdfPage page)
     {
         page.Document.PrepareFontsForReading();
+        _document = page.Document;
         var resources = page.GetInheritable(PdfName.Resources) as PdfDictionary;
         Process(page.GetContentBytes(), resources, new State(), 0);
         if (_options.IncludeAnnotations)
         {
             foreach (var annot in page.Annotations)
             {
-                if (annot.Dictionary.GetDictionary(PdfName.AP)?.Get(PdfName.N) is not PdfStream ap) continue;
+                if (annot.Dictionary.GetDictionary(PdfName.AP)?.Get(PdfName.N) is not PdfStream ap || IsHidden(annot.Dictionary)) continue;
                 var rect = annot.Rect;
                 var bbox = ap.GetRectangle(PdfName.BBox) ?? rect;
                 var state = new State
@@ -206,6 +216,7 @@ internal sealed class GlyphCollector
     {
         if (depth > 16) return;
         var stack = new Stack<State>();
+        var marked = new Stack<bool>(); // per marked-content sequence: does it hide its content?
         var gs = initial;
         Matrix tm = Matrix.Identity, tlm = Matrix.Identity;
         foreach (var op in ContentParser.Parse(content))
@@ -224,6 +235,18 @@ internal sealed class GlyphCollector
                     break;
                 case "BT":
                     tm = tlm = Matrix.Identity;
+                    break;
+                case "BMC":
+                    marked.Push(false);
+                    break;
+                case "BDC":
+                    bool hides = !_options.IncludeHiddenLayers && o.Count >= 2 && o[0] is PdfName { Value: "OC" } && o[1] is PdfName property
+                        && _document != null && _document.IsHiddenContent(resources?.GetDictionary(PdfName.Get("Properties"))?[property]);
+                    marked.Push(hides);
+                    if (hides) _hidden++;
+                    break;
+                case "EMC":
+                    if (marked.Count > 0 && marked.Pop()) _hidden--;
                     break;
                 case "Tf":
                     if (o.Count >= 2)
@@ -285,7 +308,7 @@ internal sealed class GlyphCollector
                 case "Do":
                     if (!_options.IncludeXObjects || o.Count < 1 || o[0] is not PdfName name) break;
                     if (resources?.GetDictionary(PdfName.XObject)?.GetStream(name) is { } xobject &&
-                        xobject.GetName(PdfName.Subtype) == PdfName.Form)
+                        xobject.GetName(PdfName.Subtype) == PdfName.Form && !IsHidden(xobject))
                     {
                         var inner = gs.Clone();
                         if (xobject.GetArray(PdfName.Get("Matrix")) is { Count: 6 } m)
@@ -310,6 +333,10 @@ internal sealed class GlyphCollector
         }
         return decoder;
     }
+
+    /// <summary>True if hidden text is excluded and the object (form XObject, annotation) belongs to a hidden layer.</summary>
+    private bool IsHidden(PdfDictionary dict) =>
+        !_options.IncludeHiddenLayers && _document != null && _document.IsHiddenContent(dict[PdfName.Get("OC")]);
 
     private void Show(byte[] bytes, State gs, ref Matrix tm)
     {
@@ -347,18 +374,19 @@ internal sealed class GlyphCollector
                 double ax = -dirY * size, ay = dirX * size;
                 double x0 = start.X - ax * 0.2, x1 = end.X - ax * 0.2, x2 = start.X + ax * 0.8, x3 = end.X + ax * 0.8;
                 double y0 = start.Y - ay * 0.2, y1 = end.Y - ay * 0.2, y2 = start.Y + ay * 0.8, y3 = end.Y + ay * 0.8;
-                _glyphs.Add(new TextGlyph
-                {
-                    Text = glyph.Text,
-                    X0 = start.X, Y0 = start.Y, X1 = end.X, Y1 = end.Y,
-                    DirX = dirX, DirY = dirY,
-                    FontSize = size,
-                    SpaceWidth = decoder.SpaceWidth * size * gs.HorizontalScale,
-                    FontName = fontName,
-                    Bounds = new PdfRectangle(Math.Min(Math.Min(x0, x1), Math.Min(x2, x3)), Math.Min(Math.Min(y0, y1), Math.Min(y2, y3)),
-                        Math.Max(Math.Max(x0, x1), Math.Max(x2, x3)), Math.Max(Math.Max(y0, y1), Math.Max(y2, y3))),
-                    Order = _glyphs.Count,
-                });
+                if (_hidden == 0)
+                    _glyphs.Add(new TextGlyph
+                    {
+                        Text = glyph.Text,
+                        X0 = start.X, Y0 = start.Y, X1 = end.X, Y1 = end.Y,
+                        DirX = dirX, DirY = dirY,
+                        FontSize = size,
+                        SpaceWidth = decoder.SpaceWidth * size * gs.HorizontalScale,
+                        FontName = fontName,
+                        Bounds = new PdfRectangle(Math.Min(Math.Min(x0, x1), Math.Min(x2, x3)), Math.Min(Math.Min(y0, y1), Math.Min(y2, y3)),
+                            Math.Max(Math.Max(x0, x1), Math.Max(x2, x3)), Math.Max(Math.Max(y0, y1), Math.Max(y2, y3))),
+                        Order = _glyphs.Count,
+                    });
             }
             tm = Matrix.Translate(tx, 0).Multiply(tm);
         }

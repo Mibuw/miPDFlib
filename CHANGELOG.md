@@ -11,6 +11,10 @@
   `ExtractPages`, `Split`): the structure elements with content on the copied pages and their ancestors, with a
   rebuilt parent tree; documents are merged below a single `Document` element. Results validated with veraPDF
   (PDF/UA-1, PDF/UA-2). Before, imported pages lost their tags.
+- Layers (optional content): `PdfDocument.Layers` and `AddLayer`, `PdfLayer.IsVisible` / `IsLocked` / `Name` for the
+  initial state, `canvas.BeginLayer` / `EndLayer` / `Layer(...)` for content and `PdfAnnotation.Layer` for
+  annotations (also set on their appearance streams). `TextExtractionOptions.IncludeHiddenLayers = false` leaves out
+  the text of hidden layers. `CheckPdfA` checks the optional content rules (not in PDF/A-1, named configurations).
 - Certificate encryption (public-key security handler, `/Adobe.PubSec`): `PdfEncryptionOptions.Recipients` encrypts a
   document for the certificates of its recipients (AES-256, AES-128 or RC4, with permissions);
   `PdfOpenOptions.Certificate` opens such documents with the private key, also from byte arrays and streams (new

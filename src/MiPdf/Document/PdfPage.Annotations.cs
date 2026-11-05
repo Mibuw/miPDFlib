@@ -90,6 +90,32 @@ public sealed class PdfAnnotation
         _ => null,
     };
 
+    /// <summary>
+    /// The layer the annotation belongs to (/OC): it is shown and hidden with the layer. Null if it belongs to no layer
+    /// (or to an optional content membership dictionary). The layer is also set on the appearance streams, for viewers
+    /// that only evaluate it there and so that it is kept when the annotation is flattened.
+    /// </summary>
+    public PdfLayer? Layer
+    {
+        get => Dictionary[PdfName.Get("OC")] is PdfReference r && r.Resolve() is PdfDictionary d && d.GetName(PdfName.Type)?.Value == "OCG"
+            && Document != null ? new PdfLayer(Document, d, r) : null;
+        set
+        {
+            var key = PdfName.Get("OC");
+            var appearances = Dictionary.GetDictionary(PdfName.AP)?.Select(entry => entry.Value.Resolve())
+                .SelectMany(ap => ap is PdfStream s ? new[] { s } : (ap as PdfDictionary)?.Select(state => state.Value.Resolve()).OfType<PdfStream>() ?? Enumerable.Empty<PdfStream>())
+                ?? Enumerable.Empty<PdfStream>();
+            foreach (var target in appearances.Cast<PdfDictionary>().Prepend(Dictionary))
+            {
+                if (value == null) target.Remove(key);
+                else target[key] = value.Reference;
+            }
+        }
+    }
+
+    /// <summary>The document of the page (null for annotations not obtained from a page).</summary>
+    internal PdfDocument? Document { get; init; }
+
     /// <summary>Last modification date (/M).</summary>
     public DateTimeOffset? ModificationDate => PdfDate.Parse(Dictionary.GetText(PdfName.M));
 
@@ -119,7 +145,7 @@ public sealed partial class PdfPage
             if (Dictionary.Get(PdfName.Annots) is not PdfArray annots) return Array.Empty<PdfAnnotation>();
             var list = new List<PdfAnnotation>();
             foreach (var item in annots)
-                if (item.Resolve() is PdfDictionary d) list.Add(new PdfAnnotation(d, item as PdfReference));
+                if (item.Resolve() is PdfDictionary d) list.Add(new PdfAnnotation(d, item as PdfReference) { Document = Document });
             return list;
         }
     }
@@ -131,7 +157,7 @@ public sealed partial class PdfPage
         annotation[PdfName.P] = Reference;
         var reference = Document.AddObject(annotation);
         GetOrCreateAnnotations().Add(reference);
-        return new PdfAnnotation(annotation, reference);
+        return new PdfAnnotation(annotation, reference) { Document = Document };
     }
 
     /// <summary>Removes an annotation from the page.</summary>
