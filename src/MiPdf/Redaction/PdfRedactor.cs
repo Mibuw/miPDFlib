@@ -607,8 +607,8 @@ internal sealed class ContentRedactor
         byte[] data;
         try
         {
-            data = Filters.StreamFilters.Decode(image.RawBytes, image, out var remaining);
-            if (remaining != null) return null; // JPEG, JPEG 2000, JBIG2, CCITT
+            data = Filters.StreamFilters.DecodeImage(image.RawBytes, image, out var remaining);
+            if (remaining != null) return null; // JPEG, JPEG 2000, JBIG2
         }
         catch (PdfException)
         {

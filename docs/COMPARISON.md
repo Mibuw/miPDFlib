@@ -69,7 +69,7 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | PDF/A output | manual (example for PDF/A-1b) | A-1, A-2, A-3 (a/b) | `SetPdfA()`, level not selectable | A-2, A-3 (a/b/u) | A-1b, A-2b/u, A-3b/u, **A-4/4f** |
 | PDF/UA | manual tagging | – | manual tagging, PDF/UA-1 | semantic API, PDF/UA-1 | automatic tagging by the layout engine, **PDF/UA-1 and PDF/UA-2** |
 | Optional content (layers) | **yes** | read | – | – | create, read, switch |
-| CCITT / JBIG2 / JPEG 2000 images | decoded (JBIG2/JPX via plugins) | CCITT only | – | – | raw data only |
+| CCITT / JBIG2 / JPEG 2000 images | decoded (JBIG2/JPX via plugins) | CCITT only | – | – | CCITT decoded (and JPEG); JPEG 2000 exported as file; JBIG2 raw data only |
 | Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | – |
 | ZUGFeRD, redaction, barcodes | – | – | barcodes | PDF/A-3 attachments for ZUGFeRD | all three |
 

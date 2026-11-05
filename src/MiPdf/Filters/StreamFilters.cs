@@ -60,6 +60,30 @@ internal static class StreamFilters
     }
 
     /// <summary>
+    /// Like <see cref="Decode"/>, but also applies the image filters that miPDFlib can decode to pixels (CCITT fax,
+    /// JPEG); <paramref name="remainingImageFilter"/> is the image filter that is left, if any (JPEG 2000, JBIG2).
+    /// </summary>
+    public static byte[] DecodeImage(byte[] data, PdfDictionary dict, out PdfName? remainingImageFilter)
+    {
+        data = Decode(data, dict, out remainingImageFilter);
+        var filters = GetFilterNames(dict);
+        if (remainingImageFilter == null || !ReferenceEquals(filters[^1], remainingImageFilter)) return data;
+        var parms = GetDecodeParms(dict, filters.Count - 1);
+        switch (remainingImageFilter.Value)
+        {
+            case "CCITTFaxDecode" or "CCF":
+                data = CcittFaxDecoder.Decode(data, parms);
+                remainingImageFilter = null;
+                break;
+            case "DCTDecode" or "DCT":
+                data = JpegDecoder.Decode(data, parms, out _, out _, out _);
+                remainingImageFilter = null;
+                break;
+        }
+        return data;
+    }
+
+    /// <summary>
     /// Decodes <paramref name="data"/> with a single non-image filter (full or abbreviated name), including the
     /// predictor for Flate and LZW. <c>/Crypt</c> returns the data unchanged, as decryption is done by the security handler.
     /// </summary>

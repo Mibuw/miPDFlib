@@ -11,6 +11,10 @@
   `ExtractPages`, `Split`): the structure elements with content on the copied pages and their ancestors, with a
   rebuilt parent tree; documents are merged below a single `Document` element. Results validated with veraPDF
   (PDF/UA-1, PDF/UA-2). Before, imported pages lost their tags.
+- Image decoding: JPEG (baseline, extended and progressive; 1, 3 or 4 components, any subsampling, restart intervals;
+  pixels identical to libjpeg-turbo) and CCITT fax images (Group 3 one- and two-dimensional, Group 4). `ToPng` now
+  works for these images, and redaction blacks out the covered pixels of scans instead of removing the whole image.
+  JPEG 2000 and JBIG2 are still not decoded.
 - Layers (optional content): `PdfDocument.Layers` and `AddLayer`, `PdfLayer.IsVisible` / `IsLocked` / `Name` for the
   initial state, `canvas.BeginLayer` / `EndLayer` / `Layer(...)` for content and `PdfAnnotation.Layer` for
   annotations (also set on their appearance streams). `TextExtractionOptions.IncludeHiddenLayers = false` leaves out

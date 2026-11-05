@@ -37,7 +37,7 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 | **Layout** | paragraphs with mixed formatting, justification, kerning and hyphenation; lists; tables with repeated headers, column and row spans and rows split across pages; images, barcodes, automatic page breaks, header/footer with "page x of y" |
 | **Manipulation** | merge, split, import/reorder/rotate/delete pages, page templates (letterheads), watermarks, bookmarks, links, **layers** (optional content), **annotations** (highlight/underline/strike-out, free text, stamps, ink, shapes, file attachments, flattening) |
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
-| **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction**, **free-space detection** |
+| **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (JPEG and CCITT fax images decoded), **free-space detection** |
 | **Forms** | read/fill/create AcroForm fields (text, check box, radio, combo, list, push button, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
 | **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions, or encryption for the certificates of recipients |
 | **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA**, RFC 3161 and document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |

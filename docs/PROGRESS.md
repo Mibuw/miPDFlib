@@ -38,16 +38,13 @@ Last update: 2026-11-03
 | 29 Memory for large files | ✅ done (320 tests; shared stream data, saving without in-memory copies, signing and validation from the digest of the byte ranges, reading on demand from the file with 64-bit offsets: a 2.5 GB file is opened with 35 MB and saved/signed/validated with under 50 MB, see `benchmarks/`; EU DSS: RSA, PSS, ECDSA, PKCS#7, B-T and `SignFile` valid) |
 | 30 API cleanup and small features (0.6.0) | ✅ done (340 tests; issues #7–#10 and #13: page labels, viewer settings, page sizes, redaction and split samples, consistent API before 1.0) |
 | 31 PDF/A-4, PDF/UA-2, API baseline (1.0.0) | ✅ done (359 tests; PDF/A-4/4f and PDF/UA-2 with the PDF 2.0 structure namespace, validated with veraPDF also after signing; public API recorded with PublicApiAnalyzers; links in running text; bookmarks for headings; trust anchors from EU trusted lists) |
-
 | 32 Changes after signing (DocMDP) | ✅ done (368 tests; `ChangesAfterSigning` / `HasDisallowedChanges`: object-level comparison of the signed revision with the file, classified and evaluated by certification level; checked with signatures of miPDFlib and PDF-Over) |
-
 | 33 Structure on page import | ✅ done (374 tests; `ImportPages`/`Merge`/`ExtractPages`/`Split` copy the structure elements of the pages with a rebuilt parent tree; veraPDF PDF/UA-1/2 conformant; no marked content without owner after extract/merge of the tagged corpus files) |
-
 | 34 Certificate encryption | ✅ done (382 tests; public-key security handler `/Adobe.PubSec` with `adbe.pkcs7.s5`: encrypting for recipients' certificates and opening with the private key, AES-256/AES-128/RC4, permissions per document; cross-checked with Apache PDFBox 3.0.8 in both directions, also its older V1/V2 format and restricted permissions) |
-
 | 35 Layers (optional content) | ✅ done (388 tests; create, read and switch layers, content and annotations on layers, text extraction without hidden layers, PDF/A rules; veraPDF PDF/A-2b conformant, Ghostscript hides the hidden layers) |
+| 36 JPEG and CCITT decoding | ✅ done (409 tests; JPEG baseline/progressive identical to libjpeg-turbo for the test variants and all 17 corpus images, 12 MP in about 0.3 s; CCITT G3 1D/2D and G4 identical to Ghostscript; partial redaction of scans, PNG export) |
 
-Current state: 388 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -62,9 +59,10 @@ Current state: 388 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 ## Roadmap
 
 1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
-structure, documents can be encrypted for certificates, and layers are supported. Planned for 1.x (all without breaking changes):
+structure, documents can be encrypted for certificates, layers are supported and JPEG and CCITT images are
+decoded. Planned for 1.x (all without breaking changes):
 
-1. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
+1. Decoding of JBIG2 and JPEG 2000 images – on demand (JPEG 2000 can already be exported as a file).
 
 Larger, separate topics, decided on user demand: rendering pages to images and printing; text shaping for
 complex scripts (Arabic, Indic) and ligatures.

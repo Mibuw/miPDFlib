@@ -50,7 +50,8 @@ public sealed class PdfExtractedImage
 
     /// <summary>
     /// Decodes the image to PNG (with alpha channel from /SMask, /Mask or stencil masks). Returns null if the image
-    /// cannot be decoded (JPEG, JPEG 2000, JBIG2, CCITT, Lab color) – use <see cref="GetEncodedData"/> for JPEG.
+    /// cannot be decoded (JPEG, JPEG 2000, JBIG2, Lab color) – use <see cref="GetEncodedData"/> for JPEG. CCITT fax images
+    /// (scans, faxes) are decoded.
     /// </summary>
     /// <param name="background">If set, transparency is composited onto this color (the PNG has no alpha channel).</param>
     public byte[]? ToPng(PdfColor? background = null)
@@ -140,7 +141,7 @@ internal static class ImageDecoder
         byte[] data;
         try
         {
-            data = Filters.StreamFilters.Decode(image.RawBytes, image, out var remaining);
+            data = Filters.StreamFilters.DecodeImage(image.RawBytes, image, out var remaining);
             if (remaining != null) return null;
         }
         catch (PdfException)
