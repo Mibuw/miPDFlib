@@ -39,7 +39,7 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
 | **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction**, **free-space detection** |
 | **Forms** | read/fill/create AcroForm fields (text, check box, radio, combo, list, push button, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
-| **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions |
+| **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions, or encryption for the certificates of recipients |
 | **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA**, RFC 3161 and document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |
 | **PDF/A** | PDF/A-1b/2b/2u/3b/3u/4/4f output (XMP, sRGB output intent) and a basic conformance checker |
 | **Accessibility** | tagged PDF, **PDF/UA-1** and **PDF/UA-2**: automatic tagging by the layout engine, manual tagging API, PDF/UA checker |

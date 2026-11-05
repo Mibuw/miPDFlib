@@ -188,7 +188,7 @@ public static class PdfSignatureValidator
         {
             if (field.SignatureDictionary is { } sig) results.Add(Verify(field.FullName, sig, file, options));
         }
-        AnalyzeChanges(results, file, password);
+        AnalyzeChanges(results, file, password, document.OpenCertificate);
         var dss = document.Catalog.GetDictionary(PdfName.Get("DSS"));
         bool validationData = dss?.GetArray(PdfName.Get("OCSPs")) is { Count: > 0 } || dss?.GetArray(PdfName.Get("CRLs")) is { Count: > 0 };
         foreach (var result in results.Where(r => !r.IsDocumentTimestamp))
@@ -369,7 +369,7 @@ public static class PdfSignatureValidator
     /// Compares the signed revision of each signature that does not cover the whole file with the file as saved:
     /// changes after signing (<see cref="SignatureValidationResult.ChangesAfterSigning"/>) and modified locked fields.
     /// </summary>
-    private static void AnalyzeChanges(List<SignatureValidationResult> results, PdfFileData file, string? password)
+    private static void AnalyzeChanges(List<SignatureValidationResult> results, PdfFileData file, string? password, X509Certificate2? certificate)
     {
         var certification = results.FirstOrDefault(r => r.CertificationLevel != null && r.IsIntegrityValid)?.CertificationLevel;
         PdfDocument? saved = null;
@@ -378,8 +378,8 @@ public static class PdfSignatureValidator
             try
             {
                 // views of the file, not copies; the file as saved, without unsaved changes of the opened document
-                saved ??= PdfDocument.Open(file.Slice(0, file.Length), password);
-                var signed = PdfDocument.Open(file.Slice(0, result.SignedRevisionLength), password);
+                saved ??= PdfDocument.Open(file.Slice(0, file.Length), password, certificate);
+                var signed = PdfDocument.Open(file.Slice(0, result.SignedRevisionLength), password, certificate);
                 var changes = ChangeAnalyzer.Analyze(signed, saved, certification);
                 if (result.FieldLock != null && saved.GetForm() is { } form)
                 {

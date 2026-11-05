@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using MiPdf.IO;
 using MiPdf.Objects;
 using MiPdf.Security;
@@ -29,25 +30,38 @@ public sealed partial class PdfDocument
     /// <summary>The permissions granted to users of an encrypted document (all permissions if not encrypted).</summary>
     public PdfPermissions Permissions => _security == null ? PdfPermissions.All : (PdfPermissions)_security.Permissions & PdfPermissions.All;
 
-    /// <summary>Encryption revision of an encrypted document (2–6), 0 if not encrypted.</summary>
+    /// <summary>
+    /// Encryption revision of an encrypted document (2–6), 0 if not encrypted; for documents encrypted for certificates
+    /// the version of the encryption (/V: 4 or 5).
+    /// </summary>
     public int EncryptionRevision => _security?.Revision ?? 0;
 
     /// <summary>The password the document was opened with (needed to reopen earlier revisions, e.g. of signed documents).</summary>
     internal string? OpenPassword { get; private set; }
 
-    private void InitSecurity(string? password)
+    /// <summary>The certificate the document was opened with (documents encrypted for certificates).</summary>
+    internal X509Certificate2? OpenCertificate { get; private set; }
+
+    /// <summary>True if the document is encrypted for the certificates of its recipients rather than with passwords.</summary>
+    public bool IsCertificateEncrypted => Trailer.GetDictionary(PdfName.Encrypt) is { } encrypt && PublicKeySecurity.IsPublicKey(encrypt);
+
+    private void InitSecurity(string? password, X509Certificate2? certificate)
     {
         OpenPassword = password;
+        OpenCertificate = certificate;
         if (!IsEncrypted) return;
         var encryptRef = Trailer[PdfName.Encrypt] as PdfReference;
         if (encryptRef != null) Store.EncryptObjectNumber = encryptRef.ObjectNumber;
         var encrypt = Trailer.GetDictionary(PdfName.Encrypt) ?? throw new PdfException("Invalid /Encrypt entry.");
-        _security = StandardSecurityHandler.Open(encrypt, Trailer.GetArray(PdfName.ID), password);
+        _security = PublicKeySecurity.IsPublicKey(encrypt)
+            ? PublicKeySecurity.Open(encrypt, certificate)
+            : StandardSecurityHandler.Open(encrypt, Trailer.GetArray(PdfName.ID), password);
         Store.Decryptor = _security;
     }
 
     /// <summary>
-    /// Encrypts the document when it is saved next. Requires a full save (not incremental).
+    /// Encrypts the document when it is saved next, with passwords or for the certificates in
+    /// <see cref="PdfEncryptionOptions.Recipients"/>. Requires a full save (not incremental).
     /// </summary>
     public void Encrypt(PdfEncryptionOptions options)
     {
@@ -59,7 +73,11 @@ public sealed partial class PdfDocument
             Trailer[PdfName.ID] = new PdfArray(fresh, fresh);
             id = Trailer.GetArray(PdfName.ID)!;
         }
-        var (handler, dict) = StandardSecurityHandler.Create(options, id.GetString(0)!.Bytes);
+        if (options.Recipients.Count > 0 && (options.UserPassword.Length > 0 || options.OwnerPassword.Length > 0))
+            throw new ArgumentException("Use either passwords or recipient certificates, not both.", nameof(options));
+        var (handler, dict) = options.Recipients.Count > 0
+            ? PublicKeySecurity.Create(options)
+            : StandardSecurityHandler.Create(options, id.GetString(0)!.Bytes);
         Trailer[PdfName.Encrypt] = AddObject(dict);
         _security = handler;
         _encryptionChanged = true;

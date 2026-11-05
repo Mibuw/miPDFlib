@@ -65,7 +65,7 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | Render pages to images, print | **yes** | – | – | only its own documents | – |
 | AcroForms | fill, create, flatten | read only | fill, flatten | – | fill, create, flatten, FDF/XFDF |
 | Signatures | signing framework; PAdES levels and LTV only as example code with BouncyCastle; no validation | – | CMS (`adbe.pkcs7.detached`), optional time-stamp; no LTV, no validation | – | PAdES B-B to B-LTA, LTV, validation, no BouncyCastle |
-| Encryption | password (AES-256), certificate | decrypt only | password (AES-256) | password via qpdf | password (AES-256); no certificate encryption |
+| Encryption | password (AES-256), certificate | decrypt only | password (AES-256) | password via qpdf | password (AES-256), certificate |
 | PDF/A output | manual (example for PDF/A-1b) | A-1, A-2, A-3 (a/b) | `SetPdfA()`, level not selectable | A-2, A-3 (a/b/u) | A-1b, A-2b/u, A-3b/u, **A-4/4f** |
 | PDF/UA | manual tagging | – | manual tagging, PDF/UA-1 | semantic API, PDF/UA-1 | automatic tagging by the layout engine, **PDF/UA-1 and PDF/UA-2** |
 | Optional content (layers) | **yes** | read | – | – | – |

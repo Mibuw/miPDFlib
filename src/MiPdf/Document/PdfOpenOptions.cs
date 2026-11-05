@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+
 namespace MiPdf;
 
 /// <summary>Options for <see cref="PdfDocument.Open(string, PdfOpenOptions)"/>.</summary>
@@ -5,6 +7,12 @@ public sealed class PdfOpenOptions
 {
     /// <summary>Password for encrypted documents (user or owner password).</summary>
     public string? Password { get; set; }
+
+    /// <summary>
+    /// Certificate with private key for documents encrypted for certificates (see
+    /// <see cref="Security.PdfEncryptionOptions.Recipients"/>).
+    /// </summary>
+    public X509Certificate2? Certificate { get; set; }
 
     /// <summary>
     /// Reads the objects from the file when they are needed instead of loading the whole file into memory (default

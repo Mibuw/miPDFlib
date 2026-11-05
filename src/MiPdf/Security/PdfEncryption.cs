@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+
 namespace MiPdf.Security;
 
 /// <summary>User access permissions (ISO 32000-2, Table 22).</summary>
@@ -39,7 +41,10 @@ public enum PdfEncryptionAlgorithm
     Rc4_128,
 }
 
-/// <summary>Settings for encrypting a document with passwords.</summary>
+/// <summary>
+/// Settings for encrypting a document: with passwords, or for the certificates of its recipients
+/// (<see cref="Recipients"/>).
+/// </summary>
 public sealed class PdfEncryptionOptions
 {
     /// <summary>Password required to open the document (empty = opens without password, restrictions still apply).</summary>
@@ -56,4 +61,11 @@ public sealed class PdfEncryptionOptions
 
     /// <summary>Encrypt the XMP metadata stream (default true).</summary>
     public bool EncryptMetadata { get; set; } = true;
+
+    /// <summary>
+    /// Certificates of the recipients for certificate encryption (public-key security handler, /Adobe.PubSec): only
+    /// holders of a matching private key can open the document (<see cref="PdfOpenOptions.Certificate"/>). The
+    /// passwords are then not used; <see cref="Permissions"/> apply to all recipients. RSA certificates are supported.
+    /// </summary>
+    public IList<X509Certificate2> Recipients { get; } = new List<X509Certificate2>();
 }

@@ -1,4 +1,8 @@
 #nullable enable
+MiPdf.PdfDocument.IsCertificateEncrypted.get -> bool
+MiPdf.PdfOpenOptions.Certificate.get -> System.Security.Cryptography.X509Certificates.X509Certificate2?
+MiPdf.PdfOpenOptions.Certificate.set -> void
+MiPdf.Security.PdfEncryptionOptions.Recipients.get -> System.Collections.Generic.IList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
 MiPdf.Signatures.DocumentChange
 MiPdf.Signatures.DocumentChange.Description.get -> string!
 MiPdf.Signatures.DocumentChange.IsPermitted.get -> bool
@@ -18,3 +22,5 @@ MiPdf.Signatures.DocumentChangeKind.ValidationData = 0 -> MiPdf.Signatures.Docum
 MiPdf.Signatures.SignatureValidationResult.ChangesAfterSigning.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Signatures.DocumentChange!>!
 MiPdf.Signatures.SignatureValidationResult.HasDisallowedChanges.get -> bool
 override MiPdf.Signatures.DocumentChange.ToString() -> string!
+static MiPdf.PdfDocument.Open(byte[]! data, MiPdf.PdfOpenOptions! options) -> MiPdf.PdfDocument!
+static MiPdf.PdfDocument.Open(System.IO.Stream! stream, MiPdf.PdfOpenOptions! options) -> MiPdf.PdfDocument!

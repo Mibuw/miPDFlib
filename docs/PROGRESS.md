@@ -43,7 +43,9 @@ Last update: 2026-11-03
 
 | 33 Structure on page import | ✅ done (374 tests; `ImportPages`/`Merge`/`ExtractPages`/`Split` copy the structure elements of the pages with a rebuilt parent tree; veraPDF PDF/UA-1/2 conformant; no marked content without owner after extract/merge of the tagged corpus files) |
 
-Current state: 374 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+| 34 Certificate encryption | ✅ done (382 tests; public-key security handler `/Adobe.PubSec` with `adbe.pkcs7.s5`: encrypting for recipients' certificates and opening with the private key, AES-256/AES-128/RC4, permissions per document; cross-checked with Apache PDFBox 3.0.8 in both directions, also its older V1/V2 format and restricted permissions) |
+
+Current state: 382 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -58,9 +60,9 @@ Current state: 374 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 ## Roadmap
 
 1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
-structure. Planned for 1.x (all without breaking changes):
+structure, and documents can be encrypted for certificates. Planned for 1.x (all without breaking changes):
 
-1. Certificate (public-key) encryption and optional content (reading and switching layers).
+1. Optional content (reading and switching layers).
 2. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
 
 Larger, separate topics, decided on user demand: rendering pages to images and printing; text shaping for

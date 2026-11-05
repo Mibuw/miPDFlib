@@ -71,11 +71,11 @@ public sealed partial class PdfDocument : IDisposable
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(options);
         if (!options.ReadFromFile && new FileInfo(path).Length <= Array.MaxLength)
-            return Open(File.ReadAllBytes(path), options.Password);
+            return Open(PdfFileData.FromArray(File.ReadAllBytes(path)), options.Password, options.Certificate);
         var file = PdfFileData.OpenFile(path);
         try
         {
-            return Open(file, options.Password);
+            return Open(file, options.Password, options.Certificate);
         }
         catch
         {
@@ -88,20 +88,27 @@ public sealed partial class PdfDocument : IDisposable
     /// Opens a document from a stream, which is read from its current position to the end into memory.
     /// The stream is not closed. See <see cref="Open(byte[], string)"/>.
     /// </summary>
-    public static PdfDocument Open(Stream stream, string? password = null)
+    public static PdfDocument Open(Stream stream, string? password = null) => Open(stream, new PdfOpenOptions { Password = password });
+
+    /// <summary>
+    /// Opens a document from a stream with a password or certificate (<see cref="PdfOpenOptions"/>); the stream is
+    /// read into memory (<see cref="PdfOpenOptions.ReadFromFile"/> does not apply).
+    /// </summary>
+    public static PdfDocument Open(Stream stream, PdfOpenOptions options)
     {
         ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(options);
         long remaining = stream.CanSeek ? stream.Length - stream.Position : -1;
         if (remaining is >= 0 and <= int.MaxValue)
         {
             // read once into an array of the final size
             var data = new byte[remaining];
             stream.ReadExactly(data);
-            return Open(data, password);
+            return Open(data, options);
         }
         using var buffer = new ChunkedBufferStream();
         stream.CopyTo(buffer);
-        return Open(buffer.ToArray(), password);
+        return Open(buffer.ToArray(), options);
     }
 
     /// <summary>
@@ -114,13 +121,24 @@ public sealed partial class PdfDocument : IDisposable
         return Open(PdfFileData.FromArray(data), password);
     }
 
-    internal static PdfDocument Open(PdfFileData data, string? password)
+    /// <summary>
+    /// Opens a document from its bytes with a password or certificate (<see cref="PdfOpenOptions"/>); see
+    /// <see cref="Open(byte[], string)"/>.
+    /// </summary>
+    public static PdfDocument Open(byte[] data, PdfOpenOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(options);
+        return Open(PdfFileData.FromArray(data), options.Password, options.Certificate);
+    }
+
+    internal static PdfDocument Open(PdfFileData data, string? password, System.Security.Cryptography.X509Certificates.X509Certificate2? certificate = null)
     {
         try
         {
             var doc = new PdfDocument(new PdfObjectStore(data));
             doc.Version = doc.Store.Version;
-            doc.InitSecurity(password);
+            doc.InitSecurity(password, certificate);
             if (doc.Catalog.GetName(PdfName.Get("Version")) is { } v && string.CompareOrdinal(v.Value, doc.Version) > 0)
                 doc.Version = v.Value;
             return doc;

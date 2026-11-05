@@ -11,6 +11,10 @@
   `ExtractPages`, `Split`): the structure elements with content on the copied pages and their ancestors, with a
   rebuilt parent tree; documents are merged below a single `Document` element. Results validated with veraPDF
   (PDF/UA-1, PDF/UA-2). Before, imported pages lost their tags.
+- Certificate encryption (public-key security handler, `/Adobe.PubSec`): `PdfEncryptionOptions.Recipients` encrypts a
+  document for the certificates of its recipients (AES-256, AES-128 or RC4, with permissions);
+  `PdfOpenOptions.Certificate` opens such documents with the private key, also from byte arrays and streams (new
+  `Open` overloads with `PdfOpenOptions`). `PdfDocument.IsCertificateEncrypted` tells the kind of encryption. Cross-checked with Apache PDFBox in both directions.
 
 ## 1.0.0
 

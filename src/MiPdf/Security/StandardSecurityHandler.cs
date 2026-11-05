@@ -7,7 +7,9 @@ using MiPdf.Objects;
 namespace MiPdf.Security;
 
 /// <summary>
-/// Standard security handler (ISO 32000-2, 7.6.4): password-based RC4/AES encryption, revisions 2–6.
+/// Standard security handler (ISO 32000-2, 7.6.4): password-based RC4/AES encryption, revisions 2–6. Also encrypts
+/// and decrypts the objects for the public-key security handler (<see cref="PublicKeySecurity"/>), which only derives
+/// the file key differently.
 /// </summary>
 internal sealed class StandardSecurityHandler : IObjectDecryptor, IObjectEncryptor
 {
@@ -17,7 +19,7 @@ internal sealed class StandardSecurityHandler : IObjectDecryptor, IObjectEncrypt
         0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A,
     };
 
-    private enum Cipher
+    internal enum Cipher
     {
         None,
         Rc4,
@@ -30,7 +32,7 @@ internal sealed class StandardSecurityHandler : IObjectDecryptor, IObjectEncrypt
     private readonly Cipher _stringCipher;
     private readonly bool _encryptMetadata;
 
-    private StandardSecurityHandler(byte[] key, Cipher streamCipher, Cipher stringCipher, bool encryptMetadata, int revision, int permissions, bool ownerAccess)
+    internal StandardSecurityHandler(byte[] key, Cipher streamCipher, Cipher stringCipher, bool encryptMetadata, int revision, int permissions, bool ownerAccess)
     {
         _key = key;
         _streamCipher = streamCipher;
@@ -41,6 +43,7 @@ internal sealed class StandardSecurityHandler : IObjectDecryptor, IObjectEncrypt
         IsOwnerAccess = ownerAccess;
     }
 
+    /// <summary>/R of the standard security handler; /V for certificate encryption.</summary>
     public int Revision { get; }
 
     /// <summary>The raw /P value.</summary>
@@ -110,7 +113,7 @@ internal sealed class StandardSecurityHandler : IObjectDecryptor, IObjectEncrypt
         throw new PdfPasswordException(password == null ? "The document is password protected." : "Invalid password.");
     }
 
-    private static Cipher CipherFromFilter(PdfDictionary encrypt, string name)
+    internal static Cipher CipherFromFilter(PdfDictionary encrypt, string name)
     {
         if (name == "Identity") return Cipher.None;
         var cfm = encrypt.GetDictionary(PdfName.CF)?.GetDictionary(PdfName.Get(name))?.GetName(PdfName.CFM)?.Value;
