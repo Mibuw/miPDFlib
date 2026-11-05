@@ -18,9 +18,20 @@ public sealed partial class PdfDocument : IDisposable
     {
         Store = store;
         _info = new PdfDocumentInfo(this);
+        DiagnosticSink.ObjectNumberOf = o => Store.GetReferenceOf(o)?.ObjectNumber;
+        store.Diagnostics = DiagnosticSink;
     }
 
     internal PdfObjectStore Store { get; }
+
+    internal DiagnosticSink DiagnosticSink { get; } = new();
+
+    /// <summary>
+    /// The problems tolerated so far while reading and using this document (at most 1,000, each reported once), for
+    /// example a repaired cross-reference table, unreadable objects or fonts substituted when rendering. To receive
+    /// them as they occur, set <see cref="PdfOpenOptions.OnDiagnostic"/>.
+    /// </summary>
+    public IReadOnlyList<PdfDiagnostic> Diagnostics => DiagnosticSink.Items;
 
     /// <summary>The trailer dictionary (contains /Root, /Info, /ID, /Encrypt).</summary>
     public PdfDictionary Trailer => Store.Trailer;
@@ -71,11 +82,11 @@ public sealed partial class PdfDocument : IDisposable
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(options);
         if (!options.ReadFromFile && new FileInfo(path).Length <= Array.MaxLength)
-            return Open(PdfFileData.FromArray(File.ReadAllBytes(path)), options.Password, options.Certificate);
+            return Open(PdfFileData.FromArray(File.ReadAllBytes(path)), options.Password, options.Certificate, options.OnDiagnostic);
         var file = PdfFileData.OpenFile(path);
         try
         {
-            return Open(file, options.Password, options.Certificate);
+            return Open(file, options.Password, options.Certificate, options.OnDiagnostic);
         }
         catch
         {
@@ -129,14 +140,19 @@ public sealed partial class PdfDocument : IDisposable
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(options);
-        return Open(PdfFileData.FromArray(data), options.Password, options.Certificate);
+        return Open(PdfFileData.FromArray(data), options.Password, options.Certificate, options.OnDiagnostic);
     }
 
-    internal static PdfDocument Open(PdfFileData data, string? password, System.Security.Cryptography.X509Certificates.X509Certificate2? certificate = null)
+    internal static PdfDocument Open(PdfFileData data, string? password, System.Security.Cryptography.X509Certificates.X509Certificate2? certificate = null,
+        Action<PdfDiagnostic>? onDiagnostic = null)
     {
         try
         {
             var doc = new PdfDocument(new PdfObjectStore(data));
+            doc.DiagnosticSink.Callback = onDiagnostic;
+            if (doc.Store.WasRepaired)
+                doc.DiagnosticSink.Report(PdfDiagnosticSeverity.Warning, PdfDiagnosticCode.XrefRepaired,
+                    "The cross-reference table is damaged; the objects were located by scanning the file.");
             doc.Version = doc.Store.Version;
             doc.InitSecurity(password, certificate);
             if (doc.Catalog.GetName(PdfName.Get("Version")) is { } v && string.CompareOrdinal(v.Value, doc.Version) > 0)
@@ -244,6 +260,13 @@ public sealed partial class PdfDocument : IDisposable
         pages.Clear();
         pages.AddRange(newList);
         _pageTreeDirty = true;
+    }
+
+    /// <summary>The 1-based number of a page of this document, or null.</summary>
+    internal int? PageNumberOf(PdfPage page)
+    {
+        int index = EnsurePages().IndexOf(page);
+        return index >= 0 ? index + 1 : null;
     }
 
     private List<PdfPage> EnsurePages()

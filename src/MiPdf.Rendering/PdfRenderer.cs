@@ -98,6 +98,7 @@ public static class PdfRenderer
         (byte, byte, byte)? background = options.Background is { } bg ? ToBytes(ImageDecoder.ToRgb(bg)) : null;
         // the page is rendered on a transparent backdrop (the page group) and then put on the paper: blend modes see
         // no backdrop where nothing was painted, as in Acrobat
+        using var diagnostics = DiagnosticContext.Enter(page);
         var surface = new Surface(width, height, null);
         var renderer = new ContentRenderer(surface, page.Document);
         page.Document.PrepareFontsForReading();

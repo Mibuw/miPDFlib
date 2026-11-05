@@ -47,6 +47,8 @@ Last update: 2026-11-05
 | 38 Rendering, stage 2 (fonts and text) | ✅ done (429 tests; glyph outlines of TrueType/OpenType, CFF (also CID-keyed), Type 1 and Type 3 fonts, all text rendering modes, substitutes for non-embedded fonts; corpus compared with Ghostscript: text pages identical apart from hinting; fixed DCT-encoded soft masks, crop box offsets and page size rounding; ZapfDingbats Unicode table for text extraction) |
 | 39 Rendering, stage 3 (shadings, patterns, transparency) | ✅ done (451 tests; shading types 1-7, tiling and shading patterns, PDF functions 0/2/3/4, all blend modes, soft masks, isolated/non-isolated and knockout groups, page group on a transparent backdrop; checked with Ghostscript and 56 shading/transparency test files of pdf.js; shadings limited to the clip bounds: a page with 2,000 clipped shadings from 12 s to 0.5 s) |
 | 40 Rendering, stage 4 (color) | ✅ done (455 tests; Separation/DeviceN through tint transforms, colorant None, CMYK approximating SWOP (pdf.js coefficients; naive formula was off by 25 levels on average), Lab range, ICC-based by component count; images in the core decoder through the same color spaces with full Decode arrays; Ghostscript spots2 from 9.6 to 1.9, CMYK example from 4.7 to 1.5) |
+| 41 Diagnostics | ✅ done (461 tests; `PdfDiagnostic` with severity, stable code, page and object number; `PdfDocument.Diagnostics` and `PdfOpenOptions.OnDiagnostic`; reported: repaired xref, unreadable objects, damaged streams and ToUnicode maps, undecodable images, substituted/missing/damaged fonts, unsupported shadings and patterns, too deep nesting; no false positives on the corpus and the pdf.js files) |
+| 42 Text shaping (Arabic, Hebrew, bidi) | ✅ done (470 tests; OpenType GSUB lookup types 1-8 and GPOS 1-9 with GDEF, Arabic joining forms, mark attachment, UAX #9 bidi passing all 91,707 Unicode conformance cases, mirrored brackets, ActualText for right-to-left runs and in text extraction, bidi-aware paragraph lines; checked with Arial and DejaVu Sans, Ghostscript renders identically, veraPDF PDF/UA-1 passes) |
 
 Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
@@ -79,13 +81,12 @@ decoded (1.1.0, released). Next steps:
    Stages 1 and 2 are released as preview `1.2.0-preview.1` (miPDFlib and miPDFlib.Rendering); stages 3 and 4 in
    `1.2.0-preview.2`. PDF functions moved from stage 4 to stage 3 (shadings need them); color
    spaces and functions are part of the core library, so that image export uses the same colors.
-2. **Diagnostics**: today errors raise `PdfException` (`PdfParseException`, `PdfPasswordException`), while damaged
-   input that can be tolerated is handled silently (repaired cross-reference table, substituted fonts, skipped
-   images or content). Planned: an opt-in diagnostics channel that reports these tolerated problems (warnings with
-   page and object number), without a dependency on a logging framework, plus a small adapter for
-   `Microsoft.Extensions.Logging` users.
-3. **Text shaping** for complex scripts: Unicode bidirectional algorithm (Hebrew, Arabic), Arabic joining forms and
-   standard ligatures (OpenType GSUB), mark positioning (GPOS); Indic scripts last.
+2. **Diagnostics** ✅: errors raise `PdfException`; tolerated problems are reported as `PdfDiagnostic` in
+   `PdfDocument.Diagnostics` and through `PdfOpenOptions.OnDiagnostic` (see
+   [guide](guide/diagnostics.md); `ILogger` users connect it with one line, so no adapter package is needed).
+3. **Text shaping** ✅ for Arabic, Hebrew and other right-to-left scripts: Unicode bidirectional algorithm, Arabic
+   joining forms and ligatures (OpenType GSUB), mark positioning (GPOS), optional Latin ligatures. Still open:
+   Indic scripts (syllable reordering, conjuncts) and other scripts that reorder glyphs (Khmer, Myanmar, ...).
 4. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
    PostScript interpreter itself is a separate project).
 

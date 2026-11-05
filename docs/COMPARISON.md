@@ -70,15 +70,15 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | PDF/UA | manual tagging | – | manual tagging, PDF/UA-1 | semantic API, PDF/UA-1 | automatic tagging by the layout engine, **PDF/UA-1 and PDF/UA-2** |
 | Optional content (layers) | **yes** | read | – | – | create, read, switch |
 | CCITT / JBIG2 / JPEG 2000 images | decoded (JBIG2/JPX via plugins) | CCITT only | – | – | CCITT decoded (and JPEG); JPEG 2000 exported as file; JBIG2 raw data only |
-| Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | – |
+| Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | Arabic, Hebrew and other right-to-left scripts (own managed shaper, bidi, GSUB/GPOS); Indic not yet |
 | ZUGFeRD, redaction, barcodes | – | – | barcodes | PDF/A-3 attachments for ZUGFeRD | all three |
 
 In short: **PDFBox** is the choice for rendering and printing and the most complete low-level toolkit, but in Java
 and with signatures assembled from examples. **PdfPig** is strong at reading and analysing text. **MigraDoc** and
 **QuestPDF** are good at document generation; QuestPDF also handles complex scripts, but needs native libraries and a
 paid licence above its revenue limit, and since 6.5 PDFsharp is AGPL or commercial. miPDFlib covers creating,
-modifying, forms, signatures and archiving in one managed library; it does not render PDFs and does not shape complex
-scripts.
+modifying, forms, signatures and archiving in one managed library; it renders pages with the preview package
+miPDFlib.Rendering and shapes Arabic and Hebrew text, but not Indic scripts yet.
 
 Information as of November 2026, from the projects' documentation, release notes and source code; the binding
 licence terms are those of the projects.
@@ -91,7 +91,7 @@ licence terms are those of the projects.
 - **Commercial support, FIPS or the widest feature set:** iText or Syncfusion with a commercial licence.
 - **Rendering PDFs to images or printing:** PDFBox (Java) – or a PDFium-based .NET library.
 - **Reading and analysing text in .NET:** PdfPig.
-- **Document generation with complex scripts (Arabic, Indic):** QuestPDF, within its licence terms.
+- **Document generation with Indic scripts:** QuestPDF, within its licence terms (Arabic and Hebrew: also miPDFlib).
 - **Closed product without licence costs and without revenue or size limits, focused on forms, PAdES signatures,
   PDF/A, PDF/UA or e-invoices:** miPDFlib – test it with your own documents before going live.
 

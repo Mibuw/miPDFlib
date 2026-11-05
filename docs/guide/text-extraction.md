@@ -76,5 +76,9 @@ text, images, vector graphics or annotations – e.g. to place a signature witho
 - Form XObjects (recursively), inline images are skipped correctly
 - Reading order across rotated text (lines are grouped by orientation)
 
-Limitations: no OCR (scanned pages without text layer return nothing), right-to-left reordering is not
-applied, predefined CJK CMaps other than Identity are treated as 2-byte encodings.
+Replacement text of marked content (`/ActualText`, ISO 32000-2, 14.9.4) is used instead of the glyphs it covers – for
+example right-to-left text written by miPDFlib or ligatures marked by word processors – so such text is extracted in
+reading order.
+
+Limitations: no OCR (scanned pages without text layer return nothing), right-to-left text without `/ActualText` is
+extracted in visual order, predefined CJK CMaps other than Identity are treated as 2-byte encodings.

@@ -42,6 +42,9 @@ internal sealed class SfntFont
 
     public int UnitsPerEm { get; } = 1000;
 
+    /// <summary>The file name of an installed font (substitutes), otherwise null.</summary>
+    public string? FileName { get; init; }
+
     public int GlyphCount { get; private set; }
 
     private bool LongLoca { get; }

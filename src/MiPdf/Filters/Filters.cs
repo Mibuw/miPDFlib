@@ -55,6 +55,9 @@ internal static class FlateFilter
         {
             ok = false;
         }
+        if (!ok)
+            DiagnosticContext.Warning(PdfDiagnosticCode.StreamDamaged,
+                $"Flate-compressed data is damaged; the {output.Length} bytes decoded before the error are used.");
         return output.ToArray();
     }
 }

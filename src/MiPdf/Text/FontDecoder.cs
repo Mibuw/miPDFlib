@@ -31,7 +31,11 @@ internal sealed class FontDecoder
         if (font.GetStream(PdfName.ToUnicode) is { } tu)
         {
             try { _toUnicode = CMap.Parse(tu.GetBytes()); }
-            catch (PdfException) { }
+            catch (PdfException ex)
+            {
+                DiagnosticContext.Warning(PdfDiagnosticCode.ToUnicodeDamaged,
+                    $"The ToUnicode map of font {font.GetName(PdfName.BaseFont)?.Value ?? "(unnamed)"} cannot be read ({ex.Message}).", font);
+            }
         }
 
         if (_composite)

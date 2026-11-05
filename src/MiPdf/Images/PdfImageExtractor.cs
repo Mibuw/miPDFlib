@@ -98,6 +98,8 @@ public static class PdfImageExtractor
     /// <summary>Images drawn on the page (including images inside form XObjects and inline images).</summary>
     public static IReadOnlyList<PdfExtractedImage> Extract(PdfPage page)
     {
+        ArgumentNullException.ThrowIfNull(page);
+        using var diagnostics = DiagnosticContext.Enter(page);
         var result = new List<PdfExtractedImage>();
         new GraphicsWalker { Image = (s, m, n) => result.Add(new PdfExtractedImage(s, m, n)) }
             .Walk(page.GetContentBytes(), page.GetInheritable(PdfName.Resources) as PdfDictionary, Matrix.Identity);
@@ -142,10 +144,15 @@ internal static class ImageDecoder
         try
         {
             data = Filters.StreamFilters.DecodeImage(image.RawBytes, image, out var remaining);
-            if (remaining != null) return null;
+            if (remaining != null)
+            {
+                DiagnosticContext.Warning(PdfDiagnosticCode.ImageNotDecoded, $"{remaining.Value} images are not decoded; the image is not shown.", image);
+                return null;
+            }
         }
-        catch (PdfException)
+        catch (PdfException ex)
         {
+            DiagnosticContext.Warning(PdfDiagnosticCode.ImageNotDecoded, $"The image data is damaged ({ex.Message}); the image is not shown.", image);
             return null;
         }
 

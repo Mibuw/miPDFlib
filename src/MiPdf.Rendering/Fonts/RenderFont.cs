@@ -100,7 +100,7 @@ internal sealed class RenderFont
                 return new RenderFont(decoder, cff.FontMatrix, g => cff.GlyphByCid(g.Cid) is > 0 and var gid ? cff.GetOutline(gid) : null);
         }
         // not embedded: a system font, glyphs by Unicode
-        var substitute = SystemFonts.Find(font.GetName(PdfName.BaseFont)?.Value ?? descendant?.GetName(PdfName.BaseFont)?.Value ?? "", descriptor);
+        var substitute = Substitute(font, font.GetName(PdfName.BaseFont)?.Value ?? descendant?.GetName(PdfName.BaseFont)?.Value ?? "", descriptor, program);
         return ByUnicode(decoder, substitute);
     }
 
@@ -156,8 +156,22 @@ internal sealed class RenderFont
             }
         }
         // not embedded (standard 14 fonts and others): a system font, glyphs by Unicode
-        var substitute = SystemFonts.Find(font.GetName(PdfName.BaseFont)?.Value ?? "", descriptor);
+        var substitute = Substitute(font, font.GetName(PdfName.BaseFont)?.Value ?? "", descriptor, program);
         return ByUnicode(decoder, substitute, CodeNamesOf(font, null));
+    }
+
+    /// <summary>The installed substitute for a font without (usable) embedded program, reported as a diagnostic.</summary>
+    private static SfntFont? Substitute(PdfDictionary font, string baseFont, PdfDictionary? descriptor, object? program)
+    {
+        var substitute = SystemFonts.Find(baseFont, descriptor);
+        string name = baseFont.Length > 0 ? baseFont : "(unnamed)";
+        if (substitute == null)
+            DiagnosticContext.Warning(PdfDiagnosticCode.FontMissing, $"Font {name} is not embedded and no substitute is installed; its text is not drawn.", font);
+        else if (program == null && descriptor?.GetStream(PdfName.FontFile2) == null && descriptor?.GetStream(PdfName.Get("FontFile3")) == null && descriptor?.GetStream(PdfName.Get("FontFile")) == null)
+            DiagnosticContext.Information(PdfDiagnosticCode.FontSubstituted, $"Font {name} is not embedded; it is drawn with {substitute.FileName}.", font);
+        else
+            DiagnosticContext.Warning(PdfDiagnosticCode.FontDamaged, $"The embedded program of font {name} cannot be read; it is drawn with {substitute.FileName}.", font);
+        return substitute;
     }
 
     /// <summary>The glyph of a simple TrueType font (ISO 32000-2, 9.6.5.4).</summary>
@@ -349,7 +363,7 @@ internal static class SystemFonts
                 if (path == null) continue;
                 try
                 {
-                    return new SfntFont(File.ReadAllBytes(path));
+                    return new SfntFont(File.ReadAllBytes(path)) { FileName = Path.GetFileName(path) };
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PdfException or IndexOutOfRangeException)
                 {

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- Text shaping for TrueType/OpenType fonts: Arabic and other joining scripts with their joining forms and required
+  ligatures, mark positioning (harakat, Hebrew points, combining accents) and right-to-left text ordered with the
+  Unicode Bidirectional Algorithm (UAX #9, passes all 91,707 cases of the Unicode conformance test), in `ShowText`,
+  `DrawText`, paragraphs and `GetTextWidth`; OpenType GSUB and GPOS are applied (all lookup types). Right-to-left
+  text carries `/ActualText` with its logical text. Optional standard ligatures for Latin text:
+  `PdfTrueTypeFont.Ligatures`. Indic scripts are not shaped yet.
+- Text extraction uses `/ActualText` of marked content (right-to-left text and ligatures in reading order).
+- Diagnostics: problems miPDFlib tolerates instead of failing – a repaired cross-reference table, unreadable objects,
+  damaged streams, unreadable ToUnicode maps, images that cannot be decoded and, when rendering, substituted or
+  missing fonts and unsupported shadings – are reported as `PdfDiagnostic` (severity, stable code, message, page and
+  object number). They are collected in `PdfDocument.Diagnostics` and passed to `PdfOpenOptions.OnDiagnostic`, for
+  example to log them; no logging framework is required. See the guide "Error handling and diagnostics".
+
 ## 1.2.0-preview.2
 
 Second preview of the rendering package: shadings, patterns, transparency and colors complete the renderer

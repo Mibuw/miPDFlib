@@ -26,4 +26,12 @@ public sealed class PdfOpenOptions
     /// document open until those documents are saved.
     /// </remarks>
     public bool ReadFromFile { get; set; }
+
+    /// <summary>
+    /// Called for each problem miPDFlib tolerates while the document is read and used (repaired file structure,
+    /// unreadable objects, damaged streams, substituted fonts when rendering, ...), for example to log it. The same
+    /// diagnostics are collected in <see cref="PdfDocument.Diagnostics"/>. The callback runs synchronously on the
+    /// thread that does the work.
+    /// </summary>
+    public Action<PdfDiagnostic>? OnDiagnostic { get; set; }
 }

@@ -75,7 +75,11 @@ internal sealed class ContentRenderer
 
     private void Render(byte[] content, PdfDictionary? resources, GraphicsState gs, int depth)
     {
-        if (depth > MaxDepth) return;
+        if (depth > MaxDepth)
+        {
+            DiagnosticContext.Warning(PdfDiagnosticCode.NestingTooDeep, $"Content is nested more than {MaxDepth} levels deep; the inner levels are not drawn.");
+            return;
+        }
         int outerDepth = _depth;
         _depth = depth;
         try
@@ -593,6 +597,8 @@ internal sealed class ContentRenderer
                 return layer;
             }
             default:
+                DiagnosticContext.Warning(PdfDiagnosticCode.PaintNotSupported,
+                    $"A pattern of type {pattern.GetInt(PdfName.Get("PatternType"), 0)} is invalid or unsupported; it is not painted.", pattern);
                 return null;
         }
     }
@@ -603,6 +609,9 @@ internal sealed class ContentRenderer
         if (!_shadings.TryGetValue(dict, out var shading))
         {
             shading = Shading.Load(dict, resources);
+            if (shading == null)
+                DiagnosticContext.Warning(PdfDiagnosticCode.PaintNotSupported,
+                    $"A shading of type {dict.GetInt(PdfName.Get("ShadingType"), 0)} is invalid or unsupported; it is not painted.", dict);
             if (_shadings.Count < 256) _shadings[dict] = shading;
         }
         return shading;
@@ -828,7 +837,11 @@ internal sealed class ContentRenderer
 
     private void DrawForm(PdfStream form, PdfDictionary? parentResources, GraphicsState gs, int depth)
     {
-        if (!_activeForms.Add(form)) return; // recursive form
+        if (!_activeForms.Add(form))
+        {
+            DiagnosticContext.Warning(PdfDiagnosticCode.NestingTooDeep, "A form XObject uses itself; the inner use is not drawn.", form);
+            return;
+        }
         try
         {
             var inner = gs.Clone();

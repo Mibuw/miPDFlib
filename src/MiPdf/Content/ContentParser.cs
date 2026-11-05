@@ -61,8 +61,9 @@ public static class ContentParser
             {
                 operand = parser.ParseCurrent(0);
             }
-            catch (PdfParseException) when (!strict)
+            catch (PdfParseException ex) when (!strict)
             {
+                DiagnosticContext.Warning(PdfDiagnosticCode.ContentDamaged, $"A content stream has a syntax error ({ex.Message}); the rest of it is ignored.");
                 yield break;
             }
             if (operand != null) operands.Add(operand);

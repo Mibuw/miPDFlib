@@ -1,1 +1,28 @@
 #nullable enable
+const MiPdf.PdfDiagnosticCode.ContentDamaged = "ContentDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.FontDamaged = "FontDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.FontMissing = "FontMissing" -> string!
+const MiPdf.PdfDiagnosticCode.FontSubstituted = "FontSubstituted" -> string!
+const MiPdf.PdfDiagnosticCode.ImageNotDecoded = "ImageNotDecoded" -> string!
+const MiPdf.PdfDiagnosticCode.NestingTooDeep = "NestingTooDeep" -> string!
+const MiPdf.PdfDiagnosticCode.ObjectUnreadable = "ObjectUnreadable" -> string!
+const MiPdf.PdfDiagnosticCode.PaintNotSupported = "PaintNotSupported" -> string!
+const MiPdf.PdfDiagnosticCode.StreamDamaged = "StreamDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.ToUnicodeDamaged = "ToUnicodeDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.XrefRepaired = "XrefRepaired" -> string!
+MiPdf.Fonts.PdfTrueTypeFont.Ligatures.get -> bool
+MiPdf.Fonts.PdfTrueTypeFont.Ligatures.set -> void
+MiPdf.PdfDiagnostic
+MiPdf.PdfDiagnostic.Code.get -> string!
+MiPdf.PdfDiagnostic.Message.get -> string!
+MiPdf.PdfDiagnostic.ObjectNumber.get -> int?
+MiPdf.PdfDiagnostic.PageNumber.get -> int?
+MiPdf.PdfDiagnostic.Severity.get -> MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDiagnosticCode
+MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDiagnosticSeverity.Information = 0 -> MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDiagnosticSeverity.Warning = 1 -> MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDocument.Diagnostics.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfDiagnostic!>!
+MiPdf.PdfOpenOptions.OnDiagnostic.get -> System.Action<MiPdf.PdfDiagnostic!>?
+MiPdf.PdfOpenOptions.OnDiagnostic.set -> void
+override MiPdf.PdfDiagnostic.ToString() -> string!

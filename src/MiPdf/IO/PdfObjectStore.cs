@@ -271,19 +271,28 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver, IDisposable
         return LoadObject(number, entry);
     }
 
+    /// <summary>Receives problems tolerated while reading (set by the document).</summary>
+    internal DiagnosticSink? Diagnostics { get; set; }
+
     private PdfObject? LoadObject(int number, XrefEntry entry)
     {
         try
         {
-            return entry.Type switch
+            var obj = entry.Type switch
             {
                 XrefEntryType.InUse => ReadIndirectObjectAt(entry.Offset, number, decrypt: true)?.Object,
                 XrefEntryType.Compressed => ReadFromObjectStream(number, entry),
                 _ => null,
             };
+            if (obj == null && entry.Type is XrefEntryType.InUse or XrefEntryType.Compressed)
+                Diagnostics?.Report(PdfDiagnosticSeverity.Warning, PdfDiagnosticCode.ObjectUnreadable,
+                    $"Object {number} is not where the cross-reference table says; it is treated as null.", objectNumber: number);
+            return obj;
         }
         catch (Exception ex) when (ex is PdfParseException or IndexOutOfRangeException or ArgumentOutOfRangeException)
         {
+            Diagnostics?.Report(PdfDiagnosticSeverity.Warning, PdfDiagnosticCode.ObjectUnreadable,
+                $"Object {number} cannot be read ({ex.Message}); it is treated as null.", objectNumber: number);
             return null;
         }
     }

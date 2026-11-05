@@ -64,6 +64,8 @@ public static class PdfTextExtractor
     /// <summary>Returns the lines of a page with words and positions.</summary>
     public static IReadOnlyList<TextLineInfo> ExtractLines(PdfPage page, TextExtractionOptions? options = null)
     {
+        ArgumentNullException.ThrowIfNull(page);
+        using var diagnostics = DiagnosticContext.Enter(page);
         options ??= new TextExtractionOptions();
         try
         {
@@ -216,7 +218,9 @@ internal sealed class GlyphCollector
     {
         if (depth > 16) return;
         var stack = new Stack<State>();
-        var marked = new Stack<bool>(); // per marked-content sequence: does it hide its content?
+        // per marked-content sequence: does it hide its content, and its replacement text (/ActualText) with the
+        // number of glyphs collected before it
+        var marked = new Stack<(bool Hides, string? ActualText, int Start)>();
         var gs = initial;
         Matrix tm = Matrix.Identity, tlm = Matrix.Identity;
         foreach (var op in ContentParser.Parse(content))
@@ -237,16 +241,31 @@ internal sealed class GlyphCollector
                     tm = tlm = Matrix.Identity;
                     break;
                 case "BMC":
-                    marked.Push(false);
+                    marked.Push((false, null, _glyphs.Count));
                     break;
                 case "BDC":
+                {
                     bool hides = !_options.IncludeHiddenLayers && o.Count >= 2 && o[0] is PdfName { Value: "OC" } && o[1] is PdfName property
                         && _document != null && _document.IsHiddenContent(resources?.GetDictionary(PdfName.Get("Properties"))?[property]);
-                    marked.Push(hides);
+                    var properties = o.Count >= 2 ? o[1] switch
+                    {
+                        PdfDictionary inline => inline,
+                        PdfName named => resources?.GetDictionary(PdfName.Get("Properties"))?.GetDictionary(named),
+                        _ => null,
+                    } : null;
+                    // the outermost replacement text wins
+                    string? actual = marked.Any(m => m.ActualText != null) ? null : properties?.GetText(PdfName.ActualText);
+                    marked.Push((hides, actual, _glyphs.Count));
                     if (hides) _hidden++;
                     break;
+                }
                 case "EMC":
-                    if (marked.Count > 0 && marked.Pop()) _hidden--;
+                    if (marked.Count > 0)
+                    {
+                        var (hides, actual, start) = marked.Pop();
+                        if (hides) _hidden--;
+                        if (actual != null) ReplaceWithActualText(start, actual);
+                    }
                     break;
                 case "Tf":
                     if (o.Count >= 2)
@@ -322,6 +341,33 @@ internal sealed class GlyphCollector
 
     private static double N(IReadOnlyList<PdfObject> operands, int index) =>
         index < operands.Count && operands[index] is PdfNumber n ? n.Value : 0;
+
+    /// <summary>
+    /// Replaces the glyphs collected since <paramref name="start"/> by one glyph with the replacement text of the
+    /// marked content (ISO 32000-2, 14.9.4), e.g. right-to-left text in logical order or ligatures.
+    /// </summary>
+    private void ReplaceWithActualText(int start, string text)
+    {
+        if (start >= _glyphs.Count) return; // nothing shown (or hidden)
+        var parts = _glyphs.GetRange(start, _glyphs.Count - start);
+        _glyphs.RemoveRange(start, parts.Count);
+        var first = parts[0];
+        var low = parts.MinBy(g => Math.Min(g.ParallelStart, g.ParallelEnd))!;
+        var high = parts.MaxBy(g => Math.Max(g.ParallelStart, g.ParallelEnd))!;
+        bool lowStarts = low.ParallelStart <= low.ParallelEnd, highEnds = high.ParallelEnd >= high.ParallelStart;
+        _glyphs.Add(new TextGlyph
+        {
+            Text = text,
+            X0 = lowStarts ? low.X0 : low.X1, Y0 = lowStarts ? low.Y0 : low.Y1,
+            X1 = highEnds ? high.X1 : high.X0, Y1 = highEnds ? high.Y1 : high.Y0,
+            DirX = first.DirX, DirY = first.DirY,
+            FontSize = first.FontSize,
+            SpaceWidth = first.SpaceWidth,
+            FontName = first.FontName,
+            Bounds = new PdfRectangle(parts.Min(g => g.Bounds.Left), parts.Min(g => g.Bounds.Bottom), parts.Max(g => g.Bounds.Right), parts.Max(g => g.Bounds.Top)),
+            Order = start,
+        });
+    }
 
     private FontDecoder? GetDecoder(PdfDictionary? font)
     {

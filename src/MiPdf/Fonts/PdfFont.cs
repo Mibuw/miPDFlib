@@ -42,6 +42,7 @@ public abstract class PdfFont
     /// <summary>Width of <paramref name="text"/> in points, optionally including pair kerning.</summary>
     public double GetTextWidth(string text, double fontSize, bool kerning)
     {
+        if (ShapedWidth(text, kerning) is { } shaped) return shaped * fontSize / 1000.0;
         double total = 0;
         int previous = -1;
         foreach (var rune in text.EnumerateRunes())
@@ -69,6 +70,9 @@ public abstract class PdfFont
     public double GetDescent(double fontSize) => Descent * fontSize / 1000.0;
 
     internal abstract FontResource CreateResource(PdfDocument document);
+
+    /// <summary>The width (1/1000 em) of text that is shaped by this font (complex scripts, ligatures), otherwise null.</summary>
+    internal virtual double? ShapedWidth(string text, bool kerning) => null;
 }
 
 /// <summary>The per-document representation of a font: its dictionary and used characters.</summary>
@@ -95,6 +99,18 @@ internal abstract class FontResource
 
     /// <summary>Converts text into character codes and records the used glyphs.</summary>
     public abstract byte[] Encode(string text);
+
+    /// <summary>Shapes a line of text into positioned glyphs (recording them), or null if the text is not shaped.</summary>
+    public virtual Text.Shaping.ShapedLine? Shape(string text, bool kerning, int? paragraphLevel = null) => null;
+
+    /// <summary>The code of a glyph id (for shaped text).</summary>
+    public virtual byte[] EncodeGlyph(int gid) => throw new NotSupportedException();
+
+    /// <summary>The width of a glyph as written to the font dictionary (1/1000 em).</summary>
+    public virtual double GlyphWidth(int gid) => 0;
+
+    /// <summary>Font units per em of shaped glyph positions.</summary>
+    public virtual int UnitsPerEm => 1000;
 
     /// <summary>Completes the font dictionary (widths, subset, ToUnicode) before saving.</summary>
     public abstract void Finish();

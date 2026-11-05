@@ -39,7 +39,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 |---|---|
 | **Core** | tolerant parser (xref tables/streams, object streams, automatic repair), lazy loading, full and **incremental** saving, compact output with object streams, files of any size read on demand (also > 2 GB) |
 | **Creating content** | canvas (paths, colors RGB/CMYK/gray, transparency, transformations), standard 14 fonts, **TrueType/OpenType embedding with subsetting** (full Unicode), JPEG/PNG images incl. alpha |
-| **Layout** | paragraphs with mixed formatting, justification, kerning and hyphenation; lists (nested, numbered); tables with repeated headers, column and row spans and rows split across pages; images, barcodes, automatic page breaks, header/footer with "page x of y" |
+| **Layout** | paragraphs with mixed formatting, justification, kerning and hyphenation; Arabic, Hebrew and other right-to-left text (shaping, bidi), optional ligatures; lists (nested, numbered); tables with repeated headers, column and row spans and rows split across pages; images, barcodes, automatic page breaks, header/footer with "page x of y" |
 | **Manipulation** | merge, split, import/reorder/rotate/delete pages, page templates (letterheads), watermarks, bookmarks, links, **layers** (optional content), **annotations** (highlight/underline/strike-out, free text, stamps, ink, shapes, file attachments, flattening) |
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
 | **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (PNG/JPEG with transparency; JPEG and CCITT fax images decoded), **free-space detection** |
@@ -135,6 +135,7 @@ Notes:
 - [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md) – embedded files, ZUGFeRD / Factur-X
 - [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, Code 128, EAN
 - [Rendering to images](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/rendering.md) – preview package miPDFlib.Rendering: pages to PNG
+- [Error handling and diagnostics](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/diagnostics.md) – exceptions, tolerated problems, logging
 - [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md) and [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
 - [Architecture](https://github.com/Mibuw/miPDFlib/blob/main/docs/ARCHITECTURE.md) – internal structure for contributors
 - [Project plan](https://github.com/Mibuw/miPDFlib/blob/main/docs/PLAN.md) and [progress](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md)

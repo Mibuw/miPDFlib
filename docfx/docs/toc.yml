@@ -30,6 +30,8 @@
     href: ../../docs/guide/barcodes.md
   - name: Rendering to images (preview)
     href: ../../docs/guide/rendering.md
+  - name: Error handling and diagnostics
+    href: ../../docs/guide/diagnostics.md
 - name: Background
   items:
   - name: Comparison with iText and Syncfusion

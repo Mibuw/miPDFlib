@@ -9,6 +9,8 @@ internal static class TestHelpers
     /// <summary>A TrueType font available on the current platform (Windows or typical Linux CI images).</summary>
     public static string? FindSystemFont()
     {
+        // MIPDF_TEST_FONT overrides the system font (e.g. to run the tests with the font of the Linux CI image)
+        if (Environment.GetEnvironmentVariable("MIPDF_TEST_FONT") is { Length: > 0 } overridden && File.Exists(overridden)) return overridden;
         string[] candidates =
         {
             @"C:\Windows\Fonts\arial.ttf",

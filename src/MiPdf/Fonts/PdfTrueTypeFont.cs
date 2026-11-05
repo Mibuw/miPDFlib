@@ -106,6 +106,27 @@ public sealed class PdfTrueTypeFont : PdfFont
 
     internal override FontResource CreateResource(PdfDocument document) => new Resource(document, this);
 
+    /// <summary>
+    /// Applies the font's standard ligatures (OpenType features liga and clig, e.g. "fi", "fl") to all text (default
+    /// false). Text in scripts that need shaping – Arabic, Hebrew and other right-to-left scripts, combining marks – is
+    /// always shaped with the font's OpenType tables, including the ligatures it requires.
+    /// </summary>
+    public bool Ligatures { get; set; }
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(string, bool, bool), double> _shapedWidths = new();
+
+    internal bool ShapesText(string text) => Ligatures || Text.Shaping.Shaper.NeedsShaping(text);
+
+    internal override double? ShapedWidth(string text, bool kerning)
+    {
+        if (!ShapesText(text)) return null;
+        var key = (text, kerning, Ligatures);
+        if (_shapedWidths.TryGetValue(key, out double width)) return width;
+        width = _ttf.ToPdfUnits(Text.Shaping.Shaper.ShapeLine(_ttf, text, Ligatures, kerning).Width);
+        if (_shapedWidths.Count < 4096) _shapedWidths[key] = width;
+        return width;
+    }
+
     private sealed class Resource : FontResource
     {
         private readonly PdfTrueTypeFont _font;
@@ -157,6 +178,24 @@ public sealed class PdfTrueTypeFont : PdfFont
         }
 
         public override bool IsMultiByte => true;
+
+        public override Text.Shaping.ShapedLine? Shape(string text, bool kerning, int? paragraphLevel = null)
+        {
+            if (!_font.ShapesText(text)) return null;
+            var line = Text.Shaping.Shaper.ShapeLine(_font._ttf, text, _font.Ligatures, kerning, paragraphLevel);
+            // every used glyph is recorded (widths, subset); the text of a glyph is the first non-empty text shown with it
+            foreach (var run in line.Runs)
+                foreach (var glyph in run.Glyphs)
+                    if (glyph.Gid != 0 && (!_glyphToText.TryGetValue(glyph.Gid, out var known) || known.Length == 0))
+                        _glyphToText[glyph.Gid] = glyph.Text;
+            return line;
+        }
+
+        public override byte[] EncodeGlyph(int gid) => new[] { (byte)(gid >> 8), (byte)gid };
+
+        public override double GlyphWidth(int gid) => Math.Round(_font._ttf.ToPdfUnits(_font._ttf.GetAdvanceWidth(gid)));
+
+        public override int UnitsPerEm => _font._ttf.UnitsPerEm;
 
         public override byte[] Encode(string text)
         {

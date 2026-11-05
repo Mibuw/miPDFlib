@@ -268,22 +268,66 @@ public static class TextLayout
                 break;
         }
 
-        // group consecutive pieces with identical formatting
-        double cursor = startX;
-        int i = 0;
-        while (i <= last)
+        // bidirectional text: the pieces get their embedding levels (UAX #9, the paragraph's direction from its whole
+        // text); segments are split where the level changes and drawn in visual order, the whole line carrying its
+        // logical text for extraction
+        byte[]? pieceLevels = null;
+        string lineText = string.Concat(line.Pieces.Take(last + 1).Select(pc => pc.Text));
+        if (Text.Shaping.Shaper.NeedsShaping(lineText) && lineText.EnumerateRunes().Any(r =>
+                Text.Shaping.UnicodeTables.BidiClassOf(r.Value) is Text.Shaping.BidiClass.R or Text.Shaping.BidiClass.AL))
         {
+            var paragraphText = string.Concat(p.Runs.Select(r => r.Text)).EnumerateRunes().Select(r => r.Value).ToArray();
+            int paragraphLevel = Text.Shaping.Bidi.ParagraphLevel(paragraphText);
+            var lineCps = new List<int>();
+            var pieceOfCp = new List<int>();
+            for (int k = 0; k <= last; k++)
+                foreach (var rune in line.Pieces[k].Text.EnumerateRunes())
+                {
+                    lineCps.Add(rune.Value);
+                    pieceOfCp.Add(k);
+                }
+            var levels = Text.Shaping.Bidi.Levels(lineCps.ToArray(), paragraphLevel);
+            pieceLevels = new byte[last + 1];
+            var assigned = new bool[last + 1];
+            for (int c = 0; c < levels.Length; c++)
+                if (!assigned[pieceOfCp[c]])
+                {
+                    pieceLevels[pieceOfCp[c]] = levels[c];
+                    assigned[pieceOfCp[c]] = true;
+                }
+        }
+
+        // group consecutive pieces with identical formatting (and level)
+        var segments = new List<(int From, int To, byte Level)>();
+        for (int s = 0; s <= last;)
+        {
+            int e = s;
+            while (e + 1 <= last && SameFormat(line.Pieces[e + 1], line.Pieces[s]) && (pieceLevels == null || pieceLevels[e + 1] == pieceLevels[s])) e++;
+            segments.Add((s, e, pieceLevels?[s] ?? 0));
+            s = e + 1;
+        }
+        var visual = pieceLevels == null
+            ? Enumerable.Range(0, segments.Count).ToArray()
+            : Text.Shaping.Bidi.VisualOrder(segments.Select(sg => sg.Level).ToArray());
+        int? outerLevel = canvas.ParagraphLevel;
+        if (pieceLevels != null)
+        {
+            canvas.BeginActualText(lineText);
+            canvas.ParagraphLevel = Text.Shaping.Bidi.ParagraphLevel(string.Concat(p.Runs.Select(r => r.Text)).EnumerateRunes().Select(r => r.Value).ToArray());
+        }
+        double cursor = startX;
+        foreach (int segmentIndex in visual)
+        {
+            var (i, j, _) = segments[segmentIndex];
             var first = line.Pieces[i];
-            int j = i;
             var text = new System.Text.StringBuilder();
             double width = 0;
             int spaceCount = 0;
-            while (j <= last && SameFormat(line.Pieces[j], first))
+            for (int k = i; k <= j; k++)
             {
-                text.Append(line.Pieces[j].Text);
-                width += line.Pieces[j].Width;
-                if (line.Pieces[j].IsSpace) spaceCount++;
-                j++;
+                text.Append(line.Pieces[k].Text);
+                width += line.Pieces[k].Width;
+                if (line.Pieces[k].IsSpace) spaceCount++;
             }
             bool linked = links != null && first.Run.Uri != null;
             if (linked) links!.Begin(first.Run);
@@ -307,7 +351,11 @@ public static class TextLayout
             canvas.RestoreState();
             if (linked) links!.End(first.Run, new PdfRectangle(cursor, baseline + line.Descent, cursor + segmentWidth, baseline + line.Ascent));
             cursor += segmentWidth;
-            i = j;
+        }
+        if (pieceLevels != null)
+        {
+            canvas.EndActualText();
+            canvas.ParagraphLevel = outerLevel;
         }
     }
 

@@ -378,6 +378,7 @@ public sealed class PdfCanvas : IDisposable
     public PdfCanvas ShowText(string text)
     {
         if (_currentFont == null) throw new InvalidOperationException("SetFont must be called before ShowText.");
+        if (_currentFont.Shape(text, kerning: false, ParagraphLevel) is { } shaped) return ShowShaped(shaped, 0);
         AppendString(_currentFont.Encode(text), _currentFont.IsMultiByte);
         _content.Append(" Tj\n");
         return this;
@@ -391,6 +392,7 @@ public sealed class PdfCanvas : IDisposable
     {
         if (_currentFont == null) throw new InvalidOperationException("SetFont must be called before ShowText.");
         var font = _currentFont.Font;
+        if (_currentFont.Shape(text, kerning, ParagraphLevel) is { } shaped) return ShowShaped(shaped, extraWordSpace);
         bool kern = kerning && font.HasKerning;
         if ((extraWordSpace == 0 || _currentFontSize == 0) && !kern) return ShowText(text);
         double spaceAdjust = _currentFontSize == 0 ? 0 : -extraWordSpace * 1000 / _currentFontSize;
@@ -419,6 +421,111 @@ public sealed class PdfCanvas : IDisposable
         Flush();
         _content.Append("] TJ\n");
         return this;
+    }
+
+    /// <summary>
+    /// Shows shaped text: glyphs at their positions (TJ adjustments, Ts for vertical offsets of marks); runs in a
+    /// right-to-left script are marked with their logical text (ActualText) for text extraction and accessibility.
+    /// </summary>
+    private PdfCanvas ShowShaped(Text.Shaping.ShapedLine line, double extraWordSpace)
+    {
+        var font = _currentFont!;
+        double toText = 1000.0 / font.UnitsPerEm; // font units -> 1/1000 em
+        double extra = _currentFontSize == 0 ? 0 : extraWordSpace * 1000 / _currentFontSize;
+        double pen = 0, shift = 0, rise = 0;
+        bool open = false;
+        void Open()
+        {
+            if (!open) _content.Append('[');
+            open = true;
+        }
+        void Close()
+        {
+            if (open) _content.Append("] TJ\n");
+            open = false;
+        }
+        // the logical text of each visual group: consecutive runs above level 0 (a right-to-left block with its
+        // embedded numbers and left-to-right text), and runs with combining marks (their glyph positions confuse word
+        // detection); text extraction and assistive technology read it instead of the glyphs
+        var runs = line.Runs;
+        int groupEnd = -1;
+        for (int r = 0; r < runs.Count; r++)
+        {
+            var run = runs[r];
+            if (r > groupEnd)
+            {
+                int last = r;
+                if (run.Level > 0)
+                    while (last + 1 < runs.Count && runs[last + 1].Level > 0) last++;
+                bool marks = runs.Skip(r).Take(last - r + 1).Any(x => x.Text.EnumerateRunes().Any(c => Text.Shaping.UnicodeTables.IsMark(c.Value)));
+                if (run.Level > 0 || marks)
+                {
+                    int from = runs.Skip(r).Take(last - r + 1).Min(x => x.LogicalStart), to = runs.Skip(r).Take(last - r + 1).Max(x => x.LogicalEnd);
+                    Close();
+                    _content.Append("/Span <</ActualText ");
+                    AppendTextString(line.Text[from..to]);
+                    _content.Append(">> BDC\n");
+                    groupEnd = last;
+                }
+                else groupEnd = -1;
+            }
+            foreach (var glyph in run.Glyphs)
+            {
+                double x = (run.Start + glyph.X) * toText + shift;
+                double y = glyph.Y * toText * _currentFontSize / 1000;
+                if (Math.Abs(y - rise) > 0.001)
+                {
+                    Close();
+                    _content.Append(PdfNumber.FormatReal(Math.Round(y, 3))).Append(" Ts\n");
+                    rise = y;
+                }
+                Open();
+                double adjust = x - pen;
+                if (Math.Abs(adjust) > 0.01) _content.Append(PdfNumber.FormatReal(Math.Round(-adjust, 2))).Append(' ');
+                AppendString(font.EncodeGlyph(glyph.Gid), hex: true);
+                pen = x + font.GlyphWidth(glyph.Gid);
+                if (extra != 0 && glyph.Text == " ") shift += extra;
+            }
+            if (r == groupEnd)
+            {
+                Close();
+                _content.Append("EMC\n");
+            }
+        }
+        // end at the line's advance, so that following text continues after it
+        double end = line.Width * toText + shift;
+        if (Math.Abs(end - pen) > 0.01)
+        {
+            Open();
+            _content.Append(PdfNumber.FormatReal(Math.Round(-(end - pen), 2)));
+        }
+        Close();
+        if (rise != 0) _content.Append("0 Ts\n");
+        return this;
+    }
+
+    /// <summary>
+    /// The base direction for shaped text (0 left to right, 1 right to left), set by the layout engine for the lines of
+    /// a paragraph; null detects it from each text.
+    /// </summary>
+    internal int? ParagraphLevel { get; set; }
+
+    /// <summary>Starts a marked-content sequence with replacement text (/Span with /ActualText).</summary>
+    internal PdfCanvas BeginActualText(string text)
+    {
+        _content.Append("/Span <</ActualText ");
+        AppendTextString(text);
+        _content.Append(">> BDC\n");
+        return this;
+    }
+
+    internal PdfCanvas EndActualText() => WriteRaw("EMC");
+
+    /// <summary>A text string (UTF-16BE with BOM, hex) for marked-content properties.</summary>
+    private void AppendTextString(string text)
+    {
+        var bytes = System.Text.Encoding.BigEndianUnicode.GetBytes(text);
+        _content.Append("<FEFF").Append(Convert.ToHexString(bytes)).Append('>');
     }
 
     private void AppendString(byte[] bytes, bool hex)

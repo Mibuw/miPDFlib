@@ -109,6 +109,45 @@ internal sealed class TrueTypeFont
 
     public IReadOnlyDictionary<int, int> CharacterMap => _cmap;
 
+    private OpenTypeLayout? _gsub, _gpos;
+    private bool _layoutLoaded;
+    private KerningTable? _legacyKerning;
+
+    /// <summary>The glyph substitution table, or null.</summary>
+    public OpenTypeLayout? Gsub
+    {
+        get
+        {
+            LoadLayout();
+            return _gsub;
+        }
+    }
+
+    /// <summary>The glyph positioning table, or null.</summary>
+    public OpenTypeLayout? Gpos
+    {
+        get
+        {
+            LoadLayout();
+            return _gpos;
+        }
+    }
+
+    /// <summary>Pair kerning (GPOS pairs or the legacy kern table) by glyph ids.</summary>
+    public KerningTable LegacyKerning => _legacyKerning ??= KerningTable.Load(this);
+
+    private void LoadLayout()
+    {
+        if (_layoutLoaded) return;
+        lock (_cmap)
+        {
+            if (_layoutLoaded) return;
+            _gsub = OpenTypeLayout.Load(this, gpos: false);
+            _gpos = OpenTypeLayout.Load(this, gpos: true);
+            _layoutLoaded = true;
+        }
+    }
+
     /// <summary>Advance width in font units.</summary>
     public int GetAdvanceWidth(int glyphId)
     {

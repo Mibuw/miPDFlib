@@ -39,7 +39,32 @@ embeds only the glyphs it actually uses. `.ttc` collections: `FromFile(path, col
 CFF-based OpenType fonts (`.otf`) are embedded completely. Fonts whose license forbids embedding are
 rejected unless `ignoreLicenseRestrictions: true` is passed.
 
-Not supported yet: complex script shaping (Arabic, Indic), ligatures, right-to-left text.
+### Right-to-left text, Arabic and ligatures
+
+Text in TrueType/OpenType fonts is **shaped** with the font's OpenType tables (GSUB, GPOS) when it needs it:
+Arabic and other joining scripts get their joining forms and required ligatures (lam-alef), marks such as Arabic
+harakat, Hebrew points or combining accents are positioned on their base letters, and right-to-left text (Hebrew,
+Arabic) is ordered with the Unicode Bidirectional Algorithm (UAX #9), including numbers and mirrored brackets in
+mixed text. Nothing has to be switched on – `ShowText`, `DrawText` and paragraphs do it, and `GetTextWidth` measures
+the shaped text:
+
+```csharp
+var arial = PdfTrueTypeFont.FromFile(@"C:\Windows\Fonts\arial.ttf");
+canvas.DrawText("السلام عليكم", arial, 14, 72, 700);                 // joined, right to left
+canvas.DrawText("Preis: 120 ₪ (שקלים) heute", arial, 12, 72, 680);   // mixed directions
+
+var paragraph = new Paragraph("עברית היא שפה שמית…", arial, 12) { Alignment = TextAlignment.Right };
+```
+
+Shaped right-to-left text carries its logical text (`/ActualText`), so text extraction, search and screen readers
+get it in reading order, also in tagged PDF/UA documents. Standard ligatures of Latin text ("fi", "fl", "ffi") are
+optional, because they change the look of existing documents: `font.Ligatures = true`. Kerning uses GPOS or the
+`kern` table (see below).
+
+Paragraphs in a right-to-left language should be right-aligned (`Alignment = TextAlignment.Right` or `Justify`);
+the direction of each paragraph is taken from its first strong character. Indic scripts (Devanagari, Bengali, ...)
+and other scripts that reorder glyphs within syllables are not shaped yet; the standard 14 fonts are never shaped
+(they have no OpenType tables and no Arabic or Hebrew glyphs).
 
 ## Canvas (`page.GetCanvas()`)
 
