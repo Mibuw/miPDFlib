@@ -41,7 +41,9 @@ Last update: 2026-11-03
 
 | 32 Changes after signing (DocMDP) | ✅ done (368 tests; `ChangesAfterSigning` / `HasDisallowedChanges`: object-level comparison of the signed revision with the file, classified and evaluated by certification level; checked with signatures of miPDFlib and PDF-Over) |
 
-Current state: 368 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+| 33 Structure on page import | ✅ done (374 tests; `ImportPages`/`Merge`/`ExtractPages`/`Split` copy the structure elements of the pages with a rebuilt parent tree; veraPDF PDF/UA-1/2 conformant; no marked content without owner after extract/merge of the tagged corpus files) |
+
+Current state: 374 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -55,13 +57,11 @@ Current state: 368 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Roadmap
 
-1.0.0 is released; changes after signing (DocMDP) are evaluated since then. Planned for 1.x (all without breaking
-changes):
+1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
+structure. Planned for 1.x (all without breaking changes):
 
-1. Keep the tagged structure when importing pages (merge, split, extract), so that PDF/UA documents stay
-   accessible.
-2. Certificate (public-key) encryption and optional content (reading and switching layers).
-3. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
+1. Certificate (public-key) encryption and optional content (reading and switching layers).
+2. Decoding of CCITT, JBIG2 and JPEG 2000 images for image extraction.
 
 Larger, separate topics, decided on user demand: rendering pages to images and printing; text shaping for
 complex scripts (Arabic, Indic) and ligatures.

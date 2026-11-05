@@ -125,6 +125,29 @@ signature and extending to PAdES B-LTA. The same documents pass PDF/UA-2 and PDF
   visible signature widget is added to the structure tree as `Form` element. Use an embedded font for the signature
   text (`options.Appearance.Font`).
 
+## Merging, splitting and extracting
+
+`ImportPages`, `Merge`, `ExtractPages` and `Split` copy the logical structure of tagged pages: the structure elements
+with content on the pages (marked content and annotations such as links and form fields) together with their
+ancestors. Content of pages that are not copied is left out – a table spanning pages keeps only the rows of the
+copied pages. The `Document` element of each source is merged into the single `Document` element of the result;
+elements of a source in another language get its `/Lang`. Role and class maps are taken over.
+
+```csharp
+using var source = PdfDocument.Open("accessible.pdf");
+using var part = source.ExtractPages(new[] { 3, 4 });   // tagged, language taken over
+part.Info.Title = "Chapter 2";
+part.UAConformance = PdfUAConformance.PdfUA1;            // title, XMP identification and viewer settings
+var issues = part.CheckPdfUA();
+part.Save("chapter2.pdf");
+```
+
+The structure is copied when the source is tagged and the target is tagged or still empty; pages added to a document
+that already has untagged pages stay untagged. Document-level settings (title, PDF/UA identification) are not taken
+over. An extract can violate rules that depend on the whole document, for example PDF/UA-1's rule that the first
+heading is `H1` when the extract starts with an `H2`. Marked content inside form XObjects is not copied into the
+structure.
+
 ## Limitations
 
 - The standard 14 fonts are not embedded and therefore not allowed in PDF/UA; use `PdfTrueTypeFont`.

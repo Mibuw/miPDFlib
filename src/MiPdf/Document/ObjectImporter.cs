@@ -40,6 +40,12 @@ internal sealed class ObjectImporter
         return copy;
     }
 
+    /// <summary>The target page of a registered source page.</summary>
+    public bool TryGetPage(PdfDictionary sourcePage, out PdfReference target) => _pages.TryGetValue(sourcePage, out target!);
+
+    /// <summary>The copy of an indirect source object, if it was imported.</summary>
+    public bool TryGetCopy(PdfObject source, out PdfReference target) => _copied.TryGetValue(source, out target!);
+
     public PdfObject Import(PdfObject obj)
     {
         switch (obj)
@@ -96,7 +102,7 @@ internal sealed class ObjectImporter
         var copy = new PdfStream();
         foreach (var (key, value) in s)
         {
-            if (key == PdfName.Length) continue;
+            if (key == PdfName.Length || key == StructParents) continue; // marked content in forms is not imported
             copy[key] = Import(value);
         }
         copy.CopyRawDataFrom(s);

@@ -339,7 +339,7 @@ public sealed class PdfStructureTree
     }
 
     /// <summary>Returns the namespace dictionary with the given URI from /Namespaces, adding it if needed.</summary>
-    private PdfReference GetNamespace(string uri)
+    internal PdfReference GetNamespace(string uri)
     {
         var namespaces = _root.GetArray(PdfName.Get("Namespaces"));
         if (namespaces == null) _root[PdfName.Get("Namespaces")] = namespaces = new PdfArray();
@@ -421,6 +421,24 @@ public sealed class PdfStructureTree
         int key = _nextKey++;
         annotation.Dictionary.Set(PdfName.Get("StructParent"), key);
         _parentTree[key] = element.Reference;
+        _dirty = true;
+    }
+
+    /// <summary>Records <paramref name="element"/> as owner of marked content <paramref name="mcid"/> of an imported page.</summary>
+    internal void SetMarkedContentOwner(PdfPage page, int mcid, PdfReference element)
+    {
+        var owners = GetPageMarks(page).Owners;
+        while (owners.Count <= mcid) owners.Add(PdfNull.Instance);
+        owners[mcid] = element;
+        _dirty = true;
+    }
+
+    /// <summary>Records <paramref name="element"/> as the structure parent of an imported annotation.</summary>
+    internal void SetAnnotationOwner(PdfDictionary annotation, PdfReference element)
+    {
+        int key = _nextKey++;
+        annotation.Set(PdfName.Get("StructParent"), key);
+        _parentTree[key] = element;
         _dirty = true;
     }
 

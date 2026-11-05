@@ -8,6 +8,8 @@ public sealed partial class PdfDocument
     /// <summary>
     /// Copies pages of another document to the end of this document (or at <paramref name="insertIndex"/>).
     /// Resources shared between the copied pages are copied only once. Links between copied pages are kept.
+    /// The logical structure (tags) of the pages is copied as well, if the source is tagged and this document is
+    /// tagged or still empty: the structure elements with content on the pages and their ancestors.
     /// </summary>
     /// <param name="source">The source document.</param>
     /// <param name="pageNumbers">1-based page numbers to copy; all pages if null.</param>
@@ -20,6 +22,7 @@ public sealed partial class PdfDocument
         var sourcePages = numbers.Select(source.GetPage).ToList();
         var result = new List<PdfPage>();
         int index = insertIndex ?? PageCount;
+        bool wasEmpty = PageCount == 0;
 
         if (ReferenceEquals(source, this))
         {
@@ -29,6 +32,7 @@ public sealed partial class PdfDocument
                 var copy = (PdfDictionary)page.Dictionary.Clone();
                 copy.Remove(PdfName.Parent);
                 copy.Remove(PdfName.Annots); // annotations belong to exactly one page
+                copy.Remove(PdfName.Get("StructParents")); // the structure elements belong to the original page
                 var newPage = new PdfPage(this, copy, AddObject(copy));
                 InsertPage(index++, newPage);
                 result.Add(newPage);
@@ -56,6 +60,7 @@ public sealed partial class PdfDocument
             result.Add(newPage);
         }
         OnPagesImported(source, importer, targets);
+        Tagging.StructureImporter.Import(source, this, importer, sourcePages.Zip(result).ToList(), wasEmpty);
         return result;
     }
 

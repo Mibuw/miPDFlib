@@ -112,6 +112,8 @@ foreach (var part in doc.Split(pagesPerDocument: 10)) part.Save($"part{++n}.pdf"
 Resources shared by imported pages (fonts, images) are copied once. Links between imported pages are
 kept; links to pages that are not imported are removed so the rest of the source is not copied along.
 
+Tagged pages keep their logical structure (see [accessibility](accessibility.md#merging-splitting-and-extracting)).
+
 ## Stamps, watermarks, letterheads
 
 Every page (also of opened documents) has a canvas. Existing content is wrapped in `q … Q`, so it

@@ -7,6 +7,10 @@
   metadata, page content, pages, ... – and whether each change is permitted by the certification level;
   `HasDisallowedChanges` summarises it (including modified locked fields). Without certification, page content
   changes after a signature are reported as not permitted.
+- Merging, splitting and extracting keep the logical structure of tagged pages (`ImportPages`, `Merge`,
+  `ExtractPages`, `Split`): the structure elements with content on the copied pages and their ancestors, with a
+  rebuilt parent tree; documents are merged below a single `Document` element. Results validated with veraPDF
+  (PDF/UA-1, PDF/UA-2). Before, imported pages lost their tags.
 
 ## 1.0.0
 
