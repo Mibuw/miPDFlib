@@ -1,7 +1,8 @@
 name: Release
 
-# Creates a release from a version tag (e.g. v0.3.0; v0.4.0-beta.1 becomes a pre-release): build, test, pack, publish the NuGet package to
-# nuget.org (Trusted Publishing, no stored API key) and create a GitHub release with the packages attached.
+# Creates a release from a version tag (e.g. v0.3.0; v0.4.0-beta.1 becomes a pre-release): build, test, pack, publish the NuGet packages
+# (miPDFlib and miPDFlib.Rendering, both with the tag's version; Rendering depends on exactly that miPDFlib version) to nuget.org
+# (Trusted Publishing, no stored API key) and create a GitHub release with the packages attached.
 #
 # Setup (once): on nuget.org add a Trusted Publishing policy for repository Mibuw/miPDFlib and workflow file
 # release.yml, and store the nuget.org profile name (not the e-mail address) as repository secret NUGET_USER.
@@ -29,18 +30,19 @@ jobs:
       - run: dotnet build --no-restore -c Release -p:Version=$VERSION
       - run: dotnet test --no-build -c Release
       - run: dotnet pack src/MiPdf --no-build -c Release -p:Version=$VERSION -o artifacts
+      - run: dotnet pack src/MiPdf.Rendering --no-build -c Release -p:Version=$VERSION -o artifacts
 
       - name: NuGet login (OIDC -> temporary API key)
         uses: NuGet/login@v1
         id: login
         with:
           user: ${{ secrets.NUGET_USER }}
+      # miPDFlib first: miPDFlib.Rendering depends on it
       - name: Publish to nuget.org
-        run: >
-          dotnet nuget push "artifacts/*.nupkg"
-          --source https://api.nuget.org/v3/index.json
-          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
-          --skip-duplicate
+        run: |
+          for package in "artifacts/miPDFlib.$VERSION.nupkg" "artifacts/miPDFlib.Rendering.$VERSION.nupkg"; do
+            dotnet nuget push "$package"               --source https://api.nuget.org/v3/index.json               --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"               --skip-duplicate
+          done
 
       - name: GitHub release
         env:
@@ -55,13 +57,17 @@ jobs:
       # warns because indexing can take more than half an hour.
       - name: Verify the version is live on nuget.org
         run: |
-          url="https://api.nuget.org/v3-flatcontainer/mipdflib/index.json"
-          for attempt in $(seq 1 30); do
-            if curl -fsSL "$url" 2>/dev/null | grep -q "\"$VERSION\""; then
-              echo "miPDFlib $VERSION is live on nuget.org."
-              exit 0
-            fi
-            echo "Attempt $attempt: $VERSION not indexed yet, waiting 30s."
-            sleep 30
+          for id in mipdflib mipdflib.rendering; do
+            url="https://api.nuget.org/v3-flatcontainer/$id/index.json"
+            live=""
+            for attempt in $(seq 1 30); do
+              if curl -fsSL "$url" 2>/dev/null | grep -q "\"$VERSION\""; then
+                echo "$id $VERSION is live on nuget.org."
+                live=1
+                break
+              fi
+              echo "Attempt $attempt: $id $VERSION not indexed yet, waiting 30s."
+              sleep 30
+            done
+            [ -n "$live" ] || echo "::warning::$id $VERSION has not appeared on nuget.org within 15 minutes; check https://www.nuget.org/account/Packages"
           done
-          echo "::warning::miPDFlib $VERSION has not appeared on nuget.org within 15 minutes; check https://www.nuget.org/account/Packages"

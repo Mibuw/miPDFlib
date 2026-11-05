@@ -74,7 +74,7 @@ decoded (1.1.0, released). Next steps:
    3. Transparency groups, blend modes, soft masks, shadings (types 1-7), patterns, annotation appearances.
    4. Color: CMYK, Separation/DeviceN with PDF functions (types 0, 2, 3, 4), ICC-based color approximated.
 
-   Stages 1 and 2 are released first as a preview.
+   Stages 1 and 2 are released as preview `1.2.0-preview.1` (miPDFlib and miPDFlib.Rendering).
 2. **Diagnostics**: today errors raise `PdfException` (`PdfParseException`, `PdfPasswordException`), while damaged
    input that can be tolerated is handled silently (repaired cross-reference table, substituted fonts, skipped
    images or content). Planned: an opt-in diagnostics channel that reports these tolerated problems (warnings with

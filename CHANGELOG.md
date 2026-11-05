@@ -1,8 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.2.0-preview.1
 
-- New package **miPDFlib.Rendering** (preview, not yet published): renders pages to PNG or RGBA pixels at any
+Preview release of the new rendering package; miPDFlib itself only has the fixes below (the stable version stays
+1.1.0, `miPDFlib.Rendering` requires exactly the miPDFlib version of its release).
+
+- New package **miPDFlib.Rendering** (preview): renders pages to PNG or RGBA pixels at any
   resolution (`PdfRenderer.Render` / `RenderToPng`) – vector graphics with anti-aliasing, clipping, colors, opacity,
   images, form XObjects, annotation appearances and layers; text with embedded TrueType, OpenType, CFF, Type 1 and
   Type 3 fonts (all rendering modes), and installed substitutes for fonts that are not embedded. Shadings and
