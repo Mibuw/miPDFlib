@@ -28,6 +28,8 @@
     href: ../../docs/guide/attachments.md
   - name: Barcodes
     href: ../../docs/guide/barcodes.md
+  - name: Rendering to images (preview)
+    href: ../../docs/guide/rendering.md
 - name: Background
   items:
   - name: Comparison with iText and Syncfusion

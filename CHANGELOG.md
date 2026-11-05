@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- New package **miPDFlib.Rendering** (preview, not yet published): renders pages to PNG or RGBA pixels at any
+  resolution (`PdfRenderer.Render` / `RenderToPng`) – vector graphics with anti-aliasing, clipping, colors, opacity,
+  images, form XObjects, annotation appearances and layers. Text, shadings and transparency effects follow.
+
 ## 1.1.0
 
 New features, no breaking changes.

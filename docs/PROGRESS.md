@@ -43,6 +43,7 @@ Last update: 2026-11-03
 | 34 Certificate encryption | ✅ done (382 tests; public-key security handler `/Adobe.PubSec` with `adbe.pkcs7.s5`: encrypting for recipients' certificates and opening with the private key, AES-256/AES-128/RC4, permissions per document; cross-checked with Apache PDFBox 3.0.8 in both directions, also its older V1/V2 format and restricted permissions) |
 | 35 Layers (optional content) | ✅ done (388 tests; create, read and switch layers, content and annotations on layers, text extraction without hidden layers, PDF/A rules; veraPDF PDF/A-2b conformant, Ghostscript hides the hidden layers) |
 | 36 JPEG and CCITT decoding (1.1.0) | ✅ done (409 tests; JPEG baseline/progressive identical to libjpeg-turbo for the test variants and all 17 corpus images, 12 MP in about 0.3 s; CCITT G3 1D/2D and G4 identical to Ghostscript; partial redaction of scans, PNG export) |
+| 37 Rendering, stage 1 (core) | ✅ done (package `miPDFlib.Rendering`, preview: anti-aliased rasterizer, fills, strokes with joins/caps/dashes, clipping, colors, opacity, images, form XObjects, annotations, layers; mean difference to Ghostscript below one level; 85 corpus pages without errors, about 30 ms per page at 150 dpi) |
 
 Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
@@ -60,10 +61,9 @@ Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
 structure, documents can be encrypted for certificates, layers are supported and JPEG and CCITT images are
-decoded (1.1.0). Next steps:
+decoded (1.1.0, released). Next steps:
 
-1. **Release 1.1.0** with these features.
-2. **Rendering** (pages to images, e.g. for previews and printing) as a separate package `miPDFlib.Rendering` in
+1. **Rendering** (pages to images, e.g. for previews and printing) as a separate package `miPDFlib.Rendering` in
    this repository: managed code only, no native dependencies and no System.Drawing; output as bitmaps/PNG at any
    resolution (printing itself is left to the application). Checked page by page against Ghostscript renderings
    of the corpus (pixel comparison). In stages:
@@ -74,9 +74,9 @@ decoded (1.1.0). Next steps:
    4. Color: CMYK, Separation/DeviceN with PDF functions (types 0, 2, 3, 4), ICC-based color approximated.
 
    Stages 1 and 2 are released first as a preview.
-3. **Text shaping** for complex scripts: Unicode bidirectional algorithm (Hebrew, Arabic), Arabic joining forms and
+2. **Text shaping** for complex scripts: Unicode bidirectional algorithm (Hebrew, Arabic), Arabic joining forms and
    standard ligatures (OpenType GSUB), mark positioning (GPOS); Indic scripts last.
-4. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
+3. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
    PostScript interpreter itself is a separate project).
 
 On demand: decoding of JBIG2 and JPEG 2000 images (JPEG 2000 can already be exported as a file).

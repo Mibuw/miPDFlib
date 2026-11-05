@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MiPdf\MiPdf.csproj" />
+    <ProjectReference Include="..\..\src\MiPdf.Rendering\MiPdf.Rendering.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>MiPdf.Rendering</RootNamespace>
+    <AssemblyName>MiPdf.Rendering</AssemblyName>
+    <PackageId>miPDFlib.Rendering</PackageId>
+    <Version>1.2.0-preview.1</Version>
+    <Description>Renders PDF pages to images (PNG or pixels) at any resolution, e.g. for previews, thumbnails and printing. Pure managed code for .NET 8/10 without native dependencies, based on miPDFlib (Apache-2.0).</Description>
+    <PackageTags>pdf;pdf-to-image;pdf-to-png;pdf-rendering;pdf-preview;thumbnail;rasterizer</PackageTags>
+    <PackageReadmeFile>NUGET-README.md</PackageReadmeFile>
+    <PackageIcon>miPDFlib_logo.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageProjectUrl>https://github.com/Mibuw/miPDFlib</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017</WarningsAsErrors>
+    <NoWarn>$(NoWarn);RS0026;RS0027</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MiPdf\MiPdf.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="NUGET-README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\miPDFlib_logo.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
+    <InternalsVisibleTo Include="MiPdf.Tests" />
+  </ItemGroup>
+
+  <!-- the renderer uses internals of miPDFlib: depend on exactly the same version -->
+  <Target Name="PinMiPdfVersion" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)" ProjectVersion="[%(ProjectVersion)]" />
+    </ItemGroup>
+  </Target>
+
+</Project>

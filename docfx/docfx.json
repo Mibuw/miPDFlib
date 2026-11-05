@@ -8,6 +8,12 @@
           "files": [
             "MiPdf.csproj"
           ]
+        },
+        {
+          "src": "../src/MiPdf.Rendering",
+          "files": [
+            "MiPdf.Rendering.csproj"
+          ]
         }
       ],
       "dest": "api",

@@ -36,6 +36,7 @@
     <None Include="..\..\assets\miPDFlib_logo.png" Pack="true" PackagePath="\" />
     <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
     <InternalsVisibleTo Include="MiPdf.Tests" />
+    <InternalsVisibleTo Include="MiPdf.Rendering" />
   </ItemGroup>
 
 </Project>
