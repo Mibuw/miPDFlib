@@ -134,7 +134,7 @@ Notes:
 - [Accessibility / PDF/UA](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/accessibility.md) – tagged PDF, PDF/UA, checker
 - [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md) – embedded files, ZUGFeRD / Factur-X
 - [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, Code 128, EAN
-- [Rendering to images](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/rendering.md) – preview package miPDFlib.Rendering: pages to PNG
+- [Rendering to images](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/rendering.md) – package miPDFlib.Rendering: pages to PNG
 - [Error handling and diagnostics](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/diagnostics.md) – exceptions, tolerated problems, logging
 - [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md) and [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)
 - [Architecture](https://github.com/Mibuw/miPDFlib/blob/main/docs/ARCHITECTURE.md) – internal structure for contributors

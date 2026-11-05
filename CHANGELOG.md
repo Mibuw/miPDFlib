@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.2.0
+
+New features, no breaking changes. **miPDFlib.Rendering** leaves preview: with shadings, patterns, transparency and
+colors (1.2.0-preview.2) it renders the full PDF graphics model and its API is now stable as well. Both packages
+also contain the changes of the two previews below.
 
 - Text shaping for TrueType/OpenType fonts: Arabic and other joining scripts with their joining forms and required
   ligatures, mark positioning (harakat, Hebrew points, combining accents) and right-to-left text ordered with the

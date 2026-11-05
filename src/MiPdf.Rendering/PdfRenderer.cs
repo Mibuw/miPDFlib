@@ -64,8 +64,8 @@ public sealed class RenderedPage
 }
 
 /// <summary>
-/// Renders PDF pages to images (preview): vector graphics, clipping, colors, opacity, images and annotation
-/// appearances. Text, shadings, patterns and transparency groups follow in later versions.
+/// Renders PDF pages to images: vector graphics, clipping, text, images, shadings, patterns, transparency and
+/// annotation appearances.
 /// </summary>
 public static class PdfRenderer
 {

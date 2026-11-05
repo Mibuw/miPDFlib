@@ -13,7 +13,7 @@ var png = PdfRenderer.RenderToPng(doc.GetPage(1), new PdfRenderOptions { Dpi = 1
 File.WriteAllBytes("page1.png", png);
 ```
 
-> **Preview:** vector graphics, clipping, images and text (embedded TrueType, OpenType, CFF, Type 1 and Type 3 fonts;
+> Rendered: vector graphics, clipping, images and text (embedded TrueType, OpenType, CFF, Type 1 and Type 3 fonts;
 > substitutes for non-embedded fonts) are rendered, as well as shadings, patterns, blend modes, soft masks,
 > transparency groups and spot colors (Separation, DeviceN); CMYK approximates a SWOP press profile. See the [roadmap](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 

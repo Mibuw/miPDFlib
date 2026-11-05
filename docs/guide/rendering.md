@@ -1,10 +1,10 @@
-# Rendering pages to images (preview)
+# Rendering pages to images
 
 The separate package **miPDFlib.Rendering** renders pages to images – for previews, thumbnails and printing. It is
 pure managed code without native dependencies and draws on the same document model as miPDFlib.
 
 ```
-dotnet add package miPDFlib.Rendering --prerelease
+dotnet add package miPDFlib.Rendering
 ```
 
 ```csharp
@@ -32,7 +32,7 @@ render at the printer resolution and send the image to the printer.
 
 ## What is rendered
 
-This preview renders vector graphics (fills with the nonzero and even-odd rule, strokes with all joins, caps and dash
+miPDFlib.Rendering renders vector graphics (fills with the nonzero and even-odd rule, strokes with all joins, caps and dash
 patterns, minimum line width of one pixel), clipping, images (all formats miPDFlib decodes, with soft masks and
 stencil masks), form XObjects, annotation appearances and layers (hidden layers are not drawn). Edges are
 anti-aliased.

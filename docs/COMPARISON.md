@@ -77,7 +77,7 @@ In short: **PDFBox** is the choice for rendering and printing and the most compl
 and with signatures assembled from examples. **PdfPig** is strong at reading and analysing text. **MigraDoc** and
 **QuestPDF** are good at document generation; QuestPDF also handles complex scripts, but needs native libraries and a
 paid licence above its revenue limit, and since 6.5 PDFsharp is AGPL or commercial. miPDFlib covers creating,
-modifying, forms, signatures and archiving in one managed library; it renders pages with the preview package
+modifying, forms, signatures and archiving in one managed library; it renders pages with the package
 miPDFlib.Rendering and shapes Arabic and Hebrew text, but not Indic scripts yet.
 
 Information as of November 2026, from the projects' documentation, release notes and source code; the binding

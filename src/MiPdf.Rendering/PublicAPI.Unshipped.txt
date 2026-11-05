@@ -1,19 +1,1 @@
 #nullable enable
-MiPdf.Rendering.PdfRenderer
-MiPdf.Rendering.PdfRenderOptions
-MiPdf.Rendering.PdfRenderOptions.Background.get -> MiPdf.Graphics.PdfColor?
-MiPdf.Rendering.PdfRenderOptions.Background.set -> void
-MiPdf.Rendering.PdfRenderOptions.Dpi.get -> double
-MiPdf.Rendering.PdfRenderOptions.Dpi.set -> void
-MiPdf.Rendering.PdfRenderOptions.ForPrinting.get -> bool
-MiPdf.Rendering.PdfRenderOptions.ForPrinting.set -> void
-MiPdf.Rendering.PdfRenderOptions.PdfRenderOptions() -> void
-MiPdf.Rendering.PdfRenderOptions.RenderAnnotations.get -> bool
-MiPdf.Rendering.PdfRenderOptions.RenderAnnotations.set -> void
-MiPdf.Rendering.RenderedPage
-MiPdf.Rendering.RenderedPage.Height.get -> int
-MiPdf.Rendering.RenderedPage.Rgba.get -> byte[]!
-MiPdf.Rendering.RenderedPage.ToPng() -> byte[]!
-MiPdf.Rendering.RenderedPage.Width.get -> int
-static MiPdf.Rendering.PdfRenderer.Render(MiPdf.PdfPage! page, MiPdf.Rendering.PdfRenderOptions? options = null) -> MiPdf.Rendering.RenderedPage!
-static MiPdf.Rendering.PdfRenderer.RenderToPng(MiPdf.PdfPage! page, MiPdf.Rendering.PdfRenderOptions? options = null) -> byte[]!

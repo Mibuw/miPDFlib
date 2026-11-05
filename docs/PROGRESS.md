@@ -79,7 +79,8 @@ decoded (1.1.0, released). Next steps:
    4. Color: CMYK, Separation/DeviceN with PDF functions (types 0, 2, 3, 4), ICC-based color approximated.
 
    Stages 1 and 2 are released as preview `1.2.0-preview.1` (miPDFlib and miPDFlib.Rendering); stages 3 and 4 in
-   `1.2.0-preview.2`. PDF functions moved from stage 4 to stage 3 (shadings need them); color
+   `1.2.0-preview.2`; the package is stable since `1.2.0` (together with diagnostics and text shaping). PDF
+   functions moved from stage 4 to stage 3 (shadings need them); color
    spaces and functions are part of the core library, so that image export uses the same colors.
 2. **Diagnostics** ✅: errors raise `PdfException`; tolerated problems are reported as `PdfDiagnostic` in
    `PdfDocument.Diagnostics` and through `PdfOpenOptions.OnDiagnostic` (see

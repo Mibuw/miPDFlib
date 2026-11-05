@@ -10,6 +10,17 @@ abstract MiPdf.Fonts.PdfFont.Name.get -> string!
 abstract MiPdf.Objects.PdfObject.Clone() -> MiPdf.Objects.PdfObject!
 abstract MiPdf.Objects.PdfObject.ObjectType.get -> MiPdf.Objects.PdfObjectType
 const MiPdf.Invoicing.FacturX.NamespaceUri = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#" -> string!
+const MiPdf.PdfDiagnosticCode.ContentDamaged = "ContentDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.FontDamaged = "FontDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.FontMissing = "FontMissing" -> string!
+const MiPdf.PdfDiagnosticCode.FontSubstituted = "FontSubstituted" -> string!
+const MiPdf.PdfDiagnosticCode.ImageNotDecoded = "ImageNotDecoded" -> string!
+const MiPdf.PdfDiagnosticCode.NestingTooDeep = "NestingTooDeep" -> string!
+const MiPdf.PdfDiagnosticCode.ObjectUnreadable = "ObjectUnreadable" -> string!
+const MiPdf.PdfDiagnosticCode.PaintNotSupported = "PaintNotSupported" -> string!
+const MiPdf.PdfDiagnosticCode.StreamDamaged = "StreamDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.ToUnicodeDamaged = "ToUnicodeDamaged" -> string!
+const MiPdf.PdfDiagnosticCode.XrefRepaired = "XrefRepaired" -> string!
 const MiPdf.Tagging.StructureType.Annotation = "Annot" -> string!
 const MiPdf.Tagging.StructureType.Article = "Art" -> string!
 const MiPdf.Tagging.StructureType.Aside = "Aside" -> string!
@@ -188,6 +199,8 @@ MiPdf.Fonts.PdfTrueTypeFont
 MiPdf.Fonts.PdfTrueTypeFont.FamilyName.get -> string!
 MiPdf.Fonts.PdfTrueTypeFont.IsBold.get -> bool
 MiPdf.Fonts.PdfTrueTypeFont.IsItalic.get -> bool
+MiPdf.Fonts.PdfTrueTypeFont.Ligatures.get -> bool
+MiPdf.Fonts.PdfTrueTypeFont.Ligatures.set -> void
 MiPdf.Fonts.WinAnsiEncoding
 MiPdf.Forms.CheckBoxStyle
 MiPdf.Forms.CheckBoxStyle.Check = 0 -> MiPdf.Forms.CheckBoxStyle
@@ -960,6 +973,16 @@ MiPdf.PdfAttachment.Name.get -> string!
 MiPdf.PdfAttachment.Relationship.get -> MiPdf.AttachmentRelationship
 MiPdf.PdfAttachment.Size.get -> long?
 MiPdf.PdfDate
+MiPdf.PdfDiagnostic
+MiPdf.PdfDiagnostic.Code.get -> string!
+MiPdf.PdfDiagnostic.Message.get -> string!
+MiPdf.PdfDiagnostic.ObjectNumber.get -> int?
+MiPdf.PdfDiagnostic.PageNumber.get -> int?
+MiPdf.PdfDiagnostic.Severity.get -> MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDiagnosticCode
+MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDiagnosticSeverity.Information = 0 -> MiPdf.PdfDiagnosticSeverity
+MiPdf.PdfDiagnosticSeverity.Warning = 1 -> MiPdf.PdfDiagnosticSeverity
 MiPdf.PdfDocument
 MiPdf.PdfDocument.AddAttachment(string! fileName, byte[]! data, string? mimeType = null, string? description = null, MiPdf.AttachmentRelationship relationship = MiPdf.AttachmentRelationship.Unspecified, System.DateTimeOffset? modificationDate = null) -> MiPdf.PdfAttachment!
 MiPdf.PdfDocument.AddLayer(string! name, bool visible = true) -> MiPdf.PdfLayer!
@@ -972,6 +995,7 @@ MiPdf.PdfDocument.CheckPdfA(MiPdf.PdfA.PdfAConformance conformance) -> System.Co
 MiPdf.PdfDocument.CheckPdfUA() -> System.Collections.Generic.IReadOnlyList<string!>!
 MiPdf.PdfDocument.Conformance.get -> MiPdf.PdfA.PdfAConformance?
 MiPdf.PdfDocument.Conformance.set -> void
+MiPdf.PdfDocument.Diagnostics.get -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfDiagnostic!>!
 MiPdf.PdfDocument.Dispose() -> void
 MiPdf.PdfDocument.EnableTagging() -> MiPdf.Tagging.PdfStructureTree!
 MiPdf.PdfDocument.Encrypt(MiPdf.Security.PdfEncryptionOptions! options) -> void
@@ -1085,6 +1109,8 @@ MiPdf.PdfLimits.PdfLimits() -> void
 MiPdf.PdfOpenOptions
 MiPdf.PdfOpenOptions.Certificate.get -> System.Security.Cryptography.X509Certificates.X509Certificate2?
 MiPdf.PdfOpenOptions.Certificate.set -> void
+MiPdf.PdfOpenOptions.OnDiagnostic.get -> System.Action<MiPdf.PdfDiagnostic!>?
+MiPdf.PdfOpenOptions.OnDiagnostic.set -> void
 MiPdf.PdfOpenOptions.Password.get -> string?
 MiPdf.PdfOpenOptions.Password.set -> void
 MiPdf.PdfOpenOptions.PdfOpenOptions() -> void
@@ -1745,6 +1771,7 @@ override MiPdf.PdfA.XmpProperty.Equals(object? obj) -> bool
 override MiPdf.PdfA.XmpProperty.GetHashCode() -> int
 override MiPdf.PdfA.XmpProperty.ToString() -> string!
 override MiPdf.PdfAttachment.ToString() -> string!
+override MiPdf.PdfDiagnostic.ToString() -> string!
 override MiPdf.PdfLayer.ToString() -> string!
 override MiPdf.PdfLimits.Equals(object? obj) -> bool
 override MiPdf.PdfLimits.GetHashCode() -> int

@@ -29,7 +29,8 @@ public class ChangesAfterSigningTests : IClassFixture<TestPki>
     {
         using var doc = PdfDocument.Open(pdf);
         change(doc);
-        return doc.ToArray(new PdfSaveOptions { Incremental = true });
+        // keep /ModDate: otherwise a save in a later second than the signature adds a (permitted) metadata change
+        return doc.ToArray(new PdfSaveOptions { Incremental = true, UpdateModificationDate = false });
     }
 
     private static void Fill(PdfDocument doc) => doc.GetForm()!.SetValue("name", "Alice");
