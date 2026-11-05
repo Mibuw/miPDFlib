@@ -65,6 +65,16 @@ public class JpegDecoderTests
     }
 
     [Fact]
+    public void DctEncodedSoftMasksAreDecoded()
+    {
+        // soft masks are often JPEG-compressed like the image itself
+        var image = JpegImage("rgb-420", out _);
+        image[PdfName.SMask] = JpegImage("gray-baseline", out var expectedAlpha);
+        var decoded = ImageDecoder.Decode(image)!.Value;
+        Assert.Equal(expectedAlpha, decoded.Alpha);
+    }
+
+    [Fact]
     public void JpegImagesArePartlyRedacted()
     {
         var doc = PdfDocument.Create();

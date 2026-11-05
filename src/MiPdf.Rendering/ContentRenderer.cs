@@ -2,14 +2,15 @@ using MiPdf.Content;
 using MiPdf.Graphics;
 using MiPdf.Images;
 using MiPdf.Objects;
+using MiPdf.Rendering.Fonts;
 using MiPdf.Rendering.Raster;
 
 namespace MiPdf.Rendering;
 
 /// <summary>
-/// Interprets content streams (ISO 32000-2, 8) and paints them on a <see cref="Surface"/>: paths (fill, stroke, clip),
-/// colors, opacity, images, image masks, form XObjects and optional content. The matrix passed in maps user space to
-/// device pixels.
+/// Interprets content streams (ISO 32000-2, 8 and 9) and paints them on a <see cref="Surface"/>: paths (fill, stroke,
+/// clip), text (all rendering modes, embedded and substituted fonts, Type 3 fonts), colors, opacity, images, image
+/// masks, form XObjects and optional content. The matrix passed in maps user space to device pixels.
 /// </summary>
 internal sealed class ContentRenderer
 {
@@ -20,6 +21,7 @@ internal sealed class ContentRenderer
     private readonly PdfDocument _document;
     private readonly HashSet<PdfStream> _activeForms = new(ReferenceEqualityComparer.Instance);
     private readonly Rasterizer _rasterizer = new();
+    private readonly Dictionary<PdfDictionary, RenderFont> _fonts = new(ReferenceEqualityComparer.Instance);
 
     public ContentRenderer(Surface surface, PdfDocument document)
     {
@@ -37,6 +39,11 @@ internal sealed class ContentRenderer
         public int LineCap, LineJoin;
         public double[] Dash = Array.Empty<double>();
         public double FillAlpha = 1, StrokeAlpha = 1;
+
+        // text state (ISO 32000-2, 9.3)
+        public PdfDictionary? Font;
+        public double FontSize = 1, CharSpacing, WordSpacing, HorizontalScale = 1, Leading, Rise;
+        public int RenderMode;
 
         public GraphicsState Clone() => (GraphicsState)MemberwiseClone();
 
@@ -62,6 +69,8 @@ internal sealed class ContentRenderer
         int? pendingClip = null; // 0 nonzero, 1 even-odd
         var marked = new Stack<bool>();
         int hidden = 0;
+        Matrix tm = Matrix.Identity, tlm = Matrix.Identity;
+        PathGeometry? textClip = null; // glyph outlines of clipping text modes, applied at ET
 
         foreach (var op in ContentParser.Parse(content))
         {
@@ -193,6 +202,67 @@ internal sealed class ContentRenderer
                     if (hidden == 0 && op.InlineImage is { } inline) DrawImage(GraphicsWalker.ExpandInline(inline), gs);
                     break;
 
+                // text
+                case "BT":
+                    tm = tlm = Matrix.Identity;
+                    textClip = null;
+                    break;
+                case "ET":
+                    if (textClip != null) gs.Clip = ClipMask(textClip, gs, evenOdd: false);
+                    textClip = null;
+                    break;
+                case "Tf":
+                    if (o.Count >= 2 && o[0] is PdfName fontName)
+                    {
+                        gs.Font = resources?.GetDictionary(PdfName.Font)?.GetDictionary(fontName);
+                        gs.FontSize = N(o, 1);
+                    }
+                    break;
+                case "Tc": gs.CharSpacing = N(o, 0); break;
+                case "Tw": gs.WordSpacing = N(o, 0); break;
+                case "Tz": gs.HorizontalScale = N(o, 0) / 100; break;
+                case "TL": gs.Leading = N(o, 0); break;
+                case "Ts": gs.Rise = N(o, 0); break;
+                case "Tr": gs.RenderMode = (int)N(o, 0); break;
+                case "Td":
+                    tm = tlm = Matrix.Translate(N(o, 0), N(o, 1)).Multiply(tlm);
+                    break;
+                case "TD":
+                    gs.Leading = -N(o, 1);
+                    tm = tlm = Matrix.Translate(N(o, 0), N(o, 1)).Multiply(tlm);
+                    break;
+                case "Tm":
+                    if (o.Count >= 6) tm = tlm = M(o);
+                    break;
+                case "T*":
+                    tm = tlm = Matrix.Translate(0, -gs.Leading).Multiply(tlm);
+                    break;
+                case "Tj":
+                    if (o.Count >= 1 && o[0] is PdfString text) ShowText(text.Bytes, gs, resources, ref tm, ref textClip, hidden > 0, depth);
+                    break;
+                case "'":
+                    tm = tlm = Matrix.Translate(0, -gs.Leading).Multiply(tlm);
+                    if (o.Count >= 1 && o[^1] is PdfString text1) ShowText(text1.Bytes, gs, resources, ref tm, ref textClip, hidden > 0, depth);
+                    break;
+                case "\"":
+                    if (o.Count >= 3)
+                    {
+                        gs.WordSpacing = N(o, 0);
+                        gs.CharSpacing = N(o, 1);
+                    }
+                    tm = tlm = Matrix.Translate(0, -gs.Leading).Multiply(tlm);
+                    if (o.Count >= 1 && o[^1] is PdfString text2) ShowText(text2.Bytes, gs, resources, ref tm, ref textClip, hidden > 0, depth);
+                    break;
+                case "TJ":
+                    if (o.Count >= 1 && o[0] is PdfArray parts)
+                        foreach (var part in parts)
+                        {
+                            if (part is PdfString piece) ShowText(piece.Bytes, gs, resources, ref tm, ref textClip, hidden > 0, depth);
+                            else if (part is PdfNumber adjust)
+                                tm = Matrix.Translate(-adjust.Value / 1000 * gs.FontSize * gs.HorizontalScale, 0).Multiply(tm);
+                        }
+                    break;
+
                 // optional content
                 case "BMC":
                     marked.Push(false);
@@ -236,6 +306,107 @@ internal sealed class ContentRenderer
                     gs.DashPhase = (d[1].Resolve() as PdfNumber)?.Value ?? 0;
                     break;
             }
+        }
+    }
+
+    // ------------------------------------------------------------------ text
+
+    private RenderFont? GetFont(PdfDictionary? font)
+    {
+        if (font == null) return null;
+        if (!_fonts.TryGetValue(font, out var renderFont)) _fonts[font] = renderFont = RenderFont.Load(font);
+        return renderFont;
+    }
+
+    /// <summary>
+    /// Shows a string: glyph outlines placed with the text rendering matrix (ISO 32000-2, 9.4.4), filled, stroked and/or
+    /// added to the clip according to the rendering mode; the text matrix advances by the glyph widths.
+    /// </summary>
+    private void ShowText(byte[] bytes, GraphicsState gs, PdfDictionary? resources, ref Matrix tm, ref PathGeometry? textClip, bool hidden, int depth)
+    {
+        var font = GetFont(gs.Font);
+        if (font == null) return;
+        int mode = gs.RenderMode;
+        bool paint = !hidden && mode != 3 && mode != 7;
+        bool clip = mode >= 4;
+        var outlines = new PathGeometry();
+        double scale = gs.FontSize * gs.HorizontalScale;
+        foreach (var glyph in font.Decoder.Decode(bytes))
+        {
+            // text space -> user space for this glyph
+            var trm = new Matrix(scale, 0, 0, gs.FontSize, 0, gs.Rise).Multiply(tm);
+            if (font.Type3 != null)
+            {
+                if (paint) DrawType3Glyph(font, glyph, trm, gs, resources, depth);
+            }
+            else if ((paint || clip) && font.GetGlyph(glyph) is { IsEmpty: false } outline)
+                AppendTransformed(outlines, outline, font.FontMatrix.Multiply(trm));
+            double width = font.Advance?.Invoke(glyph) ?? glyph.Width;
+            double advance = (width * gs.FontSize + gs.CharSpacing + (glyph.IsSingleByteSpace ? gs.WordSpacing : 0)) * gs.HorizontalScale;
+            tm = Matrix.Translate(advance, 0).Multiply(tm);
+        }
+        if (outlines.IsEmpty) return;
+        if (paint)
+        {
+            if (mode is 0 or 2 or 4 or 6) Fill(outlines, gs, evenOdd: false);
+            if (mode is 1 or 2 or 5 or 6) Stroke(outlines, gs);
+        }
+        if (clip)
+        {
+            textClip ??= new PathGeometry();
+            AppendTransformed(textClip, outlines, Matrix.Identity);
+        }
+    }
+
+    private static void AppendTransformed(PathGeometry target, PathGeometry source, Matrix m)
+    {
+        foreach (var seg in source.Segments)
+        {
+            switch (seg.Kind)
+            {
+                case PathGeometry.Kind.Move:
+                {
+                    var p = m.Transform(seg.X1, seg.Y1);
+                    target.MoveTo(p.X, p.Y);
+                    break;
+                }
+                case PathGeometry.Kind.Line:
+                {
+                    var p = m.Transform(seg.X1, seg.Y1);
+                    target.LineTo(p.X, p.Y);
+                    break;
+                }
+                case PathGeometry.Kind.Curve:
+                {
+                    var p1 = m.Transform(seg.X1, seg.Y1);
+                    var p2 = m.Transform(seg.X2, seg.Y2);
+                    var p3 = m.Transform(seg.X3, seg.Y3);
+                    target.CurveTo(p1.X, p1.Y, p2.X, p2.Y, p3.X, p3.Y);
+                    break;
+                }
+                case PathGeometry.Kind.Close:
+                    target.Close();
+                    break;
+            }
+        }
+    }
+
+    /// <summary>A glyph of a Type 3 font: its glyph procedure drawn with the font matrix and the text rendering matrix.</summary>
+    private void DrawType3Glyph(RenderFont font, Text.DecodedGlyph glyph, Matrix trm, GraphicsState gs, PdfDictionary? resources, int depth)
+    {
+        var type3 = font.Type3!;
+        string? name = glyph.Code is >= 0 and < 256 ? font.CodeNames[glyph.Code] : null;
+        if (name == null || type3.GetDictionary(PdfName.Get("CharProcs"))?.GetStream(PdfName.Get(name)) is not { } procedure) return;
+        if (!_activeForms.Add(procedure)) return;
+        try
+        {
+            var inner = gs.Clone();
+            inner.Ctm = font.FontMatrix.Multiply(trm).Multiply(gs.Ctm);
+            Render(procedure.GetBytes(), type3.GetDictionary(PdfName.Resources) ?? resources, inner, depth + 1);
+        }
+        finally
+        {
+            _activeForms.Remove(procedure);
         }
     }
 

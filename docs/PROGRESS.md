@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-11-03
+Last update: 2026-11-05
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -44,6 +44,7 @@ Last update: 2026-11-03
 | 35 Layers (optional content) | ✅ done (388 tests; create, read and switch layers, content and annotations on layers, text extraction without hidden layers, PDF/A rules; veraPDF PDF/A-2b conformant, Ghostscript hides the hidden layers) |
 | 36 JPEG and CCITT decoding (1.1.0) | ✅ done (409 tests; JPEG baseline/progressive identical to libjpeg-turbo for the test variants and all 17 corpus images, 12 MP in about 0.3 s; CCITT G3 1D/2D and G4 identical to Ghostscript; partial redaction of scans, PNG export) |
 | 37 Rendering, stage 1 (core) | ✅ done (package `miPDFlib.Rendering`, preview: anti-aliased rasterizer, fills, strokes with joins/caps/dashes, clipping, colors, opacity, images, form XObjects, annotations, layers; mean difference to Ghostscript below one level; 85 corpus pages without errors, about 30 ms per page at 150 dpi) |
+| 38 Rendering, stage 2 (fonts and text) | ✅ done (429 tests; glyph outlines of TrueType/OpenType, CFF (also CID-keyed), Type 1 and Type 3 fonts, all text rendering modes, substitutes for non-embedded fonts; corpus compared with Ghostscript: text pages identical apart from hinting; fixed DCT-encoded soft masks, crop box offsets and page size rounding; ZapfDingbats Unicode table for text extraction) |
 
 Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
@@ -74,9 +75,14 @@ decoded (1.1.0, released). Next steps:
    4. Color: CMYK, Separation/DeviceN with PDF functions (types 0, 2, 3, 4), ICC-based color approximated.
 
    Stages 1 and 2 are released first as a preview.
-2. **Text shaping** for complex scripts: Unicode bidirectional algorithm (Hebrew, Arabic), Arabic joining forms and
+2. **Diagnostics**: today errors raise `PdfException` (`PdfParseException`, `PdfPasswordException`), while damaged
+   input that can be tolerated is handled silently (repaired cross-reference table, substituted fonts, skipped
+   images or content). Planned: an opt-in diagnostics channel that reports these tolerated problems (warnings with
+   page and object number), without a dependency on a logging framework, plus a small adapter for
+   `Microsoft.Extensions.Logging` users.
+3. **Text shaping** for complex scripts: Unicode bidirectional algorithm (Hebrew, Arabic), Arabic joining forms and
    standard ligatures (OpenType GSUB), mark positioning (GPOS); Indic scripts last.
-3. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
+4. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
    PostScript interpreter itself is a separate project).
 
 On demand: decoding of JBIG2 and JPEG 2000 images (JPEG 2000 can already be exported as a file).

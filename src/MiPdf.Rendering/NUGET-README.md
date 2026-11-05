@@ -13,7 +13,8 @@ var png = PdfRenderer.RenderToPng(doc.GetPage(1), new PdfRenderOptions { Dpi = 1
 File.WriteAllBytes("page1.png", png);
 ```
 
-> **Preview:** vector graphics, clipping, images and transparency are rendered; text, shadings and some transparency
-> effects follow in the next previews. See the [roadmap](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
+> **Preview:** vector graphics, clipping, images, opacity and text (embedded TrueType, OpenType, CFF, Type 1 and
+> Type 3 fonts; substitutes for non-embedded fonts) are rendered; shadings, transparency groups and soft masks follow
+> in the next previews. See the [roadmap](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
 Licensed under the **Apache License, Version 2.0**.

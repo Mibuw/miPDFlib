@@ -4,7 +4,7 @@ using MiPdf.Objects;
 namespace MiPdf.Text;
 
 /// <summary>A decoded character code of a shown string.</summary>
-internal readonly record struct DecodedGlyph(int Code, string Text, double Width, bool IsSingleByteSpace, int Length = 1);
+internal readonly record struct DecodedGlyph(int Code, string Text, double Width, bool IsSingleByteSpace, int Length = 1, int Cid = -1);
 
 /// <summary>
 /// Decodes strings shown with a font dictionary into Unicode text and glyph widths
@@ -76,11 +76,8 @@ internal sealed class FontDecoder
             if (c != '\0') _simpleUnicode[code] = c.ToString();
         }
         if (builtInSymbol && plainName.StartsWith("ZapfDingbats", StringComparison.Ordinal))
-        {
-            // common form symbols (check marks, radio dots, ...)
-            foreach (var (code, text) in new[] { (0x34, "✔"), (0x33, "✓"), (0x6C, "●"), (0x6E, "■"), (0x75, "◆"), (0x48, "★"), (0x38, "✖"), (0x20, " ") })
-                _simpleUnicode[code] = text;
-        }
+            for (int code = 0; code < 256; code++)
+                if (ZapfDingbatsUnicode(code) is > 0 and var u) _simpleUnicode[code] = ((char)u).ToString();
         if (differences != null)
         {
             int code = 0;
@@ -121,8 +118,47 @@ internal sealed class FontDecoder
                 _simpleWidths[code] = winAnsi >= 32 ? StandardFontMetrics.GetWidth(info, winAnsi) : 500;
             }
         }
-        else Array.Fill(_simpleWidths, missing > 0 ? missing : 500);
+        else
+        {
+            Array.Fill(_simpleWidths, missing > 0 ? missing : 500);
+            HasKnownWidths = false;
+        }
     }
+
+    /// <summary>
+    /// Unicode of a code in ZapfDingbats' built-in encoding (Adobe's zapfdingbats glyph list); 0 if unused. The Unicode
+    /// Dingbats block was derived from this font, so most codes map to U+2700 + (code - 0x20); the gaps of that block
+    /// hold glyphs Unicode already had elsewhere.
+    /// </summary>
+    internal static int ZapfDingbatsUnicode(int code) => code switch
+    {
+        0x20 => 0x20,
+        0x25 => 0x260E,
+        0x2A => 0x261B,
+        0x2B => 0x261E,
+        0x48 => 0x2605,
+        0x6C => 0x25CF,
+        0x6E => 0x25A0,
+        0x73 => 0x25B2,
+        0x74 => 0x25BC,
+        0x75 => 0x25C6,
+        0x77 => 0x25D7,
+        >= 0x21 and <= 0x7E => 0x2700 + code - 0x20,
+        >= 0x80 and <= 0x8D => 0x2768 + code - 0x80,
+        >= 0xA1 and <= 0xA7 => 0x2761 + code - 0xA1,
+        0xA8 => 0x2663,
+        0xA9 => 0x2666,
+        0xAA => 0x2665,
+        0xAB => 0x2660,
+        >= 0xAC and <= 0xB5 => 0x2460 + code - 0xAC,
+        >= 0xB6 and <= 0xD4 => 0x2776 + code - 0xB6,
+        0xD5 => 0x2192,
+        0xD6 => 0x2194,
+        0xD7 => 0x2195,
+        >= 0xD8 and <= 0xEF => 0x2798 + code - 0xD8,
+        >= 0xF1 and <= 0xFE => 0x27B1 + code - 0xF1,
+        _ => 0,
+    };
 
     private static CMap SafeParse(PdfStream s)
     {
@@ -186,6 +222,9 @@ internal sealed class FontDecoder
         return _glyphToUnicode.TryGetValue(cid, out var s) ? s : "";
     }
 
+    /// <summary>False for a simple font without /Widths that is not a standard 14 font (its widths are guessed).</summary>
+    public bool HasKnownWidths { get; } = true;
+
     /// <summary>Width of the space character in text space units (1/1000 em scaled by FontMatrix for Type3).</summary>
     public double SpaceWidth
     {
@@ -209,7 +248,8 @@ internal sealed class FontDecoder
                 int cid = _encodingCMap.GetCid(code);
                 string text = _toUnicode?.GetUnicode(code) ?? FallbackUnicode(cid);
                 double width = (_cidWidths.TryGetValue(cid, out var w) ? w : _defaultWidth) * 0.001;
-                yield return new DecodedGlyph(code, text, width, false, Math.Max(1, length));
+                // a one-byte code 32 counts as space for the word spacing (Tw) also in composite fonts
+                yield return new DecodedGlyph(code, text, width, length == 1 && code == 32, Math.Max(1, length), cid);
             }
             else
             {

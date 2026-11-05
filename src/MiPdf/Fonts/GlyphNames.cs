@@ -73,6 +73,17 @@ internal static class GlyphNames
         return d;
     }
 
+    private static readonly Lazy<Dictionary<char, string>> UnicodeToName = new(() =>
+    {
+        var d = new Dictionary<char, string>();
+        foreach (var (name, text) in NameToUnicode)
+            if (text.Length == 1) d.TryAdd(text[0], name);
+        return d;
+    });
+
+    /// <summary>The standard glyph name of a character (e.g. "Adieresis" for Ä), or null if it has none.</summary>
+    public static string? NameOf(char c) => UnicodeToName.Value.TryGetValue(c, out var name) ? name : null;
+
     /// <summary>Converts a glyph name to Unicode text, or null if unknown.</summary>
     public static string? ToUnicode(string name)
     {

@@ -37,9 +37,21 @@ patterns, minimum line width of one pixel), clipping, colors (gray, RGB, CMYK, L
 components, indexed), constant opacity, images (all formats miPDFlib decodes, with soft masks and stencil masks),
 form XObjects, annotation appearances and layers (hidden layers are not drawn). Edges are anti-aliased.
 
-Not yet rendered, following in the next previews (see the [roadmap](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md#roadmap)): **text**, shadings and
+**Text** is drawn from the glyph outlines of the embedded fonts: TrueType, OpenType (CFF), CFF/Type1C (also
+CID-keyed), Type 1 (PFA/PFB, including seac accents and flex) and Type 3 fonts, simple and composite (Type0). All
+text rendering modes are supported, including the clipping modes, together with character and word spacing,
+horizontal scaling, rise and TJ adjustments. Fonts that are not embedded – the standard 14 fonts and others – are
+drawn with an installed substitute: Arial, Liberation Sans or DejaVu Sans for sans-serif fonts, Times New Roman,
+Liberation Serif or DejaVu Serif for serif fonts, Courier New, Liberation Mono or DejaVu Sans Mono for monospaced
+fonts (each in the matching weight and style), the Windows Symbol font for Symbol, and Segoe UI Symbol or DejaVu
+Sans for ZapfDingbats. If no substitute is installed (e.g. a minimal container image), such text is not drawn; install
+fonts such as `fonts-liberation` there. Glyphs are not hinted, so small text looks slightly lighter than in
+renderers that use hinting.
+
+Not yet rendered, following in the next previews (see the [roadmap](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md#roadmap)): shadings and
 patterns, transparency groups, blend modes and soft masks; Separation and DeviceN colors are approximated as gray,
 CMYK is converted without a color profile. JPEG 2000 and JBIG2 images are not drawn.
 
 The output is checked against Ghostscript: for vector graphics and images the mean difference is below one level
-of 255; differences are at anti-aliased edges and in CMYK colors (Ghostscript uses a color profile).
+of 255; differences are at anti-aliased edges and in CMYK colors (Ghostscript uses a color profile). Text pages
+differ mainly by hinting; pages with shadings or spot colors differ until the next stages.

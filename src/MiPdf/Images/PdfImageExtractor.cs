@@ -178,7 +178,8 @@ internal static class ImageDecoder
         byte[] data;
         try
         {
-            data = Filters.StreamFilters.Decode(mask.RawBytes, mask, out var remaining);
+            // soft masks may be DCT- or CCITT-encoded like any other image
+            data = Filters.StreamFilters.DecodeImage(mask.RawBytes, mask, out var remaining);
             if (remaining != null) return null;
         }
         catch (PdfException)

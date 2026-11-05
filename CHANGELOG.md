@@ -4,7 +4,13 @@
 
 - New package **miPDFlib.Rendering** (preview, not yet published): renders pages to PNG or RGBA pixels at any
   resolution (`PdfRenderer.Render` / `RenderToPng`) – vector graphics with anti-aliasing, clipping, colors, opacity,
-  images, form XObjects, annotation appearances and layers. Text, shadings and transparency effects follow.
+  images, form XObjects, annotation appearances and layers; text with embedded TrueType, OpenType, CFF, Type 1 and
+  Type 3 fonts (all rendering modes), and installed substitutes for fonts that are not embedded. Shadings and
+  transparency effects follow.
+- Image decoding: soft masks compressed with DCT (JPEG) or CCITT are now applied (before, such images lost their
+  transparency in `ToPng`).
+- Text extraction: ZapfDingbats text without a ToUnicode map is extracted for all codes of the font (before, only
+  common check marks and bullets); word spacing is also recognized for the one-byte code 32 in composite fonts.
 
 ## 1.1.0
 

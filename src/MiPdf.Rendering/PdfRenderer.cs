@@ -83,11 +83,15 @@ public static class PdfRenderer
         int rotation = ((page.Rotation % 360) + 360) % 360;
 
         // page space -> rotated (clockwise, as displayed) -> pixels (y down)
-        var matrix = Matrix.Translate(-crop.Left, -crop.Bottom).Multiply(Matrix.Rotate(-rotation));
-        var corners = new[] { matrix.Transform(0, 0), matrix.Transform(crop.Width, 0), matrix.Transform(0, crop.Height), matrix.Transform(crop.Width, crop.Height) };
+        var matrix = Matrix.Rotate(-rotation);
+        var corners = new[]
+        {
+            matrix.Transform(crop.Left, crop.Bottom), matrix.Transform(crop.Right, crop.Bottom),
+            matrix.Transform(crop.Left, crop.Top), matrix.Transform(crop.Right, crop.Top),
+        };
         double minX = corners.Min(c => c.X), minY = corners.Min(c => c.Y), maxX = corners.Max(c => c.X), maxY = corners.Max(c => c.Y);
-        int width = Math.Max(1, (int)Math.Ceiling((maxX - minX) * scale - 1e-6));
-        int height = Math.Max(1, (int)Math.Ceiling((maxY - minY) * scale - 1e-6));
+        int width = Math.Max(1, (int)Math.Round((maxX - minX) * scale));
+        int height = Math.Max(1, (int)Math.Round((maxY - minY) * scale));
         if ((long)width * height > MaxPixels) throw new PdfException($"The rendered page would have {width}x{height} pixels; use a lower Dpi.");
         matrix = matrix.Multiply(Matrix.Translate(-minX, -maxY)).Multiply(Matrix.Scale(scale, -scale));
 
