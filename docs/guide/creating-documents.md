@@ -62,9 +62,33 @@ optional, because they change the look of existing documents: `font.Ligatures = 
 `kern` table (see below).
 
 Paragraphs in a right-to-left language should be right-aligned (`Alignment = TextAlignment.Right` or `Justify`);
-the direction of each paragraph is taken from its first strong character. Indic scripts (Devanagari, Bengali, ...)
-and other scripts that reorder glyphs within syllables are not shaped yet; the standard 14 fonts are never shaped
-(they have no OpenType tables and no Arabic or Hebrew glyphs).
+the direction of each paragraph is taken from its first strong character. The standard 14 fonts are never shaped
+(they have no OpenType tables and no Arabic, Hebrew or Indic glyphs).
+
+### Indic scripts
+
+Devanagari (Hindi, Marathi, Nepali, Sanskrit), Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada and
+Malayalam are shaped as well – again without any option, with a font that has the script (Nirmala UI on Windows,
+the Noto Sans fonts, Lohit, ...):
+
+```csharp
+var nirmala = PdfTrueTypeFont.FromFile(@"C:\Windows\Fonts\Nirmala.ttc");    // Nirmala UI, the first font of the collection
+canvas.DrawText("नमस्ते दुनिया, क्षत्रिय और कार्यक्रम", nirmala, 14, 72, 700);
+layout.Add(new Paragraph("தமிழ் மொழி · മലയാളം ഭാഷ · ਪੰਜਾਬੀ", nirmala, 12));
+```
+
+The text is split into syllables; vowel signs that are written before the consonant (ि, ে, െ) and the parts of split
+vowels (ো, ொ, ൊ) are moved to their place, Ra + virama becomes the reph above the following consonant, consonant
+clusters become conjuncts, half forms or below-base forms as the font defines them, and marks are positioned. ZWJ and
+ZWNJ select half forms or a visible virama as usual. Vowel signs without a consonant, and vowel sequences that would
+look like another vowel, are shown on a dotted circle (◌), like in other software. Fonts with the current OpenType
+script tags (`dev2`, `bng2`, ...) and older fonts (`deva`, `beng`, ...) are supported. The result was compared with
+HarfBuzz, the shaper of most browsers and Linux desktops: glyphs and positions were identical for about 89,000
+generated syllables in Nirmala UI and the Noto Sans fonts of all nine scripts.
+
+The text keeps its logical order for extraction, search and screen readers (`/ActualText`), also in tagged PDF/UA
+documents. Not supported yet: Sinhala and the scripts of the Universal Shaping Engine (Khmer, Myanmar, Tibetan,
+Javanese, Balinese, ...); text in these scripts is written without reordering.
 
 ## Canvas (`page.GetCanvas()`)
 

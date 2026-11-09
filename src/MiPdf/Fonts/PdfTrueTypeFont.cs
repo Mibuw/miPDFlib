@@ -10,8 +10,10 @@ namespace MiPdf.Fonts;
 /// are embedded completely. A ToUnicode map is always written so text remains extractable/searchable.
 /// </summary>
 /// <remarks>
-/// Pair kerning (kern table) is applied by the layout engine (<see cref="Layout.Paragraph"/>). Complex script shaping
-/// (Arabic, Indic) and ligatures are not applied.
+/// Text that needs it is shaped with the font's OpenType tables (GSUB, GPOS): Arabic and other joining scripts, Hebrew
+/// and other right-to-left text (Unicode Bidirectional Algorithm), the Indic scripts (Devanagari, Bengali, Gurmukhi,
+/// Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam) and combining marks. Standard ligatures of other text are
+/// optional (<see cref="Ligatures"/>); pair kerning is applied by the layout engine (<see cref="Layout.Paragraph"/>).
 /// </remarks>
 public sealed class PdfTrueTypeFont : PdfFont
 {
@@ -108,8 +110,8 @@ public sealed class PdfTrueTypeFont : PdfFont
 
     /// <summary>
     /// Applies the font's standard ligatures (OpenType features liga and clig, e.g. "fi", "fl") to all text (default
-    /// false). Text in scripts that need shaping – Arabic, Hebrew and other right-to-left scripts, combining marks – is
-    /// always shaped with the font's OpenType tables, including the ligatures it requires.
+    /// false). Text in scripts that need shaping – Arabic, Hebrew and other right-to-left scripts, the Indic scripts,
+    /// combining marks – is always shaped with the font's OpenType tables, including the ligatures it requires.
     /// </summary>
     public bool Ligatures { get; set; }
 

@@ -38,8 +38,10 @@ internal sealed class ShapedLine
 /// </summary>
 internal static class Shaper
 {
-    // feature mask bits: bit 0 = global features, the Arabic positional forms have their own bits
-    private const uint Global = 1, Isol = 2, Fina = 4, Medi = 8, Init = 16;
+    // feature mask bits: bit 0 = global features; the Arabic positional forms and the Indic forms that apply to parts
+    // of a syllable have their own bits
+    internal const uint Global = 1, Isol = 2, Fina = 4, Medi = 8, Init = 16, Rphf = 32, Pref = 64, Blwf = 128, Abvf = 256,
+        Half = 512, Pstf = 1024;
 
     /// <summary>True if the text needs shaping (complex scripts, right-to-left text or combining marks).</summary>
     public static bool NeedsShaping(string text)
@@ -49,6 +51,7 @@ internal static class Shaper
             int cp = rune.Value;
             if (cp < 0x0300) continue;
             if (cp is >= 0x0300 and <= 0x036F) return true; // combining diacritics
+            if (cp is >= 0x0900 and <= 0x0DFF) return true; // Indic scripts
             if (UnicodeTables.BidiClassOf(cp) is BidiClass.R or BidiClass.AL or BidiClass.AN) return true;
             if (UnicodeTables.IsMark(cp)) return true;
         }
@@ -150,9 +153,48 @@ internal static class Shaper
         script is UnicodeScript.Arabic or UnicodeScript.Syriac or UnicodeScript.Nko or UnicodeScript.Mongolian or UnicodeScript.Mandaic
             or UnicodeScript.Manichaean or UnicodeScript.Psalter_Pahlavi or UnicodeScript.Adlam or UnicodeScript.Hanifi_Rohingya or UnicodeScript.Sogdian;
 
+    private static bool IsHiddenJoiner(ShapingGlyph g) => g.CodePoint is 0x200C or 0x200D && !g.Substituted;
+
+    /// <summary>
+    /// The glyph class from GDEF, else from the character (marks). With <paramref name="harfBuzzClasses"/> (Indic
+    /// scripts) a font with glyph classes decides alone (unclassified glyphs are never skipped) and without them only
+    /// nonspacing marks are marks, like HarfBuzz.
+    /// </summary>
+    internal static GlyphClass GlyphClassOf(OpenTypeLayout.Gdef? gdef, int gid, int cp, bool harfBuzzClasses = false)
+    {
+        if (gdef is { HasGlyphClasses: true } && (harfBuzzClasses || gdef.ClassOf(gid) != GlyphClass.Unknown)) return gdef.ClassOf(gid);
+        bool mark = harfBuzzClasses
+            ? cp <= 0x10FFFF && System.Globalization.CharUnicodeInfo.GetUnicodeCategory(cp) == System.Globalization.UnicodeCategory.NonSpacingMark
+            : UnicodeTables.IsMark(cp);
+        return mark ? GlyphClass.Mark : GlyphClass.Base;
+    }
+
     private static ShapedRun ShapeRun(TrueTypeFont font, string text, int[] cps, List<int> positions, int start, int end, bool rtl,
         UnicodeScript script, bool ligatures, bool kerning)
     {
+        if (IndicShaper.For(font, script) is { } indic)
+        {
+            // Indic scripts: reordering and basic forms in the Indic shaper; marks keep their advance widths
+            var glyphs = indic.Shape(cps, positions, start, end, ligatures);
+            foreach (var g in glyphs) g.XAdvance = font.GetAdvanceWidth(g.Gid);
+            if (font.Gpos is { } indicGpos)
+            {
+                var features = new HashSet<string>(StringComparer.Ordinal) { "abvm", "blwm", "dist", "kern", "mark", "mkmk", "curs" };
+                foreach (var (lookup, feature) in indicGpos.CollectLookups(indic.GposTags, null, features))
+                    indicGpos.Apply(glyphs, lookup, Global, keepMarkAdvance: true, manualJoiners: feature is "mark" or "mkmk");
+            }
+            else
+            {
+                var kern = font.LegacyKerning;
+                for (int i = 0; i + 1 < glyphs.Count; i++) glyphs[i].XAdvance += kern.Get(glyphs[i].Gid, glyphs[i + 1].Gid);
+            }
+            // joiners have done their work and are not shown (unless the font substituted them)
+            foreach (var g in glyphs)
+                if (IsHiddenJoiner(g))
+                    g.XAdvance = g.XOffset = g.YOffset = 0;
+            return Position(glyphs, text, false, positions, start, end, indicText: true);
+        }
+
         var gdef = font.Gsub?.GlyphDefinitions ?? font.Gpos?.GlyphDefinitions;
         var buffer = new List<ShapingGlyph>(end - start);
         for (int i = start; i < end; i++)
@@ -205,12 +247,18 @@ internal static class Shaper
         return Position(buffer, text, rtl, positions, start, end);
     }
 
-    private static uint MaskOf(string feature) => feature switch
+    internal static uint MaskOf(string feature) => feature switch
     {
         "isol" => Isol,
         "fina" or "fin2" or "fin3" => Fina,
         "medi" or "med2" => Medi,
         "init" => Init,
+        "rphf" => Rphf,
+        "pref" => Pref,
+        "blwf" => Blwf,
+        "abvf" => Abvf,
+        "half" => Half,
+        "pstf" => Pstf,
         _ => Global,
     };
 
@@ -237,8 +285,13 @@ internal static class Shaper
         }
     }
 
-    /// <summary>Glyph positions in visual order (font units from the start of the run).</summary>
-    private static ShapedRun Position(List<ShapingGlyph> buffer, string text, bool rtl, List<int> positions, int start, int end)
+    /// <summary>
+    /// Glyph positions in visual order (font units from the start of the run). In Indic runs attached marks keep their
+    /// advance and each glyph carries the characters it stands for (the syllables are reordered, so clusters are whole
+    /// syllables).
+    /// </summary>
+    private static ShapedRun Position(List<ShapingGlyph> buffer, string text, bool rtl, List<int> positions, int start, int end,
+        bool indicText = false)
     {
         int n = buffer.Count;
         var x = new double[n];
@@ -253,6 +306,7 @@ internal static class Shaper
             {
                 x[i] = x[g.AttachTo] + g.XOffset;
                 y[i] = y[g.AttachTo] + g.YOffset;
+                if (indicText) pen += g.XAdvance;
                 continue;
             }
             x[i] = rtl ? total - pen - g.XAdvance + g.XOffset : pen + g.XOffset;
@@ -266,6 +320,11 @@ internal static class Shaper
         var seen = new HashSet<int>();
         for (int i = 0; i < n; i++)
         {
+            if (indicText)
+            {
+                texts[i] = buffer[i].Chars ?? char.ConvertFromUtf32(buffer[i].CodePoint);
+                continue;
+            }
             int cluster = buffer[i].Cluster;
             if (!seen.Add(cluster))
             {
@@ -280,6 +339,7 @@ internal static class Shaper
         for (int k = 0; k < n; k++)
         {
             int i = rtl ? n - 1 - k : k;
+            if (indicText && IsHiddenJoiner(buffer[i])) continue;
             glyphs.Add(new PositionedGlyph(buffer[i].Gid, x[i], y[i], buffer[i].Cluster, texts[i]));
         }
         int utfStart = positions[start];

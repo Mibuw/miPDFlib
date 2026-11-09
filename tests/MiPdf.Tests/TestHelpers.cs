@@ -21,6 +21,27 @@ internal static class TestHelpers
         return candidates.FirstOrDefault(File.Exists);
     }
 
+    /// <summary>
+    /// A system font with glyphs for the Indic scripts (Nirmala UI on Windows, Noto Sans Devanagari on Linux), or null;
+    /// MIPDF_INDIC_TEST_FONT overrides it ("path" or "path#collection index").
+    /// </summary>
+    public static (string Path, int Index)? FindIndicFont()
+    {
+        if (Environment.GetEnvironmentVariable("MIPDF_INDIC_TEST_FONT") is { Length: > 0 } overridden)
+        {
+            int hash = overridden.LastIndexOf('#');
+            var file = hash > 0 ? overridden[..hash] : overridden;
+            if (File.Exists(file)) return (file, hash > 0 ? int.Parse(overridden[(hash + 1)..]) : 0);
+        }
+        string[] candidates =
+        {
+            @"C:\Windows\Fonts\Nirmala.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
+            "/usr/share/fonts/opentype/noto/NotoSansDevanagari-Regular.ttf",
+        };
+        return candidates.FirstOrDefault(File.Exists) is { } path ? (path, 0) : null;
+    }
+
     /// <summary>Encodes a minimal non-interlaced PNG (color type 6 = RGBA or 2 = RGB, 8 bit).</summary>
     public static byte[] CreatePng(int width, int height, byte[] pixels, bool alpha)
     {

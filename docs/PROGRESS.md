@@ -49,8 +49,9 @@ Last update: 2026-11-05
 | 40 Rendering, stage 4 (color) | ✅ done (455 tests; Separation/DeviceN through tint transforms, colorant None, CMYK approximating SWOP (pdf.js coefficients; naive formula was off by 25 levels on average), Lab range, ICC-based by component count; images in the core decoder through the same color spaces with full Decode arrays; Ghostscript spots2 from 9.6 to 1.9, CMYK example from 4.7 to 1.5) |
 | 41 Diagnostics | ✅ done (461 tests; `PdfDiagnostic` with severity, stable code, page and object number; `PdfDocument.Diagnostics` and `PdfOpenOptions.OnDiagnostic`; reported: repaired xref, unreadable objects, damaged streams and ToUnicode maps, undecodable images, substituted/missing/damaged fonts, unsupported shadings and patterns, too deep nesting; no false positives on the corpus and the pdf.js files) |
 | 42 Text shaping (Arabic, Hebrew, bidi) | ✅ done (470 tests; OpenType GSUB lookup types 1-8 and GPOS 1-9 with GDEF, Arabic joining forms, mark attachment, UAX #9 bidi passing all 91,707 Unicode conformance cases, mirrored brackets, ActualText for right-to-left runs and in text extraction, bidi-aware paragraph lines; checked with Arial and DejaVu Sans, Ghostscript renders identically, veraPDF PDF/UA-1 passes) |
+| 43 Text shaping (Indic scripts) | ✅ done (479 tests; Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam: syllable grammar, decomposition of split matras, initial and final reordering, reph, pre-base forms, basic and presentation features per syllable, ZWJ/ZWNJ, dotted circles, invalid vowel sequences, old and new OpenType script tags; Unicode 16.0 Indic categories generated; glyphs and positions identical to HarfBuzz 15 for about 89,000 generated syllables in Nirmala UI, the nine Noto Sans fonts and FreeSerif/FreeSans also with old-style tags only; OpenType engine aligned with HarfBuzz for all scripts: feature variations, input masks, joiners, mark filtering sets in mark-to-mark, sequence indices after multiple substitutions; veraPDF PDF/UA-1 and PDF/A-2u pass) |
 
-Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 479 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -67,7 +68,8 @@ Current state: 409 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
 structure, documents can be encrypted for certificates, layers are supported and JPEG and CCITT images are
 decoded (1.1.0, released). 1.2.0 (released) adds the rendering package miPDFlib.Rendering, diagnostics and text
-shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below). Next steps:
+shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below); shaping of the Indic scripts is
+done for the next release. Next steps:
 
 1. **Rendering** (pages to images, e.g. for previews and printing) as a separate package `miPDFlib.Rendering` in
    this repository: managed code only, no native dependencies and no System.Drawing; output as bitmaps/PNG at any
@@ -87,8 +89,9 @@ shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below). 
    `PdfDocument.Diagnostics` and through `PdfOpenOptions.OnDiagnostic` (see
    [guide](guide/diagnostics.md); `ILogger` users connect it with one line, so no adapter package is needed).
 3. **Text shaping** ✅ for Arabic, Hebrew and other right-to-left scripts: Unicode bidirectional algorithm, Arabic
-   joining forms and ligatures (OpenType GSUB), mark positioning (GPOS), optional Latin ligatures. Still open:
-   Indic scripts (syllable reordering, conjuncts) and other scripts that reorder glyphs (Khmer, Myanmar, ...).
+   joining forms and ligatures (OpenType GSUB), mark positioning (GPOS), optional Latin ligatures. Indic scripts ✅
+   (the nine scripts of the Indic shaper, compared with HarfBuzz). Still open: Sinhala and the scripts of the
+   Universal Shaping Engine (Khmer, Myanmar, Tibetan, ...), only on demand.
 4. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
    PostScript interpreter itself is a separate project).
 

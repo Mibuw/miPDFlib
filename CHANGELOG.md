@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Text shaping for the Indic scripts Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada and
+  Malayalam: syllables, reordering of pre-base vowel signs and split vowels, reph, conjuncts, half, below-base and
+  post-base forms, ZWJ/ZWNJ, dotted circles for broken clusters and invalid vowel sequences, for fonts with the
+  current (`dev2`, ...) and the older (`deva`, ...) OpenType script tags. Glyphs and positions are identical to
+  HarfBuzz for about 89,000 generated syllables in Nirmala UI and the Noto Sans fonts. Like right-to-left text, the
+  text carries `/ActualText` and is extracted in logical order.
+- OpenType layout, for all scripts: feature variations of variable fonts are applied at the default instance; input
+  glyphs of a lookup must have the feature (as in HarfBuzz); ZWJ and ZWNJ are skipped in contexts; mark-to-mark
+  positioning skips marks outside the lookup's mark filtering set; glyphs added by a multiple substitution inside a
+  contextual lookup get their own sequence indices; a ligature of a base and marks stays a base glyph.
+
 ## 1.2.0
 
 New features, no breaking changes. **miPDFlib.Rendering** leaves preview: with shadings, patterns, transparency and

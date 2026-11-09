@@ -62,7 +62,7 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | Create PDFs | low-level content | low-level, simple text | low-level (PDFsharp), layout engine (MigraDoc) | layout engine | low-level canvas and layout engine |
 | Modify, merge, split | yes, incremental saving | merge; incremental saving not yet released | yes | merge, overlay via qpdf | yes, incremental saving |
 | Text extraction | with positions | with positions and layout analysis | – | – | with positions, reading order |
-| Render pages to images, print | **yes** | – | – | only its own documents | – |
+| Render pages to images, print | **yes** | – | – | only its own documents | to images and PNG with the package miPDFlib.Rendering; printing is left to the application |
 | AcroForms | fill, create, flatten | read only | fill, flatten | – | fill, create, flatten, FDF/XFDF |
 | Signatures | signing framework; PAdES levels and LTV only as example code with BouncyCastle; no validation | – | CMS (`adbe.pkcs7.detached`), optional time-stamp; no LTV, no validation | – | PAdES B-B to B-LTA, LTV, validation, no BouncyCastle |
 | Encryption | password (AES-256), certificate | decrypt only | password (AES-256) | password via qpdf | password (AES-256), certificate |
@@ -70,7 +70,7 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | PDF/UA | manual tagging | – | manual tagging, PDF/UA-1 | semantic API, PDF/UA-1 | automatic tagging by the layout engine, **PDF/UA-1 and PDF/UA-2** |
 | Optional content (layers) | **yes** | read | – | – | create, read, switch |
 | CCITT / JBIG2 / JPEG 2000 images | decoded (JBIG2/JPX via plugins) | CCITT only | – | – | CCITT decoded (and JPEG); JPEG 2000 exported as file; JBIG2 raw data only |
-| Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | Arabic, Hebrew and other right-to-left scripts (own managed shaper, bidi, GSUB/GPOS); Indic not yet |
+| Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | **yes**: Arabic, Hebrew and other right-to-left scripts, nine Indic scripts (own managed shaper, bidi, GSUB/GPOS; Indic output identical to HarfBuzz in tests) |
 | ZUGFeRD, redaction, barcodes | – | – | barcodes | PDF/A-3 attachments for ZUGFeRD | all three |
 
 In short: **PDFBox** is the choice for rendering and printing and the most complete low-level toolkit, but in Java
@@ -78,7 +78,7 @@ and with signatures assembled from examples. **PdfPig** is strong at reading and
 **QuestPDF** are good at document generation; QuestPDF also handles complex scripts, but needs native libraries and a
 paid licence above its revenue limit, and since 6.5 PDFsharp is AGPL or commercial. miPDFlib covers creating,
 modifying, forms, signatures and archiving in one managed library; it renders pages with the package
-miPDFlib.Rendering and shapes Arabic and Hebrew text, but not Indic scripts yet.
+miPDFlib.Rendering and shapes Arabic, Hebrew and Indic text without native libraries.
 
 Information as of November 2026, from the projects' documentation, release notes and source code; the binding
 licence terms are those of the projects.
@@ -89,9 +89,11 @@ licence terms are those of the projects.
 - **Closed product of a small company within the Community License limits:** Syncfusion PDF.
 - **Office conversion in the same workflow:** Syncfusion.
 - **Commercial support, FIPS or the widest feature set:** iText or Syncfusion with a commercial licence.
-- **Rendering PDFs to images or printing:** PDFBox (Java) – or a PDFium-based .NET library.
+- **Rendering PDFs to images or printing:** PDFBox (Java); in .NET miPDFlib.Rendering (managed code only) or a
+  PDFium-based library.
 - **Reading and analysing text in .NET:** PdfPig.
-- **Document generation with Indic scripts:** QuestPDF, within its licence terms (Arabic and Hebrew: also miPDFlib).
+- **Document generation with Arabic, Hebrew or Indic scripts:** QuestPDF within its licence terms, or miPDFlib
+  (managed code only).
 - **Closed product without licence costs and without revenue or size limits, focused on forms, PAdES signatures,
   PDF/A, PDF/UA or e-invoices:** miPDFlib – test it with your own documents before going live.
 
