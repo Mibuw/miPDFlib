@@ -78,7 +78,7 @@ public static class PdfDiagnosticCode
     /// <summary>An embedded font program is damaged; a substitute was used (rendering).</summary>
     public const string FontDamaged = "FontDamaged";
 
-    /// <summary>An image could not be decoded (e.g. JPEG 2000 or JBIG2) and was not drawn or converted.</summary>
+    /// <summary>An image could not be decoded (damaged data, unsupported color space) and was not drawn or converted.</summary>
     public const string ImageNotDecoded = "ImageNotDecoded";
 
     /// <summary>A shading or pattern is invalid or unsupported and was not painted (rendering).</summary>

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Images: JBIG2 (ITU-T T.88) and JPEG 2000 (ISO/IEC 15444-1) are decoded – in rendering, `ToPng` and redaction
+  (partially covered images are blanked like JPEG images instead of being removed). JBIG2: generic, refinement,
+  text and halftone regions, symbol and pattern dictionaries, arithmetic and Huffman coding including user tables
+  and MMR, `/JBIG2Globals`; compared with Ghostscript on 221 images of real PDFs. JPEG 2000: JP2 files and raw
+  codestreams, all progression orders and progression changes, tiles, precincts, packed packet headers, all
+  code-block modes, region of interest, 5/3 and 9/7 wavelets, component transforms, subsampling, palettes; the
+  color space comes from the image dictionary or the JP2 header, `/SMaskInData` uses the opacity channel. All
+  files of the ISO/IEC 15444-4 conformance suite match the reference images within the tolerances of the standard.
+  No native libraries are needed.
+- CCITT fax (Group 4) decoding takes linear instead of quadratic time for rows with many color changes.
+- Barcodes: PDF417 (ISO/IEC 15438) – `Pdf417.Create` with text, numeric and byte compaction, error correction
+  levels 0–8, selectable number of columns and row height, UTF-8 text with ECI. Checked by decoding about 500
+  symbols with zxing-cpp, also after rendering the PDF with Ghostscript and miPDFlib.Rendering.
 - Text shaping for the Indic scripts Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada and
   Malayalam: syllables, reordering of pre-base vowel signs and split vowels, reph, conjuncts, half, below-base and
   post-base forms, ZWJ/ZWNJ, dotted circles for broken clusters and invalid vowel sequences, for fonts with the

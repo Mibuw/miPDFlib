@@ -124,6 +124,39 @@ internal static class CcittFaxDecoder
         return result;
     }
 
+    /// <summary>
+    /// MMR (Group 4) data inside a JBIG2 stream (ITU-T T.88, 6.2.6): <paramref name="rows"/> rows starting at byte
+    /// <paramref name="offset"/>, one byte per pixel (1 = black). An end-of-block code after the rows is skipped;
+    /// <paramref name="end"/> is the byte position after the data.
+    /// </summary>
+    public static byte[] DecodeMmr(byte[] data, int offset, int length, int columns, int rows, out int end)
+    {
+        // collective bitmaps of JBIG2 symbol dictionaries can be very wide; the decoded size limit applies
+        if (columns <= 0 || rows < 0) throw new PdfException("Invalid MMR bitmap size.");
+        PdfLimits.Current.CheckDecodedSize((long)columns * rows);
+        var pixels = new byte[(long)columns * rows];
+        var slice = data.AsSpan(offset, Math.Max(0, Math.Min(length, data.Length - offset))).ToArray();
+        var reader = new BitReader(slice);
+        var reference = new List<int>();
+        var coding = new List<int>();
+        for (int y = 0; y < rows; y++)
+        {
+            coding.Clear();
+            if (!DecodeTwoDimensional(reader, reference, coding, columns)) break;
+            // the changing elements are the starts of the black and white runs, starting with black
+            for (int i = 0; i < coding.Count; i += 2)
+            {
+                int from = coding[i], to = i + 1 < coding.Count ? coding[i + 1] : columns;
+                for (int x = Math.Max(0, from); x < Math.Min(columns, to); x++) pixels[(long)y * columns + x] = 1;
+            }
+            (reference, coding) = (coding, reference);
+        }
+        // end of block: two EOL codes (000000000001 000000000001)
+        if (reader.PeekBits(24) == 0x001001) reader.Read(24);
+        end = offset + (int)((reader.Position + 7) / 8);
+        return pixels;
+    }
+
     /// <summary>A row with changing elements at the given positions (the row starts white).</summary>
     private static byte[] Pixels(List<int> changes, int columns, int rowBytes, bool blackIs1)
     {
@@ -164,14 +197,16 @@ internal static class CcittFaxDecoder
 
     private static bool DecodeTwoDimensional(BitReader reader, List<int> reference, List<int> coding, int columns)
     {
-        int a0 = -1, color = White;
+        int a0 = -1, color = White, first = 0;
         for (int guard = 0; a0 < columns; guard++)
         {
             if (guard > 2 * columns + 16) return false; // no progress: damaged data
             var (mode, offset) = ReadMode(reader);
-            // b1: first changing element of the reference row right of a0 that changes to the opposite color
-            int index = 0;
-            while (index < reference.Count && (reference[index] <= a0 || (index & 1) != color)) index++;
+            // b1: first changing element of the reference row right of a0 that changes to the opposite color. a0 only
+            // moves right, so the first element right of it is found from the previous one (rows can have millions of
+            // changes in JBIG2 collective bitmaps); the elements do not decrease, so b1 is that one or the next.
+            while (first < reference.Count && reference[first] <= a0) first++;
+            int index = first < reference.Count && (first & 1) != color ? first + 1 : first;
             int b1 = index < reference.Count ? reference[index] : columns;
             int b2 = index + 1 < reference.Count ? reference[index + 1] : columns;
             switch (mode)
@@ -260,7 +295,21 @@ internal static class CcittFaxDecoder
     {
         private long _position; // in bits
 
+        public long Position => _position;
+
         public bool AtEnd => _position >= (long)data.Length * 8;
+
+        public int PeekBits(int count)
+        {
+            int value = 0;
+            for (int i = 0; i < count; i++)
+            {
+                int bit = PeekAt(i);
+                if (bit < 0) return -1;
+                value = (value << 1) | bit;
+            }
+            return value;
+        }
 
         public int PeekAt(int offset)
         {

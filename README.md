@@ -42,7 +42,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 | **Layout** | paragraphs with mixed formatting, justification, kerning and hyphenation; Arabic, Hebrew and other right-to-left text (shaping, bidi), Indic scripts (Devanagari, Bengali, Tamil, ...), optional ligatures; lists (nested, numbered); tables with repeated headers, column and row spans and rows split across pages; images, barcodes, automatic page breaks, header/footer with "page x of y" |
 | **Manipulation** | merge, split, import/reorder/rotate/delete pages, page templates (letterheads), watermarks, bookmarks, links, **layers** (optional content), **annotations** (highlight/underline/strike-out, free text, stamps, ink, shapes, file attachments, flattening) |
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
-| **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (PNG/JPEG with transparency; JPEG and CCITT fax images decoded), **free-space detection** |
+| **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (PNG/JPEG with transparency; JPEG, JPEG 2000, JBIG2 and CCITT fax images decoded), **free-space detection** |
 | **Rendering** | separate package **miPDFlib.Rendering**: pages to PNG or RGBA pixels at any resolution – vector graphics, text (embedded fonts or substitutes), images, shadings, patterns, blend modes, soft masks, transparency groups, spot colors; managed code only |
 | **Forms** | read/fill/create AcroForm fields (text, check box with styles, radio, combo, list, push button with image, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
 | **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions, or encryption for the certificates of recipients |
@@ -51,7 +51,7 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 | **Accessibility** | tagged PDF, **PDF/UA-1** and **PDF/UA-2**: automatic tagging by the layout engine (headings, paragraphs, tables, figures, artifacts), manual tagging API, PDF/UA checker |
 | **Attachments / e-invoices** | embedded files with PDF/A-3 associated files, ZUGFeRD 2.x / Factur-X / XRechnung hybrid invoices, consistency check of the visible invoice against the XML |
 | **Hardening** | resource limits against decompression bombs and CPU exhaustion, SSRF-safe revocation fetching, fuzz-tested parser – see [SECURITY.md](https://github.com/Mibuw/miPDFlib/blob/main/SECURITY.md) |
-| **Barcodes** | QR Code, EPC/GiroCode, Data Matrix (incl. GS1), Code 128/GS1-128, EAN-13/8, UPC-A, Code 39, ITF – vector output |
+| **Barcodes** | QR Code, EPC/GiroCode, Data Matrix (incl. GS1), PDF417, Code 128/GS1-128, EAN-13/8, UPC-A, Code 39, ITF – vector output |
 
 The only dependency is `System.Security.Cryptography.Pkcs` (MIT, Microsoft) for CMS signatures.
 
@@ -134,7 +134,7 @@ Notes:
 - [Signatures](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/signatures.md) – PAdES signing, HSM/external signers, time-stamps, verification
 - [Accessibility / PDF/UA](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/accessibility.md) – tagged PDF, PDF/UA, checker
 - [Attachments and e-invoices](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/attachments.md) – embedded files, ZUGFeRD / Factur-X
-- [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, Code 128, EAN
+- [Barcodes](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/barcodes.md) – QR, EPC payment codes, Data Matrix, PDF417, Code 128, EAN
 - [Rendering to images](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/rendering.md) – package miPDFlib.Rendering: pages to PNG
 - [Error handling and diagnostics](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/diagnostics.md) – exceptions, tolerated problems, logging
 - [Migration from iText / Syncfusion](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md) and [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md)

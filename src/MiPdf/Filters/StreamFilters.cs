@@ -60,8 +60,9 @@ internal static class StreamFilters
     }
 
     /// <summary>
-    /// Like <see cref="Decode"/>, but also applies the image filters that miPDFlib can decode to pixels (CCITT fax,
-    /// JPEG); <paramref name="remainingImageFilter"/> is the image filter that is left, if any (JPEG 2000, JBIG2).
+    /// Like <see cref="Decode"/>, but also applies the image filters whose output are samples in the image's color
+    /// space (CCITT fax, JPEG, JBIG2); <paramref name="remainingImageFilter"/> is the image filter that is left, if any
+    /// (JPEG 2000, which defines its own color space and bit depth: see <c>ImageDecoder</c>).
     /// </summary>
     public static byte[] DecodeImage(byte[] data, PdfDictionary dict, out PdfName? remainingImageFilter)
     {
@@ -77,6 +78,11 @@ internal static class StreamFilters
                 break;
             case "DCTDecode" or "DCT":
                 data = JpegDecoder.Decode(data, parms, out _, out _, out _);
+                remainingImageFilter = null;
+                break;
+            case "JBIG2Decode":
+                var globals = parms?.Get(PdfName.Get("JBIG2Globals"))?.Resolve() as PdfStream;
+                data = Jbig2Decoder.Decode(data, globals?.GetBytes(), dict.GetInt(PdfName.Get("Width")), dict.GetInt(PdfName.Get("Height")));
                 remainingImageFilter = null;
                 break;
         }

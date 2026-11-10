@@ -64,8 +64,9 @@ transfer function) and transparency groups, isolated and non-isolated, including
 page itself is composited on a transparent backdrop before it is put on the paper, so blend modes leave the source
 color where nothing was painted below.
 
-Not rendered: JPEG 2000 and JBIG2 images (not decoded yet), overprint, and color management with the embedded ICC
-profiles.
+All image types are decoded: JPEG, JPEG 2000 (with the opacity channel for `/SMaskInData`), JBIG2 and CCITT fax.
+
+Not rendered: overprint, and color management with the embedded ICC profiles.
 
 The output is checked against Ghostscript: for vector graphics and images the mean difference is below one level
 of 255; differences are at anti-aliased edges. CMYK colors differ by a few levels because Ghostscript uses its own

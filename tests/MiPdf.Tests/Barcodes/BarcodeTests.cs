@@ -109,6 +109,50 @@ public class BarcodeTests
         Assert.Equal(16, DataMatrix.CreateGs1("(01)09501101530003(10)AB").Rows);
     }
 
+    private static string Row(MatrixBarcode code, int row, int start, int length) =>
+        new(Enumerable.Range(start, length).Select(c => code[row, c] ? '1' : '0').ToArray());
+
+    [Fact]
+    public void Pdf417RowsStartAndStopPatterns()
+    {
+        var code = Pdf417.Create("Hello PDF417");
+        Assert.Equal(17 * (code.DataColumns + 4) + 1, code.Columns);
+        Assert.Equal(3 * code.CodewordRows, code.Rows); // default row height 3 modules
+        Assert.InRange(code.CodewordRows, 3, 90);
+        Assert.Equal(2, code.ErrorCorrectionLevel); // recommended for up to 40 data codewords
+        Assert.Equal(2, code.QuietZone);
+        for (int r = 0; r < code.Rows; r++)
+        {
+            Assert.Equal("11111111010101000", Row(code, r, 0, 17));
+            Assert.Equal("111111101000101001", Row(code, r, code.Columns - 18, 18));
+        }
+        // the rows of one codeword row are identical
+        Assert.Equal(Row(code, 0, 0, code.Columns), Row(code, 2, 0, code.Columns));
+        Assert.NotEqual(Row(code, 0, 0, code.Columns), Row(code, 3, 0, code.Columns));
+    }
+
+    [Fact]
+    public void Pdf417ErrorCorrectionAndOptions()
+    {
+        // the example of ISO/IEC 15438: data codewords 5 453 178 121 239, level 1
+        Assert.Equal(new[] { 452, 327, 657, 619 }, Pdf417.ErrorCorrection(new List<int> { 5, 453, 178, 121, 239 }, 4));
+
+        var fixedColumns = Pdf417.Create("Columns and levels", new Pdf417Options { Columns = 4, ErrorCorrectionLevel = 6, RowHeight = 4 });
+        Assert.Equal(4, fixedColumns.DataColumns);
+        Assert.Equal(6, fixedColumns.ErrorCorrectionLevel);
+        Assert.Equal(4 * fixedColumns.CodewordRows, fixedColumns.Rows);
+        Assert.True(fixedColumns.CodewordRows * 4 >= 128); // 128 error correction codewords
+        // numeric compaction: 300 digits need clearly fewer codewords than 300 letters (about 2.9 instead of 2 per codeword)
+        var digits = Pdf417.Create(new string('7', 300));
+        var letters = Pdf417.Create(new string('A', 300));
+        Assert.True(digits.CodewordRows * digits.DataColumns < letters.CodewordRows * letters.DataColumns * 0.8);
+        Assert.Throws<ArgumentException>(() => Pdf417.Create(new string('x', 3000)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Pdf417.Create("x", new Pdf417Options { RowHeight = 1 }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Pdf417.Create("x", new Pdf417Options { ErrorCorrectionLevel = 9 }));
+        Assert.NotNull(Pdf417.Create("Grüße – UTF-8 with ECI"));
+        Assert.NotNull(Pdf417.Create(new byte[] { 0, 255, 128 }));
+    }
+
     [Fact]
     public void EpcPayloadFollowsTheGuideline()
     {

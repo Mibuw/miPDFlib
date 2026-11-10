@@ -56,9 +56,9 @@ var png = widget.ExtractImages()[0].ToPng(background: PdfColor.White);
 ```
 
 PNG output includes transparency from soft masks, stencil masks and image masks; DeviceGray/RGB/CMYK, ICC based,
-indexed, Separation/DeviceN images with 1-16 bits are decoded, also JPEG (baseline and progressive) and CCITT fax
-images (Group 3 and 4, as in scans and faxes). `ToFile` returns JPEG and JPEG 2000 data unchanged when the image has no
-transparency. JPEG 2000 and JBIG2 images are not decoded to pixels (`ToPng` returns null).
+indexed, Separation/DeviceN images with 1-16 bits are decoded, also JPEG (baseline and progressive), JPEG 2000,
+JBIG2 and CCITT fax images (Group 3 and 4); JBIG2 and CCITT are typical for scans and faxes. `ToFile` returns JPEG
+and JPEG 2000 data unchanged when the image has no transparency.
 
 ## Free space
 

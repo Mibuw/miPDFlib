@@ -64,7 +64,7 @@ A `PdfDiagnostic` has:
 | `StreamDamaged` | Warning | compressed stream data is damaged; the data decoded before the error is used |
 | `ContentDamaged` | Warning | a content stream cannot be parsed further; the rest of it is ignored |
 | `ToUnicodeDamaged` | Warning | the ToUnicode map of a font cannot be read; extracted text of that font may be wrong |
-| `ImageNotDecoded` | Warning | an image cannot be decoded (JPEG 2000, JBIG2, damaged data) and is not shown |
+| `ImageNotDecoded` | Warning | an image cannot be decoded (damaged data, unsupported color space) and is not shown |
 | `FontSubstituted` | Information | rendering: a font is not embedded and is drawn with an installed substitute |
 | `FontMissing` | Warning | rendering: a font is not embedded and no substitute is installed; its text is not drawn |
 | `FontDamaged` | Warning | rendering: an embedded font program cannot be read; a substitute is used |

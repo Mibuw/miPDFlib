@@ -112,7 +112,7 @@ public class DiagnosticsTests
     [Fact]
     public void RenderingReportsFontsAndImages()
     {
-        // a non-embedded font, a JPEG 2000 image (not decoded) and an invalid shading
+        // a non-embedded font, a damaged JPEG 2000 image and an invalid shading
         var objects = Page(Stream("", B("BT /F1 12 Tf 10 50 Td (Hi) Tj ET q 50 0 0 50 100 20 cm /Im1 Do Q /Sh sh")),
             "<< /Font << /F1 6 0 R >> /XObject << /Im1 7 0 R >> /Shading << /Sh << /ShadingType 2 /ColorSpace /DeviceRGB /Coords [0 0 1 0] >> >> >>");
         objects[6] = B("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
@@ -126,7 +126,7 @@ public class DiagnosticsTests
             var image = Assert.Single(reported, d => d.Code == PdfDiagnosticCode.ImageNotDecoded);
             Assert.Equal(7, image.ObjectNumber);
             Assert.Equal(1, image.PageNumber);
-            Assert.Contains("JPXDecode", image.Message);
+            Assert.Contains("damaged", image.Message);
             Assert.Single(reported, d => d.Code == PdfDiagnosticCode.PaintNotSupported);
             Assert.Equal(reported.Count, doc.Diagnostics.Count);
         }

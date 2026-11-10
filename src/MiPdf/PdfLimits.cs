@@ -35,7 +35,10 @@ public sealed record PdfLimits
         return new Restore(previous);
     }
 
-    /// <summary>Maximum size of a decoded stream in bytes (default 256 MB).</summary>
+    /// <summary>
+    /// Maximum size of a decoded stream in bytes (default 256 MB). For JBIG2 it also limits the decoding work: the
+    /// pixels of all regions and symbols decoded from one image stream count together.
+    /// </summary>
     public long MaxDecodedStreamSize { get; init; } = 256L * 1024 * 1024;
 
     /// <summary>Maximum number of pixels of an image that is decoded (default 100 megapixels).</summary>

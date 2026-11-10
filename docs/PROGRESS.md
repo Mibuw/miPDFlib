@@ -1,6 +1,6 @@
 # Progress and roadmap
 
-Last update: 2026-11-05
+Last update: 2026-11-10
 
 ## Phase status (see [PLAN.md](PLAN.md))
 
@@ -50,8 +50,11 @@ Last update: 2026-11-05
 | 41 Diagnostics | ✅ done (461 tests; `PdfDiagnostic` with severity, stable code, page and object number; `PdfDocument.Diagnostics` and `PdfOpenOptions.OnDiagnostic`; reported: repaired xref, unreadable objects, damaged streams and ToUnicode maps, undecodable images, substituted/missing/damaged fonts, unsupported shadings and patterns, too deep nesting; no false positives on the corpus and the pdf.js files) |
 | 42 Text shaping (Arabic, Hebrew, bidi) | ✅ done (470 tests; OpenType GSUB lookup types 1-8 and GPOS 1-9 with GDEF, Arabic joining forms, mark attachment, UAX #9 bidi passing all 91,707 Unicode conformance cases, mirrored brackets, ActualText for right-to-left runs and in text extraction, bidi-aware paragraph lines; checked with Arial and DejaVu Sans, Ghostscript renders identically, veraPDF PDF/UA-1 passes) |
 | 43 Text shaping (Indic scripts) | ✅ done (479 tests; Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam: syllable grammar, decomposition of split matras, initial and final reordering, reph, pre-base forms, basic and presentation features per syllable, ZWJ/ZWNJ, dotted circles, invalid vowel sequences, old and new OpenType script tags; Unicode 16.0 Indic categories generated; glyphs and positions identical to HarfBuzz 15 for about 89,000 generated syllables in Nirmala UI, the nine Noto Sans fonts and FreeSerif/FreeSans also with old-style tags only; OpenType engine aligned with HarfBuzz for all scripts: feature variations, input masks, joiners, mark filtering sets in mark-to-mark, sequence indices after multiple substitutions; veraPDF PDF/UA-1 and PDF/A-2u pass) |
+| 44 PDF417 | ✅ done (481 tests; `Pdf417` with text/numeric/byte compaction, ECI UTF-8, error correction levels 0-8 (Reed-Solomon over GF(929), ISO 15438 example reproduced), columns and row height; codeword patterns from ZXing; about 500 symbols decoded with zxing-cpp, also through PDF rendered by Ghostscript and miPDFlib.Rendering) |
+| 45 JBIG2 decoding | ✅ done (523 tests; generic regions (templates 0-3, TPGDON, MMR), refinement (TPGRON), symbol dictionaries and text regions with arithmetic and Huffman coding, refinement/aggregation, pattern dictionaries and halftone regions, standard and user Huffman tables, striped pages, `/JBIG2Globals`, MQ decoder shared with JPEG 2000; all 40 SerenityOS test streams decoded to the expected image; identical to Ghostscript (jbig2dec) on 221 images of real PDFs; used in rendering, `ToPng` and redaction) |
+| 46 JPEG 2000 decoding | ✅ done (546 tests; JP2 boxes (colr, pclr, cmap, cdef) and raw codestreams; all progression orders and POC, tiles and tile-parts, precincts, PPM/PPT, SOP/EPH, all code-block modes, ROI max-shift, scalar quantization, 5/3 and 9/7 wavelets, RCT/ICT, subsampling, sYCC; ISO/IEC 15444-4 conformance suite: 34 of 53 files exact, all others within the tolerances of the standard or differing only by the reference's edge convention/ICC conversion; generated files identical to OpenJPEG; fuzzed together with JBIG2 (hangs, overflows and decompression bombs fixed; JBIG2 decoding work bounded by PdfLimits.MaxDecodedStreamSize); in rendering, `ToPng` and redaction, color space from the dictionary or the JP2 header, `/SMaskInData`) |
 
-Current state: 479 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 546 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -94,8 +97,6 @@ done for the next release. Next steps:
    Universal Shaping Engine (Khmer, Myanmar, Tibetan, ...), only on demand.
 4. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
    PostScript interpreter itself is a separate project).
-
-On demand: decoding of JBIG2 and JPEG 2000 images (JPEG 2000 can already be exported as a file).
 
 Known gaps: see the roadmap above; in addition, hyphenation patterns are not bundled (load them from hyph-utf8).
 

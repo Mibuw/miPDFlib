@@ -36,7 +36,9 @@ which is distributed under the following license:
   POSSIBILITY OF SUCH DAMAGE.
 
 The CMYK to RGB approximation of the U.S. Web Coated (SWOP) profile (src/MiPdf/Graphics/ColorSpace.cs, CmykToRgb)
-uses the polynomial coefficients of pdf.js (src/core/colorspace.js), https://github.com/mozilla/pdf.js:
+uses the polynomial coefficients of pdf.js (src/core/colorspace.js), and the standard Huffman tables of JBIG2
+(ITU-T T.88, Annex B; src/MiPdf/Filters/Jbig2Decoder.cs) were transcribed from the tables in pdf.js
+(src/core/jbig2.js), https://github.com/mozilla/pdf.js:
 
   Copyright 2012 Mozilla Foundation
 
@@ -45,6 +47,54 @@ uses the polynomial coefficients of pdf.js (src/core/colorspace.js), https://git
 
   Unless required by applicable law or agreed to in writing, software distributed under the License is
   distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+The JBIG2 test streams (tests/MiPdf.Tests/Resources/jbig2-fixtures.txt, test files only, not part of the
+packages) are taken from SerenityOS (Tests/LibGfx/test-inputs/jbig2), https://github.com/SerenityOS/serenity:
+
+  Copyright (c) 2018-2026, the SerenityOS developers.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The bar and space patterns of the PDF417 codewords (src/MiPdf/Barcodes/Pdf417Patterns.cs) are taken from ZXing
+(core/src/main/java/com/google/zxing/pdf417/encoder/PDF417.java), https://github.com/zxing/zxing:
+
+  Copyright 2006 Jeremias Maerki in part, and ZXing Authors in part
+
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
+  with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed under the License is
+  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  The file has been modified from its original form in Barcode4J. NOTICE of Barcode4J:
+
+  Barcode4J
+  Copyright 2002-2010 Jeremias Märki
+  Copyright 2005-2006 Dietmar Bürkle
+
+  Portions of this software were contributed under section 5 of the
+  Apache License. Contributors are listed under:
+  http://barcode4j.sourceforge.net/contributors.html
 
 The Indic shaper (src/MiPdf/Text/Shaping/IndicShaper.cs) follows the Indic shaper of HarfBuzz
 (src/hb-ot-shaper-indic.cc, hb-ot-shaper-indic-machine.rl, hb-ot-shaper-vowel-constraints.cc and the category and

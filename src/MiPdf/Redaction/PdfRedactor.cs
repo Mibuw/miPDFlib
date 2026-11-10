@@ -605,19 +605,33 @@ internal sealed class ContentRedactor
     private PdfStream? BlankImage(PdfStream image, Matrix ctm)
     {
         byte[] data;
-        try
-        {
-            data = Filters.StreamFilters.DecodeImage(image.RawBytes, image, out var remaining);
-            if (remaining != null) return null; // JPEG, JPEG 2000, JBIG2
-        }
-        catch (PdfException)
-        {
-            return null;
-        }
         int width = image.GetInt(PdfName.Get("Width")), height = image.GetInt(PdfName.Get("Height"));
         bool mask = image.GetBool(PdfName.Get("ImageMask"));
-        int bpc = mask ? 1 : image.GetInt(PdfName.BitsPerComponent, 8);
-        int components = mask ? 1 : ColorComponents(image.Get(PdfName.ColorSpace));
+        int bpc, components;
+        PdfObject? jpxColorSpace = null;
+        if (Images.ImageDecoder.IsJpx(image))
+        {
+            // JPEG 2000: the color samples are stored losslessly; an opacity channel in the data is not supported
+            if (mask || image.GetInt(PdfName.Get("SMaskInData")) != 0 || width <= 0 || height <= 0) return null;
+            PdfLimits.Current.CheckImage(width, height);
+            if (Images.ImageDecoder.DecodeJpxSamples(image, width, height) is not { } jpx) return null;
+            (data, components, jpxColorSpace, _) = jpx;
+            bpc = 8;
+        }
+        else
+        {
+            try
+            {
+                data = Filters.StreamFilters.DecodeImage(image.RawBytes, image, out var remaining);
+                if (remaining != null) return null; // not decodable
+            }
+            catch (PdfException)
+            {
+                return null;
+            }
+            bpc = mask ? 1 : image.GetInt(PdfName.BitsPerComponent, 8);
+            components = mask ? 1 : ColorComponents(image.Get(PdfName.ColorSpace));
+        }
         if (width <= 0 || height <= 0 || components <= 0 || bpc is not (1 or 8 or 16)) return null;
         long rowBytes = ((long)width * components * bpc + 7) / 8;
         if (rowBytes * height > data.Length) return null;
@@ -659,6 +673,14 @@ internal sealed class ContentRedactor
         var copy = new PdfStream(Array.Empty<byte>());
         foreach (var (key, value) in image)
             if (key != PdfName.Length && key != PdfName.Filter && key != PdfName.DecodeParms) copy[key] = value.Clone();
+        if (jpxColorSpace != null)
+        {
+            // the decoded samples: 8 bits, the color space the image was painted with, no Decode array (ignored for JPEG 2000)
+            copy.Set(PdfName.BitsPerComponent, 8);
+            copy[PdfName.ColorSpace] = jpxColorSpace.Clone();
+            copy.Remove(PdfName.Decode);
+            copy.Remove(PdfName.Get("SMaskInData"));
+        }
         copy.SetBytes(data, compress: true);
         return copy;
     }

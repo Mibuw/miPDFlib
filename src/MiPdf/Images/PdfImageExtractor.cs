@@ -49,9 +49,9 @@ public sealed class PdfExtractedImage
     public byte[] GetEncodedData() => Filters.StreamFilters.Decode(Stream.RawBytes, Stream, out _);
 
     /// <summary>
-    /// Decodes the image to PNG (with alpha channel from /SMask, /Mask or stencil masks). Returns null if the image
-    /// cannot be decoded (JPEG, JPEG 2000, JBIG2, Lab color) – use <see cref="GetEncodedData"/> for JPEG. CCITT fax images
-    /// (scans, faxes) are decoded.
+    /// Decodes the image to PNG (with alpha channel from /SMask, /Mask, /SMaskInData or stencil masks). All image
+    /// filters are decoded (JPEG, JPEG 2000, JBIG2, CCITT fax); returns null if the image cannot be decoded (damaged
+    /// data, unsupported color space – reported in <see cref="PdfDocument.Diagnostics"/>).
     /// </summary>
     /// <param name="background">If set, transparency is composited onto this color (the PNG has no alpha channel).</param>
     public byte[]? ToPng(PdfColor? background = null)
@@ -140,6 +140,7 @@ internal static class ImageDecoder
         int width = image.GetInt(PdfName.Get("Width")), height = image.GetInt(PdfName.Get("Height"));
         if (width <= 0 || height <= 0) return null;
         PdfLimits.Current.CheckImage(width, height);
+        if (IsJpx(image) && !image.GetBool(PdfName.Get("ImageMask"))) return DecodeJpx(image, width, height);
         byte[] data;
         try
         {
@@ -178,10 +179,120 @@ internal static class ImageDecoder
         return (width, height, rgb, alpha);
     }
 
+    internal static bool IsJpx(PdfStream stream) =>
+        Filters.StreamFilters.GetFilterNames(stream) is { Count: > 0 } filters && filters[^1].Value == "JPXDecode";
+
+    /// <summary>
+    /// JPEG 2000 image (ISO 32000-2, 8.9.5.5 and 7.4.9): the color space of the image dictionary if present, otherwise
+    /// the one of the JP2 header (by the number of channels); <c>/Decode</c> is ignored; <c>/SMaskInData</c> uses the
+    /// opacity channel of the image unless there is an <c>/SMask</c>.
+    /// </summary>
+    private static (int Width, int Height, byte[] Rgb, byte[]? Alpha)? DecodeJpx(PdfStream image, int width, int height)
+    {
+        if (DecodeJpxSamples(image, width, height) is not { } decoded) return null;
+        var (samples, n, colorSpace, jpx) = decoded;
+
+        byte[]? alpha = null;
+        int smaskInData = image.GetInt(PdfName.Get("SMaskInData"));
+        int alphaChannel = jpx.AlphaChannel >= 0 ? jpx.AlphaChannel : jpx.Channels.Length > n ? jpx.Channels.Length - 1 : -1;
+        if (image.Get(PdfName.SMask) is PdfStream smask) alpha = DecodeAlpha(smask, width, height, soft: true);
+        else if (smaskInData is 1 or 2 && alphaChannel >= 0)
+        {
+            alpha = Resample(jpx, new[] { alphaChannel }, width, height);
+            if (smaskInData == 2)
+            {
+                // premultiplied: undo the multiplication with the opacity
+                for (int i = 0; i < alpha.Length; i++)
+                {
+                    int a = alpha[i];
+                    for (int c = 0; c < n; c++)
+                        samples[i * n + c] = a == 0 ? (byte)0 : (byte)Math.Min(255, samples[i * n + c] * 255 / a);
+                }
+            }
+        }
+        else if (image.Get(PdfName.Get("Mask")) is PdfStream mask) alpha = DecodeAlpha(mask, width, height, soft: false);
+
+        var rgb = new byte[width * height * 3];
+        if (!Convert(samples, width, height, 8, colorSpace, null, rgb)) return null;
+        return (width, height, rgb, alpha);
+    }
+
+    /// <summary>
+    /// The color channels of a JPEG 2000 image as 8-bit samples (interleaved, at the size of the image dictionary) with
+    /// their color space; null (with a diagnostic) if the image cannot be decoded.
+    /// </summary>
+    internal static (byte[] Samples, int Components, PdfObject ColorSpace, Filters.JpxImage Image)? DecodeJpxSamples(PdfStream image, int width, int height)
+    {
+        var jpx = DecodeJpxData(image);
+        if (jpx == null) return null;
+        PdfObject? colorSpace = image.Get(PdfName.ColorSpace);
+        int n;
+        if (colorSpace != null)
+        {
+            n = ColorSpace.Resolve(colorSpace, null).Components;
+        }
+        else
+        {
+            // by the number of channels (a second channel of a gray image is taken as opacity)
+            (n, colorSpace) = jpx.ColorChannels switch
+            {
+                1 or 2 => (1, PdfName.Get("DeviceGray")),
+                3 => (3, PdfName.Get("DeviceRGB")),
+                4 => (4, PdfName.Get("DeviceCMYK")),
+                _ => (0, (PdfObject?)null),
+            };
+        }
+        var colorChannels = Enumerable.Range(0, jpx.Channels.Length).Where(c => c != jpx.AlphaChannel).Take(Math.Max(n, 0)).ToArray();
+        if (colorSpace == null || n <= 0 || colorChannels.Length < n)
+        {
+            DiagnosticContext.Warning(PdfDiagnosticCode.ImageNotDecoded,
+                $"The JPEG 2000 image has {jpx.Channels.Length} channels that do not match its color space; the image is not shown.", image);
+            return null;
+        }
+        return (Resample(jpx, colorChannels, width, height), n, colorSpace, jpx);
+    }
+
+    private static Filters.JpxImage? DecodeJpxData(PdfStream image)
+    {
+        try
+        {
+            return Filters.JpxDecoder.Decode(Filters.StreamFilters.Decode(image.RawBytes, image, out _));
+        }
+        catch (PdfException ex)
+        {
+            DiagnosticContext.Warning(PdfDiagnosticCode.ImageNotDecoded, $"The image data is damaged ({ex.Message}); the image is not shown.", image);
+            return null;
+        }
+    }
+
+    /// <summary>The given channels as 8-bit samples, interleaved, at the size of the image dictionary.</summary>
+    private static byte[] Resample(Filters.JpxImage jpx, int[] channels, int width, int height)
+    {
+        var planes = channels.Select(jpx.Channel8).ToArray();
+        int n = planes.Length;
+        var result = new byte[width * height * n];
+        for (int y = 0; y < height; y++)
+        {
+            int row = (int)((long)y * jpx.Height / height) * jpx.Width;
+            for (int x = 0; x < width; x++)
+            {
+                int source = row + (int)((long)x * jpx.Width / width);
+                int target = (y * width + x) * n;
+                for (int c = 0; c < n; c++) result[target + c] = planes[c][source];
+            }
+        }
+        return result;
+    }
+
     private static byte[]? DecodeAlpha(PdfStream mask, int width, int height, bool soft)
     {
         int mw = mask.GetInt(PdfName.Get("Width")), mh = mask.GetInt(PdfName.Get("Height"));
         if (mw <= 0 || mh <= 0) return null;
+        if (soft && IsJpx(mask))
+        {
+            var jpx = DecodeJpxData(mask);
+            return jpx == null || jpx.Channels.Length == 0 ? null : Resample(jpx, new[] { 0 }, width, height);
+        }
         byte[] data;
         try
         {
