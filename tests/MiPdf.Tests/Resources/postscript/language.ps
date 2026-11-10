@@ -1,0 +1,70 @@
+(1 ) print /d 5 dict def d /a 1 put d /b (two) put d /c [3] put d length = d /b get = d /zz known = d /a known = d /a undef d /a known = d length =
+(2 ) print /fact { dup 1 le { pop 1 } { dup 1 sub fact mul } ifelse } def 20 fact = 25 fact =
+(3 ) print /depth { dup 0 gt { 1 sub depth } if } def 5000 depth =
+(4 ) print 0 [ 1 2 3 4 5 ] { add } forall = 0 (abc) { add } forall = 0 1 1 100 { add } for =
+(5 ) print 0 { 1 add dup 10 ge { exit } if } loop = 3 { (x) print } repeat () =
+(6 ) print [ 1 2 3 ] { dup 2 eq { exit } if pop } forall = 
+(7 ) print { 1 2 3 stop 4 } stopped = count = clear
+(8 ) print { { 1 0 div } stopped = (inner) = undefinedname } stopped = $error /errorname get = clear
+(9 ) print errordict /undefined { pop (custom handler) = } put xyzzy (after) = errordict /undefined systemdict /errordict get /typecheck get put
+(10 ) print (abc) dup 1 1 getinterval dup 0 (X) 0 get put pop =
+(11 ) print [1 2 3 4] 1 2 getinterval { } forall add =
+(12 ) print (hello) (l) search { = = = } if (hello) (h) anchorsearch { = = } if (hello) (z) search = =
+(13 ) print (3.5 /abc (str) {proc} [1]) { token { == } { exit } ifelse } loop
+(14 ) print currentfile 20 string readline
+this is a line read
+pop =
+(15 ) print currentfile token 12.5 pop == currentfile token /lit pop ==
+/s16 20 string def (16 ) print currentfile /ASCIIHexDecode filter s16 readstring
+48656C6C6F2C20686578>
+pop =
+(17 ) print currentfile /ASCII85Decode filter 20 string readstring
+87cURD]i,"Ebo80~>
+pop =
+(18 ) print currentfile 0 (EOD) /SubFileDecode filter 100 string readstring
+some data up to the marker EOD
+pop =
+(19 ) print currentfile /ASCII85Decode filter /FlateDecode filter 200 string readstring
+Gb"@rc,n(/81Vj/<Cg)fb/m=T-nZr@:!?U:n/t(&!'&CG('~>
+pop =
+(20 ) print <0448656C6C6FFD2A80> /RunLengthDecode filter 20 string readstring pop =
+(21 ) print /x 1 def save /x 2 def x = restore x =
+(22 ) print /arr [1 2 3] def save arr 0 99 put arr == restore arr ==
+(23 ) print 1 dict begin /v 7 def save /v 8 def v = restore v = end
+(24 ) print { 1 2 save 3 4 restore } stopped = clear
+(25 ) print /p { add mul } def /p load bind pop /p load == /q { add } bind def /q load ==
+(26 ) print true setpacking /pp { 1 2 add } def false setpacking /pp load type = pp =
+(27 ) print (1 2 add 10 mul) cvx exec = (/name) cvx exec == 
+(28 ) print 255 16 8 string cvrs = 255 2 16 string cvrs = 35 36 4 string cvrs = 1.5 10 8 string cvrs = 10 dict 20 string cvs =
+(29 ) print [1 (a) /b 2.5 true null [3] {4} << >> ] { type =only ( ) print } forall () =
+(30 ) print (abc) readonly wcheck = (abc) rcheck = [1] executeonly rcheck = 1 dict readonly wcheck =
+(31 ) print { (abc) executeonly 0 get } stopped = $error /errorname get = clear
+(32 ) print 1 2 3 4 5 count = 3 copy count = clear 1 2 3 3 1 roll = = = 1 2 3 3 -1 roll = = =
+(33 ) print mark 1 2 3 counttomark = cleartomark count =
+(34 ) print { cleartomark } stopped = $error /errorname get = clear
+(35 ) print { 1 2 3 ] } stopped = $error /errorname get = clear
+(36 ) print << /k1 1 /k2 2 >> dup length = /k2 get = << 1 (one) 1.0 (onef) >> length =
+(37 ) print (s) cvn type = /n cvlit xcheck = /n cvx xcheck = { } xcheck = 5 cvx xcheck =
+(38 ) print 7 3 div = -7 3 idiv = 7 -3 mod = 2 31 bitshift = -8 -2 bitshift = 6 3 and = 6 3 or = true not = 0 not =
+(39 ) print 1.0e10 cvi = 3.99 cvi = (42) cvi = ( 3.5 ) cvr = (12) cvn type =
+(40 ) print 0.1 0.2 add == 1 3 div 3 mul == 1e18 1e18 mul 1e-20 mul == 16#7FFFFFFFFFFFFFFF ==
+(41 ) print { 1e30 1e30 mul } stopped = $error /errorname get = clear { -1 sqrt } stopped = $error /errorname get = clear
+(42 ) print { (abc) 5 get } stopped = $error /errorname get = clear { (abc) 0 256 put } stopped = $error /errorname get = clear
+(43 ) print { /undefined-key-xyz load } stopped = $error /errorname get = clear
+(44 ) print { 1 dict /nokey get } stopped = $error /errorname get = $error /command get == clear
+(45 ) print { exit } stopped = { 1 1 3 { pop stop } for } stopped = count = clear
+(46 ) print 1 1 3 { 1 1 3 { exit } for } for count = clear
+(47 ) print [ 1 2 3 4 5 ] dup 1 3 getinterval aload pop 3 array astore == pop
+(48 ) print (ab) (abc) lt = (b) (abc) gt = (abc) (abc) le = 2 2.0 ge =
+(49 ) print /s 10 string def s 2 (xyz) putinterval s == [1 2 3] 1 [9 9] putinterval
+(50 ) print (%stdout) (w) file (written to stdout\n) writestring { (/etc/passwd) (r) file } stopped = $error /errorname get = clear
+(51 ) print { (out.ps) (w) file } stopped = { (x) run } stopped = { (x) deletefile } stopped = clear
+(52 ) print 4 dict dup /a 1 put dup /b 2 put 3 dict copy length =
+(53 ) print [ 1 [ 2 [ 3 ] ] ] == { 1 { 2 } } ==
+(54 ) print (\(paren\) \ \t) == (\001\177\200\377) ==
+(55 ) print /a 1 def /b /a load def b = /c { a } def c = currentdict /c get type =
+(56 ) print 1 3 { dup } repeat 3 { pop } repeat = 
+(57 ) print -0.0 == 123456789012 == 1.0e-5 == 1.5e-7 == 100.0 == 1e6 == 999999.0 == 1234567.0 ==
+(58 ) print 1 1 eq { (yes) } { (no) } ifelse = 1 2 eq { (yes) } if (end) =
+(59 ) print (a b c) { token { pop } { exit } ifelse } loop (done) =
+(60 ) print { quit } pop (not quitting) =

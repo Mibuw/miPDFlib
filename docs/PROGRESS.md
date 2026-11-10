@@ -53,8 +53,9 @@ Last update: 2026-11-10
 | 44 PDF417 | ✅ done (481 tests; `Pdf417` with text/numeric/byte compaction, ECI UTF-8, error correction levels 0-8 (Reed-Solomon over GF(929), ISO 15438 example reproduced), columns and row height; codeword patterns from ZXing; about 500 symbols decoded with zxing-cpp, also through PDF rendered by Ghostscript and miPDFlib.Rendering) |
 | 45 JBIG2 decoding | ✅ done (523 tests; generic regions (templates 0-3, TPGDON, MMR), refinement (TPGRON), symbol dictionaries and text regions with arithmetic and Huffman coding, refinement/aggregation, pattern dictionaries and halftone regions, standard and user Huffman tables, striped pages, `/JBIG2Globals`, MQ decoder shared with JPEG 2000; all 40 SerenityOS test streams decoded to the expected image; identical to Ghostscript (jbig2dec) on 221 images of real PDFs; used in rendering, `ToPng` and redaction) |
 | 46 JPEG 2000 decoding | ✅ done (546 tests; JP2 boxes (colr, pclr, cmap, cdef) and raw codestreams; all progression orders and POC, tiles and tile-parts, precincts, PPM/PPT, SOP/EPH, all code-block modes, ROI max-shift, scalar quantization, 5/3 and 9/7 wavelets, RCT/ICT, subsampling, sYCC; ISO/IEC 15444-4 conformance suite: 34 of 53 files exact, all others within the tolerances of the standard or differing only by the reference's edge convention/ICC conversion; generated files identical to OpenJPEG; fuzzed together with JBIG2 (hangs, overflows and decompression bombs fixed; JBIG2 decoding work bounded by PdfLimits.MaxDecodedStreamSize); in rendering, `ToPng` and redaction, color space from the dictionary or the JP2 header, `/SMaskInData`) |
+| 47 PostScript, stage 1 (language core) | ✅ done (562 tests; new package miPDFlib.PostScript, not published yet; scanner with all Level 1-3 token forms except binary tokens, 64-bit integers and single-precision reals as in Ghostscript, about 200 operators (stack, arithmetic, relational, types and conversions, arrays, packed arrays, strings, dictionaries, control, loops, stop/stopped, errordict and $error, save/restore of local VM with global VM, bind, files, filters ASCIIHex/ASCII85/RunLength/SubFile/Flate on the program file); sandbox without file system, limits for operations, time, memory and stack depths; a 162-line test program gives the same output as Ghostscript 10.07) |
 
-Current state: 546 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 562 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -95,8 +96,10 @@ done for the next release. Next steps:
    joining forms and ligatures (OpenType GSUB), mark positioning (GPOS), optional Latin ligatures. Indic scripts ✅
    (the nine scripts of the Indic shaper, compared with HarfBuzz). Still open: Sinhala and the scripts of the
    Universal Shaping Engine (Khmer, Myanmar, Tibetan, ...), only on demand.
-4. **PostScript to PDF**: to be evaluated after rendering (the graphics model and the fonts can be shared; the
-   PostScript interpreter itself is a separate project).
+4. **PostScript and EPS** (package miPDFlib.PostScript): first EPS import (EPS graphics as form XObjects in own
+   documents), then the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics (paths,
+   graphics state, clipping, colors), 3 text and fonts (Type 1, Type 3, Type 42, CID), 4 images and filters, 5 Level
+   2/3 (shadings, patterns, forms, `setpagedevice`), 6 `pdfmark`, 7 EPS import API; then the converter.
 
 Known gaps: see the roadmap above; in addition, hyphenation patterns are not bundled (load them from hyph-utf8).
 

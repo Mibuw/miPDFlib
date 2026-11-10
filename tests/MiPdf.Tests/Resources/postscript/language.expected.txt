@@ -1,0 +1,162 @@
+1 3
+two
+false
+true
+false
+2
+2 2432902008176640000
+1.55112e+25
+3 0
+4 15
+294
+5050
+5 10
+xxx
+6 2
+7 true
+3
+8 true
+inner
+true
+undefined
+9 custom handler
+after
+10 aXc
+11 5
+12 he
+l
+lo
+h
+ello
+false
+hello
+13 3.5
+/abc
+(str)
+{proc}
+[
+1
+]
+14 this is a line read
+15 12.5
+/lit
+16 Hello, hex
+17 Hello World!
+18 some data up to the marker 
+19 Hello from a zlib stream! Hello from a zlib stream! Hello from a zlib stream! 
+20 Hello****
+21 2
+1
+22 [99 2 3]
+[1 2 3]
+23 8
+7
+24 true
+25 {--add-- --mul--}
+{--add--}
+26 packedarraytype
+3
+27 30
+/name
+28 FF
+11111111
+Z
+1.5
+--nostringval--
+29 integertype stringtype nametype realtype booleantype nulltype arraytype arraytype dicttype 
+30 false
+true
+false
+false
+31 true
+invalidaccess
+32 5
+8
+2
+1
+3
+1
+3
+2
+33 3
+0
+34 true
+unmatchedmark
+35 true
+unmatchedmark
+36 2
+2
+1
+37 nametype
+false
+true
+true
+true
+38 2.33333
+-2
+1
+4294967296
+-2
+2
+7
+false
+-1
+39 10000000000
+3
+42
+3.5
+nametype
+40 0.3
+1.0
+9.9999992e+15
+9223372036854775807
+41 true
+undefinedresult
+true
+rangecheck
+42 true
+rangecheck
+true
+rangecheck
+43 true
+typecheck
+44 true
+typecheck
+--get--
+45 true
+true
+0
+46 6
+47 [2 3 4]
+48 true
+true
+true
+true
+49 (\000\000xyz\000\000\000\000\000)
+50 written to stdout
+true
+invalidfileaccess
+51 true
+true
+true
+52 2
+53 [1 [2 [3]]]
+{1 {2}}
+54 (\(paren\)  \t)
+(\001\177\200\377)
+55 1
+1
+arraytype
+56 1
+57 0.0
+123456789012
+1e-05
+1.5e-07
+100.0
+1e+06
+999999.0
+1234567.0
+58 yes
+end
+59 done
+60 not quitting

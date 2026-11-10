@@ -6,3 +6,6 @@
 *.jpg binary
 *.pfx binary
 *.icc binary
+*.ps binary
+*.eps binary
+tests/MiPdf.Tests/Resources/postscript/*.txt text eol=lf
