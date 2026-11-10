@@ -37,6 +37,7 @@
     <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
     <InternalsVisibleTo Include="MiPdf.Tests" />
     <InternalsVisibleTo Include="MiPdf.Rendering" />
+    <InternalsVisibleTo Include="MiPdf.PostScript" />
   </ItemGroup>
 
 </Project>

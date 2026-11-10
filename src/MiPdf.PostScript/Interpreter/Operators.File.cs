@@ -255,6 +255,7 @@ internal sealed partial class PsInterpreter
             PsType.File when source.AsFile.CanRead => source.AsFile,
             PsType.File => throw new PsError("invalidaccess"),
             PsType.String => new PsMemoryFile(Readable(source).AsString.ToArray()),
+            PsType.Array or PsType.PackedArray when source.IsExecutable => new PsProcedureFile(this, source),
             _ => throw new PsError("typecheck"),
         };
         return name switch

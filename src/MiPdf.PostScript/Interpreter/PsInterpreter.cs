@@ -16,6 +16,14 @@ internal sealed class PsError : Exception
     }
 }
 
+/// <summary>
+/// Thrown when a procedure called from C# (<see cref="PsInterpreter.CallProcedure"/>) was left by <c>stop</c> or an
+/// error handler: the calling operator is abandoned.
+/// </summary>
+internal sealed class PsUnwound : Exception
+{
+}
+
 /// <summary>Limits of the sandbox. Exceeding one ends the job with a <see cref="PdfException"/>; PostScript cannot catch it.</summary>
 internal sealed class PsLimits
 {
@@ -34,6 +42,10 @@ internal sealed class PsJobResult
 {
     public string? ErrorName { get; init; }
     public string? OffendingCommand { get; init; }
+
+    /// <summary>The topmost operands at the error (the top first), for diagnostics.</summary>
+    public string? Operands { get; init; }
+
     public string Output { get; init; } = "";
 }
 
@@ -103,7 +115,7 @@ internal sealed partial class PsInterpreter
         int depth = Exec.Count;
         Exec.Add(new StoppedFrame { Job = true });
         Exec.Add(new FileFrame(new PsMemoryFile(program)));
-        string? error = null, command = null;
+        string? error = null, command = null, operands = null;
         Loop(depth);
         if (_jobStopped)
         {
@@ -113,12 +125,18 @@ internal sealed partial class PsInterpreter
                 error = ErrorInfo.Map.TryGetValue(Key("errorname"), out var n) && n.Type == PsType.Name ? n.AsName.Text : "unknown";
                 command = ErrorInfo.Map.TryGetValue(Key("command"), out var c) ? PsText.Latin1.GetString(Formatter.Text(c)) : "";
                 if (command == "--nostringval--" && c.Type != PsType.Null) command = Formatter.Syntax(c, 0);
+                if (ErrorInfo.Map.TryGetValue(Key("ostack"), out var stack) && stack.IsArray)
+                {
+                    var items = stack.AsArray.Span.ToArray();
+                    operands = string.Join("  ", Enumerable.Range(0, Math.Min(5, items.Length))
+                        .Select(i => Formatter.Syntax(items[items.Length - 1 - i], 0)).Select(s => s.Length > 80 ? s[..80] + "..." : s));
+                }
                 Write(StdOut, $"%%[ Error: {error}; OffendingCommand: {command} ]%%\n");
                 ErrorInfo.Map[Key("newerror")] = PsObject.False;
             }
         }
         while (Exec.Count > depth) Exec.RemoveAt(Exec.Count - 1);
-        return new PsJobResult { ErrorName = error, OffendingCommand = command, Output = Output };
+        return new PsJobResult { ErrorName = error, OffendingCommand = command, Operands = operands, Output = Output };
     }
 
     private bool _jobStopped;
@@ -180,6 +198,11 @@ internal sealed partial class PsInterpreter
             catch (PsError e)
             {
                 HandleError(e.Name, e.Command ?? _command ?? current);
+            }
+            catch (PsUnwound)
+            {
+                // a procedure called from an operator was left by stop or an error: the frames are already unwound;
+                // if this loop's own frames are gone too, it ends and its caller notices the same
             }
         }
     }
@@ -256,6 +279,42 @@ internal sealed partial class PsInterpreter
     {
         if (proc.AsArray.Length > 0) PushFrame(new ProcFrame(proc.AsArray));
     }
+
+    /// <summary>
+    /// Calls a PostScript procedure from C# (tint transforms, decode procedures, ...) with the given operands and returns
+    /// what it leaves on the stack. If an error or <c>stop</c> unwinds beyond the call, the calling operator is
+    /// abandoned (<see cref="PsUnwound"/>) and execution continues where the unwinding ended.
+    /// </summary>
+    public PsObject[] CallProcedure(in PsObject proc, ReadOnlySpan<PsObject> arguments)
+    {
+        if (++_callDepth > 100) throw new PsError("limitcheck");
+        try
+        {
+            var guard = Ops.SaveGuard();
+            int stackBefore = Ops.Count;
+            foreach (var a in arguments) Ops.Push(a);
+            int depth = Exec.Count;
+            // a marker frame below the procedure: if it is gone after the run, the stack was unwound past the call
+            var marker = new ContinuationFrame(_ => { });
+            PushFrame(marker);
+            Execute(proc);
+            Loop(depth + 1);
+            if (Exec.Count <= depth || Exec[depth] != marker || _quit) throw new PsUnwound();
+            Exec.RemoveAt(depth);
+            int results = Ops.Count - stackBefore;
+            if (results < 0) throw new PsError("stackunderflow");
+            var values = new PsObject[results];
+            for (int i = results - 1; i >= 0; i--) values[i] = Ops.Pop();
+            Ops.RestoreGuard(guard);
+            return values;
+        }
+        finally
+        {
+            _callDepth--;
+        }
+    }
+
+    private int _callDepth;
 
     internal void PushFrame(ExecFrame frame)
     {
@@ -642,6 +701,15 @@ internal sealed class OperandStack
 
     /// <summary>Element <paramref name="index"/> from the bottom.</summary>
     public PsObject this[int index] => _items[index];
+
+    public (int Guard, PsObject[] Popped) SaveGuard() => (_guard, _popped.ToArray());
+
+    public void RestoreGuard((int Guard, PsObject[] Popped) saved)
+    {
+        _guard = saved.Guard;
+        _popped.Clear();
+        _popped.AddRange(saved.Popped);
+    }
 
     /// <summary>Marks the start of an operator: pops below this point are recorded to undo them.</summary>
     public void BeginOperator()

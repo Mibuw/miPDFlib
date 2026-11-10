@@ -54,8 +54,9 @@ Last update: 2026-11-10
 | 45 JBIG2 decoding | ✅ done (523 tests; generic regions (templates 0-3, TPGDON, MMR), refinement (TPGRON), symbol dictionaries and text regions with arithmetic and Huffman coding, refinement/aggregation, pattern dictionaries and halftone regions, standard and user Huffman tables, striped pages, `/JBIG2Globals`, MQ decoder shared with JPEG 2000; all 40 SerenityOS test streams decoded to the expected image; identical to Ghostscript (jbig2dec) on 221 images of real PDFs; used in rendering, `ToPng` and redaction) |
 | 46 JPEG 2000 decoding | ✅ done (546 tests; JP2 boxes (colr, pclr, cmap, cdef) and raw codestreams; all progression orders and POC, tiles and tile-parts, precincts, PPM/PPT, SOP/EPH, all code-block modes, ROI max-shift, scalar quantization, 5/3 and 9/7 wavelets, RCT/ICT, subsampling, sYCC; ISO/IEC 15444-4 conformance suite: 34 of 53 files exact, all others within the tolerances of the standard or differing only by the reference's edge convention/ICC conversion; generated files identical to OpenJPEG; fuzzed together with JBIG2 (hangs, overflows and decompression bombs fixed; JBIG2 decoding work bounded by PdfLimits.MaxDecodedStreamSize); in rendering, `ToPng` and redaction, color space from the dictionary or the JP2 header, `/SMaskInData`) |
 | 47 PostScript, stage 1 (language core) | ✅ done (562 tests; new package miPDFlib.PostScript, not published yet; scanner with all Level 1-3 token forms except binary tokens, 64-bit integers and single-precision reals as in Ghostscript, about 200 operators (stack, arithmetic, relational, types and conversions, arrays, packed arrays, strings, dictionaries, control, loops, stop/stopped, errordict and $error, save/restore of local VM with global VM, bind, files, filters ASCIIHex/ASCII85/RunLength/SubFile/Flate on the program file); sandbox without file system, limits for operations, time, memory and stack depths; a 162-line test program gives the same output as Ghostscript 10.07) |
+| 48 PostScript, stage 2 (graphics) | ✅ done (578 tests; graphics state with gsave/grestore, save/restore and gstate objects, CTM and all matrix operators, paths (lines, curves, arc/arcn/arct/arcto, closepath, flattenpath, reversepath, strokepath, pathbbox, pathforall, user paths), clipping (clip/eoclip/rectclip/initclip/clipsave), fill/eofill/stroke/rectfill/rectstroke, line parameters and dashes, colors (DeviceGray/RGB/CMYK native, HSB, Indexed, Separation and DeviceN through their tint transforms, CIEBasedA/ABC to sRGB), pages with setpagedevice and the Level 1 page size operators, nulldevice; written as PDF content at 720 dpi device resolution like Ghostscript's pdfwrite, with lazy graphics state and clip handling; test pages, about 100 random graphics programs and Ghostscript's ps2write/eps2write output (a PDF interpreter written in PostScript) render like Ghostscript rendering the PostScript; a 3 MB page with 120,000 objects converts in 0.5 s) |
 
-Current state: 562 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 578 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -97,7 +98,7 @@ done for the next release. Next steps:
    (the nine scripts of the Indic shaper, compared with HarfBuzz). Still open: Sinhala and the scripts of the
    Universal Shaping Engine (Khmer, Myanmar, Tibetan, ...), only on demand.
 4. **PostScript and EPS** (package miPDFlib.PostScript): first EPS import (EPS graphics as form XObjects in own
-   documents), then the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics (paths,
+   documents), then the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics ✅ (paths,
    graphics state, clipping, colors), 3 text and fonts (Type 1, Type 3, Type 42, CID), 4 images and filters, 5 Level
    2/3 (shadings, patterns, forms, `setpagedevice`), 6 `pdfmark`, 7 EPS import API; then the converter.
 

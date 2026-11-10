@@ -84,6 +84,40 @@ internal sealed class PsMemoryFile : PsFile
 
 internal delegate void PsByteWriter(ReadOnlySpan<byte> data);
 
+/// <summary>
+/// A procedure as data source (PLRM 3.13.1): each call returns the next string; an empty string ends the data.
+/// </summary>
+internal sealed class PsProcedureFile : PsFile
+{
+    private readonly PsInterpreter _ip;
+    private readonly PsObject _proc;
+    private byte[] _buffer = Array.Empty<byte>();
+    private int _position;
+    private bool _ended;
+
+    public PsProcedureFile(PsInterpreter ip, PsObject proc)
+    {
+        _ip = ip;
+        _proc = proc;
+    }
+
+    public override bool CanRead => true;
+
+    protected override int ReadRaw()
+    {
+        while (_position >= _buffer.Length)
+        {
+            if (_ended) return -1;
+            var results = _ip.CallProcedure(_proc, ReadOnlySpan<PsObject>.Empty);
+            if (results.Length == 0 || results[^1].Type != PsType.String) throw new PsError("typecheck");
+            _buffer = results[^1].AsString.ToArray();
+            _position = 0;
+            if (_buffer.Length == 0) _ended = true;
+        }
+        return _buffer[_position++];
+    }
+}
+
 /// <summary>Writes text output (%stdout, %stderr) to the interpreter's output.</summary>
 internal sealed class PsOutputFile : PsFile
 {

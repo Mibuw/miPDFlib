@@ -48,6 +48,11 @@ internal sealed partial class PsInterpreter
         ErrorInfo.Map[Key("recordstacks")] = PsObject.True;
         ErrorInfo.Map[Key("binary")] = PsObject.False;
 
+        GlobalMode = true;
+        DefineValue("StandardEncoding", EncodingArray(PsEncodings.Standard));
+        DefineValue("ISOLatin1Encoding", EncodingArray(PsEncodings.IsoLatin1));
+        GlobalMode = false;
+
         RegisterStackOperators();
         RegisterMathOperators();
         RegisterTypeOperators();
@@ -56,6 +61,10 @@ internal sealed partial class PsInterpreter
         RegisterVmOperators();
         RegisterFileOperators();
         RegisterMiscOperators();
+        RegisterGraphicsOperators();
+        RegisterColorOperators();
+        RegisterDeviceOperators();
+        RegisterResourceOperators();
 
         SystemDict.Access = PsDictAccess.ReadOnly;
     }
@@ -65,6 +74,9 @@ internal sealed partial class PsInterpreter
         SystemDict.Map[Key(name)] = PsObject.Operator(new PsOperator(Name(name), run));
 
     private void DefineValue(string name, PsObject value) => SystemDict.Map[Key(name)] = value;
+
+    private PsObject EncodingArray(string[] names) =>
+        NewArray(names.Select(n => PsObject.Name(Name(n))).ToArray()).WithAttributes(PsAttributes.ReadOnly);
 
     /// <summary><c>handleerror</c>: reports the error recorded in $error.</summary>
     private void HandleErrorMessage()
