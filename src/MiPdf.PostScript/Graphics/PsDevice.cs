@@ -1,5 +1,6 @@
 using MiPdf.Graphics;
 using MiPdf.Objects;
+using MiPdf.PostScript.Fonts;
 
 namespace MiPdf.PostScript.Graphics;
 
@@ -16,6 +17,12 @@ internal abstract class PsDevice
 
     public double Height { get; protected set; }
 
+    /// <summary>The document written to (null for the null device).</summary>
+    public PdfDocument? Document { get; protected init; }
+
+    /// <summary>The fonts of the document.</summary>
+    public PsPdfFonts? Fonts { get; set; }
+
     /// <summary>The default transformation from user space (points) to device space.</summary>
     public virtual Matrix DefaultMatrix => Matrix.Scale(PsContentWriter.DeviceScale, PsContentWriter.DeviceScale);
 
@@ -30,6 +37,13 @@ internal abstract class PsDevice
     }
 
     public void ErasePage() => Content.Erase();
+
+    public virtual void Fill(PsGState gs, PsDeviceColor color, bool evenOdd) => Content.Fill(gs, color, evenOdd);
+
+    public virtual void Stroke(PsGState gs, PsDeviceColor color) => Content.Stroke(gs, color);
+
+    public virtual void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth) =>
+        Content.ShowText(gs, color, font.Reference, tm, codes, mode, lineWidth);
 }
 
 /// <summary><c>nulldevice</c>: painting has no effect (used to measure or to run code for its side effects).</summary>
@@ -48,18 +62,21 @@ internal sealed class PsNullDevice : PsDevice
 
     /// <summary>The null device has the identity as default matrix (PLRM nulldevice).</summary>
     public override Matrix DefaultMatrix => Matrix.Identity;
+
+    public override void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth)
+    {
+    }
 }
 
 /// <summary>Writes each page shown with <c>showpage</c> as a page of a PDF document.</summary>
 internal sealed class PsPageDevice : PsDevice
 {
-    private readonly PdfDocument _document;
     private PdfPage _page = null!;
     private PsContentWriter _content = null!;
 
     public PsPageDevice(PdfDocument document, double width, double height)
     {
-        _document = document;
+        Document = document;
         Width = width;
         Height = height;
         NewPage();
@@ -72,14 +89,14 @@ internal sealed class PsPageDevice : PsDevice
     private void NewPage()
     {
         // the page object exists from the start (resources are added while painting); it is removed if never shown
-        _page = _document.AddPage(new PdfRectangle(0, 0, Width, Height));
+        _page = Document!.AddPage(new PdfRectangle(0, 0, Width, Height));
         _content = new PsContentWriter(_page);
     }
 
     public override void ShowPage()
     {
         _page.Dictionary[PdfName.MediaBox] = PdfArray.FromRectangle(new PdfRectangle(0, 0, Width, Height));
-        _page.Dictionary[PdfName.Contents] = _document.AddObject(new PdfStream(_content.ToArray()));
+        _page.Dictionary[PdfName.Contents] = Document!.AddObject(new PdfStream(_content.ToArray()));
         PagesShown++;
         NewPage();
     }
@@ -92,12 +109,13 @@ internal sealed class PsPageDevice : PsDevice
 
     /// <summary>
     /// Ends the job: a page that was not shown is dropped, except when no page was shown at all but something was
-    /// painted (EPS files and programs without showpage).
+    /// painted (EPS files and programs without showpage). The fonts are written.
     /// </summary>
     public void Finish()
     {
         if (PagesShown == 0 && _content.HasContent) ShowPage();
-        _document.RemovePage(_document.PageCount - 1);
+        Document!.RemovePage(Document.PageCount - 1);
+        Fonts?.Finish();
     }
 }
 
@@ -109,6 +127,7 @@ internal sealed class PsFormDevice : PsDevice
     public PsFormDevice(PdfFormXObject form)
     {
         Form = form;
+        Document = form.Document;
         Width = form.Width;
         Height = form.Height;
         _content = new PsContentWriter(form);
@@ -122,5 +141,76 @@ internal sealed class PsFormDevice : PsDevice
     {
     }
 
-    public void Finish() => Form.Stream.SetBytes(_content.ToArray());
+    public void Finish()
+    {
+        Form.Stream.SetBytes(_content.ToArray());
+        Fonts?.Finish();
+    }
+}
+
+/// <summary>Captures the glyph procedure of a Type 3 font: painting goes into the glyph's content (glyph space).</summary>
+internal sealed class PsGlyphDevice : PsDevice
+{
+    private readonly PsContentWriter _content;
+
+    public PsGlyphDevice(PsDevice? parent, PsContentWriter content)
+    {
+        _content = content;
+        Document = parent?.Document;
+        Fonts = parent?.Fonts;
+    }
+
+    public override PsContentWriter Content => _content;
+
+    public override Matrix DefaultMatrix => Matrix.Identity;
+
+    public override void ShowPage()
+    {
+    }
+}
+
+/// <summary>charpath with Type 3 fonts: what the glyph procedure paints is collected as path (in device space).</summary>
+internal sealed class PsPathDevice : PsDevice
+{
+    private readonly PsContentWriter _content = new(null);
+
+    public PsPathDevice(PsDevice? parent)
+    {
+        Document = parent?.Document;
+        Fonts = parent?.Fonts;
+    }
+
+    public readonly List<PsSegment> Collected = new();
+
+    public override PsContentWriter Content => _content;
+
+    public override Matrix DefaultMatrix => Matrix.Identity;
+
+    public override void ShowPage()
+    {
+    }
+
+    public override void Fill(PsGState gs, PsDeviceColor color, bool evenOdd) => Collected.AddRange(gs.Path.Segments);
+
+    public override void Stroke(PsGState gs, PsDeviceColor color) => Collected.AddRange(PsStroker.Outline(gs).Segments);
+
+    public override void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth)
+    {
+    }
+}
+
+/// <summary>Registers resources in a resource dictionary (of a Type 3 font).</summary>
+internal sealed class PsDictionaryResources : IResourceContainer
+{
+    private readonly PdfDictionary _resources;
+
+    public PsDictionaryResources(PdfDocument document, PdfDictionary resources)
+    {
+        Document = document;
+        _resources = resources;
+    }
+
+    public PdfDocument Document { get; }
+
+    public PdfName AddResource(PdfName category, PdfObject resource, string prefix) => ResourceHelper.Add(_resources, category, resource, prefix);
 }

@@ -65,6 +65,7 @@ internal sealed partial class PsInterpreter
         RegisterColorOperators();
         RegisterDeviceOperators();
         RegisterResourceOperators();
+        RegisterFontOperators();
 
         SystemDict.Access = PsDictAccess.ReadOnly;
     }

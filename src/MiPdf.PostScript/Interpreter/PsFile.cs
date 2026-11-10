@@ -375,6 +375,129 @@ internal sealed class PsFlateDecode : PsDecodeFilter
     }
 }
 
+/// <summary>LZWDecode: variable-length codes of 9 to 12 bits, stops at the end-of-data code (257).</summary>
+internal sealed class PsLzwDecode : PsDecodeFilter
+{
+    private readonly int _earlyChange;
+    private readonly List<byte[]> _table = new();
+    private int _bits = 9;
+    private long _buffer;
+    private int _buffered;
+    private byte[]? _previous;
+    private byte[] _output = Array.Empty<byte>();
+    private int _position;
+    private bool _ended;
+
+    public PsLzwDecode(PsFile source, int earlyChange) : base(source)
+    {
+        _earlyChange = earlyChange;
+        Reset();
+    }
+
+    private void Reset()
+    {
+        _table.Clear();
+        for (int i = 0; i < 256; i++) _table.Add(new[] { (byte)i });
+        _table.Add(Array.Empty<byte>()); // 256 clear table
+        _table.Add(Array.Empty<byte>()); // 257 end of data
+        _bits = 9;
+        _previous = null;
+    }
+
+    private int ReadCode()
+    {
+        while (_buffered < _bits)
+        {
+            int b = Source.ReadByte();
+            if (b < 0) return -1;
+            _buffer = (_buffer << 8) | (uint)b;
+            _buffered += 8;
+        }
+        int code = (int)((_buffer >> (_buffered - _bits)) & ((1 << _bits) - 1));
+        _buffered -= _bits;
+        return code;
+    }
+
+    protected override int Decode()
+    {
+        while (_position >= _output.Length)
+        {
+            if (_ended) return -1;
+            int code = ReadCode();
+            if (code < 0 || code == 257)
+            {
+                _ended = true;
+                return -1;
+            }
+            if (code == 256)
+            {
+                Reset();
+                continue;
+            }
+            byte[] entry;
+            if (code < _table.Count) entry = _table[code];
+            else if (code == _table.Count && _previous != null) entry = [.. _previous, _previous[0]];
+            else throw new PsError("ioerror");
+            if (_previous != null && _table.Count < 4096) _table.Add([.. _previous, entry[0]]);
+            _previous = entry;
+            if (_table.Count + _earlyChange >= 4096) _bits = 12;
+            else if (_table.Count + _earlyChange >= 2048) _bits = 12;
+            else if (_table.Count + _earlyChange >= 1024) _bits = 11;
+            else if (_table.Count + _earlyChange >= 512) _bits = 10;
+            else _bits = 9;
+            _output = entry;
+            _position = 0;
+        }
+        return _output[_position++];
+    }
+}
+
+/// <summary>A filter whose data is decoded as a whole when it is first read (CCITT fax, DCT, predictors).</summary>
+internal sealed class PsBufferedFilter : PsFile
+{
+    private readonly Func<byte[]> _decode;
+    private byte[]? _data;
+    private int _position;
+
+    public PsBufferedFilter(Func<byte[]> decode) => _decode = decode;
+
+    public override bool CanRead => true;
+
+    protected override int ReadRaw()
+    {
+        _data ??= _decode();
+        return _position < _data.Length ? _data[_position++] : -1;
+    }
+
+    /// <summary>Reads a file to its end.</summary>
+    public static byte[] ReadAll(PsFile file, int limit)
+    {
+        var bytes = new MemoryStream();
+        int b;
+        while ((b = file.ReadByte()) >= 0)
+        {
+            if (bytes.Length >= limit) throw new PsError("limitcheck");
+            bytes.WriteByte((byte)b);
+        }
+        return bytes.ToArray();
+    }
+
+    /// <summary>Reads JPEG data up to and including the end-of-image marker (FF D9).</summary>
+    public static byte[] ReadJpeg(PsFile file, int limit)
+    {
+        var bytes = new MemoryStream();
+        int previous = -1, b;
+        while ((b = file.ReadByte()) >= 0)
+        {
+            if (bytes.Length >= limit) throw new PsError("limitcheck");
+            bytes.WriteByte((byte)b);
+            if (previous == 0xFF && b == 0xD9) break;
+            previous = b;
+        }
+        return bytes.ToArray();
+    }
+}
+
 /// <summary>NullEncode and other pass-through filters for writing: data goes to the target unchanged.</summary>
 internal sealed class PsNullEncode : PsFile
 {

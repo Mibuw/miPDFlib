@@ -27,23 +27,65 @@ internal sealed class PsContentWriter
     private double _miter;
     private string _dash = "";
     private bool _overprint, _strokeAdjust;
+    private int _textMode;
+    private readonly bool _glyphSpace;
+    private readonly Dictionary<PdfReference, PdfName> _fonts = new();
 
-    public PsContentWriter(IResourceContainer? resources)
+    /// <param name="resources">Where fonts and graphics states are registered (null: the null device).</param>
+    /// <param name="glyphSpace">Content of a Type 3 glyph: coordinates are glyph space, without the device scaling.</param>
+    public PsContentWriter(IResourceContainer? resources, bool glyphSpace = false)
     {
         _resources = resources;
+        _glyphSpace = glyphSpace;
         Begin();
     }
 
     /// <summary>True when something was painted.</summary>
     public bool HasContent { get; private set; }
 
+    /// <summary>Colors are not written (uncolored Type 3 glyphs, after setcachedevice).</summary>
+    public bool NoColor { get; set; }
+
     private void Begin()
     {
         _sb.Clear();
-        _sb.Append("0.1 0 0 0.1 0 0 cm\nq\n");
+        _sb.Append(_glyphSpace ? "q\n" : "0.1 0 0 0.1 0 0 cm\nq\n");
         ResetState();
         _clip = null;
         HasContent = false;
+    }
+
+    /// <summary>
+    /// Shows text: <paramref name="codes"/> in the PDF font, with the text matrix <paramref name="tm"/> (text space to
+    /// device space). Mode 0 fills the glyphs, mode 1 strokes them (PaintType 2 fonts).
+    /// </summary>
+    public void ShowText(PsGState gs, PsDeviceColor color, PdfReference font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth)
+    {
+        if (codes.Length == 0 || _resources == null) return;
+        SyncClip(gs.Clip);
+        if (mode == 1)
+        {
+            SyncStroke(color);
+            if (_lineWidth != lineWidth)
+            {
+                Numbers(4, lineWidth);
+                _sb.Append("w\n");
+                _lineWidth = lineWidth;
+            }
+        }
+        else SyncFill(color);
+        SyncExtGState(gs.Overprint, _strokeAdjust);
+        if (!_fonts.TryGetValue(font, out var name))
+            _fonts[font] = name = _resources.AddResource(PdfName.Font, font, "F");
+        _sb.Append("BT /").Append(name.Value).Append(" 1 Tf ");
+        if (_textMode != mode)
+        {
+            _sb.Append(mode).Append(" Tr ");
+            _textMode = mode;
+        }
+        Numbers(6, tm.A, tm.B, tm.C, tm.D, tm.E, tm.F);
+        _sb.Append("Tm <").Append(Convert.ToHexString(codes)).Append("> Tj ET\n");
+        HasContent = true;
     }
 
     /// <summary>Discards everything painted so far (<c>erasepage</c>).</summary>
@@ -61,6 +103,7 @@ internal sealed class PsContentWriter
         _miter = 10;
         _dash = "[] 0";
         _overprint = _strokeAdjust = false;
+        _textMode = 0;
     }
 
     public void Fill(PsGState gs, PsDeviceColor color, bool evenOdd)
@@ -132,14 +175,14 @@ internal sealed class PsContentWriter
 
     private void SyncFill(PsDeviceColor color)
     {
-        if (_fill == color) return;
+        if (_fill == color || NoColor) return;
         WriteColor(color, stroke: false);
         _fill = color;
     }
 
     private void SyncStroke(PsDeviceColor color)
     {
-        if (_stroke == color) return;
+        if (_stroke == color || NoColor) return;
         WriteColor(color, stroke: true);
         _stroke = color;
     }

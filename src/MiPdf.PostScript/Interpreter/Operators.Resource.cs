@@ -58,6 +58,13 @@ internal sealed partial class PsInterpreter
             // a local instance cannot be defined in global VM
             if (ip.GlobalMode && Composite(instance) is { Global: false }) throw new PsError("invalidaccess");
             if (category == "Category" && instance.Type != PsType.Dictionary) throw new PsError("typecheck");
+            if (category is "Font" or "CIDFont")
+            {
+                // fonts are defined as by definefont (FID, the font behind the dictionary)
+                if (instance.Type != PsType.Dictionary) throw new PsError("typecheck");
+                ip.Push(ip.DefineFont(key, instance.AsDict, category));
+                return;
+            }
             ip.DictPut(ip.CategoryDict(category, ip.GlobalMode, create: true)!, key, instance);
             if (category == "Category" && key.Type == PsType.Name) ip.CategoryDict(key.AsName.Text, global: true, create: true);
             ip.Push(instance);

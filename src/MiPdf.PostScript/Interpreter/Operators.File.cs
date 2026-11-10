@@ -1,3 +1,4 @@
+using MiPdf.Objects;
 using System.Diagnostics;
 using System.Text;
 
@@ -242,7 +243,7 @@ internal sealed partial class PsInterpreter
             count = PopCount();
         }
         // an optional parameter dictionary
-        if (Ops.Count > 0 && Ops.Peek().Type == PsType.Dictionary) Pop();
+        PsDict? parms = Ops.Count > 0 && Ops.Peek().Type == PsType.Dictionary ? PopDict() : null;
         var source = Pop();
         if (name.EndsWith("Encode", StringComparison.Ordinal))
         {
@@ -258,15 +259,60 @@ internal sealed partial class PsInterpreter
             PsType.Array or PsType.PackedArray when source.IsExecutable => new PsProcedureFile(this, source),
             _ => throw new PsError("typecheck"),
         };
-        return name switch
+        var pdfParms = parms != null ? ToPdfParameters(parms) : null;
+        int limit = Limits.MaxStringLength;
+        PsFile filter = name switch
         {
-            "ASCIIHexDecode" => new PsAsciiHexDecode(input),
-            "ASCII85Decode" => new PsAscii85Decode(input),
-            "RunLengthDecode" => new PsRunLengthDecode(input),
-            "FlateDecode" => new PsFlateDecode(input),
+            "ASCIIHexDecode" or "AHx" => new PsAsciiHexDecode(input),
+            "ASCII85Decode" or "A85" => new PsAscii85Decode(input),
+            "RunLengthDecode" or "RL" => new PsRunLengthDecode(input),
+            "FlateDecode" or "Fl" => new PsFlateDecode(input),
+            "LZWDecode" or "LZW" => new PsLzwDecode(input, pdfParms?.GetInt(PdfName.EarlyChange, 1) ?? 1),
             "SubFileDecode" => new PsSubFileDecode(input, count, eod!),
+            "CCITTFaxDecode" or "CCF" => new PsBufferedFilter(() => Decoded(() => MiPdf.Filters.CcittFaxDecoder.Decode(PsBufferedFilter.ReadAll(input, limit), pdfParms))),
+            "DCTDecode" or "DCT" => new PsBufferedFilter(() => Decoded(() => MiPdf.Filters.JpegDecoder.Decode(PsBufferedFilter.ReadJpeg(input, limit), pdfParms, out _, out _, out _))),
             _ => throw new PsError("undefined"),
         };
+        // a predictor (Flate and LZW) works on the decoded data as a whole
+        if (name is "FlateDecode" or "Fl" or "LZWDecode" or "LZW" && pdfParms != null && pdfParms.GetInt(PdfName.Get("Predictor"), 1) > 1)
+        {
+            var inner = filter;
+            filter = new PsBufferedFilter(() => Decoded(() => MiPdf.Filters.Predictor.Apply(PsBufferedFilter.ReadAll(inner, limit), pdfParms)));
+        }
+        return filter;
+    }
+
+    /// <summary>Runs a decoder of miPDFlib; damaged data is an ioerror.</summary>
+    private static byte[] Decoded(Func<byte[]> decode)
+    {
+        try
+        {
+            return decode();
+        }
+        catch (PdfException)
+        {
+            throw new PsError("ioerror");
+        }
+    }
+
+    /// <summary>The simple entries (numbers, booleans, names) of filter parameters as a PDF dictionary.</summary>
+    private static PdfDictionary ToPdfParameters(PsDict parms)
+    {
+        var result = new PdfDictionary();
+        foreach (var (key, value) in parms.Map)
+        {
+            if (key.Type != PsType.Name) continue;
+            PdfObject? v = value.Type switch
+            {
+                PsType.Integer => new PdfNumber(value.Int),
+                PsType.Real => new PdfNumber(value.Real),
+                PsType.Boolean => value.Bool ? PdfBoolean.True : PdfBoolean.False,
+                PsType.Name => PdfName.Get(value.AsName.Text),
+                _ => null,
+            };
+            if (v != null) result[PdfName.Get(key.AsName.Text)] = v;
+        }
+        return result;
     }
 
     private void RegisterMiscOperators()
@@ -278,9 +324,58 @@ internal sealed partial class PsInterpreter
         Op("languagelevel", ip => ip.Push(3));
         Op("realtime", ip => ip.Push(ip._clock.ElapsedMilliseconds));
         Op("usertime", ip => ip.Push((long)Process.GetCurrentProcess().TotalProcessorTime.TotalMilliseconds));
-        Op("setuserparams", ip => ip.PopDict());
-        Op("currentuserparams", ip => ip.Push(PsObject.Dictionary(ip.NewDict(0))));
-        Op("setsystemparams", ip => ip.PopDict());
-        Op("currentsystemparams", ip => ip.Push(PsObject.Dictionary(ip.NewDict(0))));
+        // user and system parameters (PLRM appendix C): kept and returned, without effect
+        Op("setuserparams", ip => ip.MergeParameters(ip.UserParameters(), ip.PopDict()));
+        Op("currentuserparams", ip => ip.Push(ip.CopyParameters(ip.UserParameters())));
+        Op("setsystemparams", ip => ip.MergeParameters(ip.SystemParameters(), ip.PopDict()));
+        Op("currentsystemparams", ip => ip.Push(ip.CopyParameters(ip.SystemParameters())));
+    }
+
+    private PsDict? _userParameters, _systemParameters;
+
+    private PsDict UserParameters() => _userParameters ??= Parameters(new (string, long)[]
+    {
+        ("MaxFontItem", 12000), ("MinFontCompress", 20), ("MaxUPathItem", 5000), ("MaxFormItem", 100000),
+        ("MaxPatternItem", 20000), ("MaxScreenItem", 48000), ("MaxOpStack", Limits.MaxOperandStack),
+        ("MaxDictStack", Limits.MaxDictStack), ("MaxExecStack", Limits.MaxExecStack), ("MaxLocalVM", Limits.MaxMemory),
+        ("VMReclaim", 0), ("VMThreshold", 1000000), ("AccurateScreens", 0),
+    }, ("JobName", ""));
+
+    private PsDict SystemParameters() => _systemParameters ??= Parameters(new (string, long)[]
+    {
+        ("BuildTime", 1), ("ByteOrder", 0), ("CurDisplayList", 0), ("CurFontCache", 0), ("CurFormCache", 0),
+        ("CurOutlineCache", 0), ("CurPatternCache", 0), ("CurScreenStorage", 0), ("CurSourceList", 0),
+        ("CurStoredFontCache", 0), ("CurStoredScreenCache", 0), ("CurUPathCache", 0), ("MaxDisplayList", 10000000),
+        ("MaxFontCache", 10000000), ("MaxFormCache", 10000000), ("MaxGlobalVM", Limits.MaxMemory),
+        ("MaxOutlineCache", 10000000), ("MaxPatternCache", 10000000), ("MaxScreenStorage", 10000000),
+        ("MaxSourceList", 10000000), ("MaxUPathCache", 10000000), ("RealFormat", 0),
+    }, ("Revision", "1"));
+
+    private PsDict Parameters((string Name, long Value)[] numbers, (string Name, string Value) text)
+    {
+        bool global = GlobalMode;
+        GlobalMode = true;
+        var d = NewDict(numbers.Length + 1);
+        foreach (var (name, value) in numbers)
+            d.Map[Key(name)] = name is "AccurateScreens" ? PsObject.False : name == "ByteOrder" ? PsObject.False
+                : name == "RealFormat" ? NewString(Encoding.ASCII.GetBytes("IEEE")) : PsObject.Integer(value);
+        d.Map[Key(text.Name)] = NewString(Encoding.ASCII.GetBytes(text.Value));
+        GlobalMode = global;
+        return d;
+    }
+
+    private void MergeParameters(PsDict target, PsDict values)
+    {
+        // only known parameters with values of the same type are taken
+        foreach (var (key, value) in values.Map)
+            if (target.Map.TryGetValue(key, out var old) && (old.Type == value.Type || old.IsNumber && value.IsNumber) && Composite(value) == null)
+                target.Map[key] = value;
+    }
+
+    private PsObject CopyParameters(PsDict source)
+    {
+        var copy = NewDict(source.Count);
+        foreach (var (key, value) in source.Map) copy.Map[key] = value;
+        return PsObject.Dictionary(copy);
     }
 }

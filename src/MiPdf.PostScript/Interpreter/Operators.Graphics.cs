@@ -459,20 +459,6 @@ internal sealed partial class PsInterpreter
             ip.Push(ip.NewArray(items.ToArray()).AsExecutable());
         });
 
-        // glyph metrics inside BuildChar/BuildGlyph of Type 3 fonts (used from stage 3 on)
-        Op("setcharwidth", ip =>
-        {
-            ip.PopReal();
-            ip.PopReal();
-        });
-        Op("setcachedevice", ip =>
-        {
-            for (int i = 0; i < 6; i++) ip.PopReal();
-        });
-        Op("setcachedevice2", ip =>
-        {
-            for (int i = 0; i < 10; i++) ip.PopReal();
-        });
         Op("nulldevice", ip =>
         {
             ip.Device = new PsNullDevice();
@@ -694,13 +680,13 @@ internal sealed partial class PsInterpreter
 
     private void Fill(bool evenOdd)
     {
-        if (Device != null && CurrentDeviceColor() is { } color) Device.Content.Fill(GState, color, evenOdd);
+        if (Device != null && CurrentDeviceColor() is { } color) Device.Fill(GState, color, evenOdd);
         GState.Path = new PsPath();
     }
 
     private void Stroke()
     {
-        if (Device != null && CurrentDeviceColor() is { } color) Device.Content.Stroke(GState, color);
+        if (Device != null && CurrentDeviceColor() is { } color) Device.Stroke(GState, color);
         GState.Path = new PsPath();
     }
 
