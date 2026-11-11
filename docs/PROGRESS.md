@@ -110,6 +110,20 @@ PDF417 barcodes. Next steps:
    documents) and the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics ✅ (paths,
    graphics state, clipping, colors), 3 text and fonts ✅ (Type 1, Type 3, Type 42, CID), 4 images and filters ✅, 5 Level
    2/3 ✅ (shadings, patterns, forms, `setpagedevice`), 6 `pdfmark` ✅, 7 EPS import API ✅, 8 converter ✅.
+5. **Layout analysis** (next): text blocks, columns and reading order of whole pages, for document processing and
+   AI pipelines. A measurement with pages of known reading order (November 2026) showed: words are extracted
+   completely (100 % in all cases, PdfPig 89–100 % depending on its extractor), tables are read row by row, but pages
+   with two or three columns are read line by line across the columns (order 56 % and 38 %); PdfPig's layout
+   pipeline (Docstrum, unsupervised reading order) gets columns right but breaks tables apart (43 %). Stages:
+   1. Blocks and reading order: segmentation by whitespace (columns, headers and footers, side notes) and the order
+      of the blocks, keeping tables row by row; an option of the text extraction, then the default once it is
+      proven on a corpus of multi-column documents.
+   2. API `PdfLayoutAnalyzer.Analyze(page)`: blocks with lines, bounds and kind (heading, paragraph, list, table,
+      header, footer), using font size and weight from `ExtractLetters`; headers and footers recognised across pages.
+   3. Export: Markdown (for language models), hOCR and ALTO.
+   4. Tables: cells from text alignment and ruling lines (needs the paths of the page).
+
+   Checked with the synthetic pages of the measurement (extended) and a corpus of real multi-column documents.
 
 Known gaps: see the roadmap above; in addition, hyphenation patterns are not bundled (load them from hyph-utf8).
 
