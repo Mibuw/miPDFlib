@@ -39,6 +39,7 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
 | **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words and lines with positions, text search (string/regex), **image extraction** (JPEG, JPEG 2000, JBIG2 and CCITT fax images decoded), **free-space detection** |
 | **Rendering** | separate package **miPDFlib.Rendering**: pages to PNG or RGBA pixels at any resolution – vector graphics, text (embedded fonts or substitutes), images, shadings, patterns, blend modes, soft masks, transparency groups, spot colors; managed code only |
+| **PostScript / EPS** | separate package **miPDFlib.PostScript**: PostScript to PDF (LanguageLevel 3 with fonts, images, patterns, shadings, pdfmark) and EPS graphics placed as vectors; sandboxed interpreter, managed code only |
 | **Forms** | read/fill/create AcroForm fields (text, check box, radio, combo, list, push button, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
 | **Encryption** | open and create encrypted PDFs: AES-256, AES-128, RC4; passwords and permissions, or encryption for the certificates of recipients |
 | **Signatures** | PAdES B-B/B-T/**B-LT/B-LTA**, RFC 3161 and document time-stamps, visible signatures, certification (DocMDP), field locks (FieldMDP), **HSM/cloud signers**, deferred two-step signing, multiple signatures, verification |

@@ -1,12 +1,33 @@
 # Changelog
 
-## Unreleased
+## 1.3.0
 
-- New package **miPDFlib.PostScript**: `PostScriptConverter.ToPdf` converts PostScript files to PDF (LanguageLevel 3:
-  all font types, images, patterns, shadings, forms, `setpagedevice`, `pdfmark`, document information from the DSC
-  comments, automatic page rotation), and `PdfDocument.ImportEps` places EPS graphics as form XObjects. The
-  interpreter is pure managed code and runs in a sandbox with limits on operations, memory and time. Compared page
-  by page with Ghostscript.
+New features, no breaking changes. A third package, **miPDFlib.PostScript**, converts PostScript to PDF and places
+EPS graphics; all three packages (miPDFlib, miPDFlib.Rendering, miPDFlib.PostScript) have the version 1.3.0.
+
+- New package **miPDFlib.PostScript** – a PostScript interpreter (LanguageLevel 3) in pure managed code, without
+  Ghostscript:
+  - `PostScriptConverter.ToPdf` converts PostScript files to PDF: paths, clipping and all color spaces; text with
+    Type 1, Type 3, Type 42 and CID-keyed fonts (embedded fonts are embedded, the standard fonts referenced);
+    images in all forms with the LanguageLevel 3 filters (JPEG data unchanged); patterns, shadings (all seven types)
+    and forms as vectors; `setpagedevice` with BeginPage, EndPage and Install. `pdfmark` adds document information,
+    viewer settings, bookmarks, annotations and links, named destinations, page entries, article threads, embedded
+    files, named objects and reusable pictures. The document information is also taken from the DSC comments
+    (%%Title, %%Creator, %%For); pages are rotated to be read upright, by the DSC orientation or the direction of
+    their text, as Ghostscript's ps2pdf does. EPS files become a page of their bounding box; print files with a PJL
+    header and DOS EPS binary files are read.
+  - `PdfDocument.ImportEps` places EPS graphics as form XObjects of their bounding box, to be drawn with
+    `PdfCanvas.DrawXObject` at any size.
+  - The interpreter runs in a sandbox without file system access, with limits on operations, memory and time
+    (`PostScriptOptions`, `CancellationToken`); PostScript errors raise `PostScriptException` with the error name,
+    the offending command and the program's output, or are ignored with `IgnoreErrors`.
+  - Checked page by page against Ghostscript – also through Ghostscript's own ps2write and eps2write output – and
+    with randomly generated and mutated programs.
+  - Known limits: `charpath` with standard fonts that the program does not embed gives an empty path (the package
+    contains no font programs; showing text is not affected); spot colors are converted to their alternate color
+    space; binary tokens are not read. See the guide "PostScript and EPS".
+- Images: color key masking (`/Mask` arrays) is applied in rendering and image extraction, and soft or stencil masks
+  with a higher resolution than their image keep their detail.
 - Images: JBIG2 (ITU-T T.88) and JPEG 2000 (ISO/IEC 15444-1) are decoded – in rendering, `ToPng` and redaction
   (partially covered images are blanked like JPEG images instead of being removed). JBIG2: generic, refinement,
   text and halftone regions, symbol and pattern dictionaries, arithmetic and Huffman coding including user tables

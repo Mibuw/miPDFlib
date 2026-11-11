@@ -72,13 +72,15 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | CCITT / JBIG2 / JPEG 2000 images | decoded (JBIG2/JPX via plugins) | CCITT only | – | – | **all decoded** (and JPEG), built in, no native libraries |
 | Complex scripts (Arabic, Indic) | partly (some Indic scripts) | – | – | **yes** (HarfBuzz) | **yes**: Arabic, Hebrew and other right-to-left scripts, nine Indic scripts (own managed shaper, bidi, GSUB/GPOS; Indic output identical to HarfBuzz in tests) |
 | ZUGFeRD, redaction, barcodes | – | – | barcodes | PDF/A-3 attachments for ZUGFeRD | all three |
+| PostScript and EPS to PDF | – | – | – | – | **yes**, with the package miPDFlib.PostScript (LanguageLevel 3, sandboxed, managed code) |
 
 In short: **PDFBox** is the choice for rendering and printing and the most complete low-level toolkit, but in Java
 and with signatures assembled from examples. **PdfPig** is strong at reading and analysing text. **MigraDoc** and
 **QuestPDF** are good at document generation; QuestPDF also handles complex scripts, but needs native libraries and a
 paid licence above its revenue limit, and since 6.5 PDFsharp is AGPL or commercial. miPDFlib covers creating,
 modifying, forms, signatures and archiving in one managed library; it renders pages with the package
-miPDFlib.Rendering and shapes Arabic, Hebrew and Indic text without native libraries.
+miPDFlib.Rendering, converts PostScript and EPS with the package miPDFlib.PostScript and shapes Arabic, Hebrew and
+Indic text without native libraries.
 
 Information as of November 2026, from the projects' documentation, release notes and source code; the binding
 licence terms are those of the projects.
@@ -92,6 +94,7 @@ licence terms are those of the projects.
 - **Rendering PDFs to images or printing:** PDFBox (Java); in .NET miPDFlib.Rendering (managed code only) or a
   PDFium-based library.
 - **Reading and analysing text in .NET:** PdfPig.
+- **PostScript or EPS to PDF without Ghostscript (AGPL) and without native code:** miPDFlib.PostScript.
 - **Document generation with Arabic, Hebrew or Indic scripts:** QuestPDF within its licence terms, or miPDFlib
   (managed code only).
 - **Closed product without licence costs and without revenue or size limits, focused on forms, PAdES signatures,

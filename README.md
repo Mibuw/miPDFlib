@@ -16,7 +16,8 @@
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
 </p>
 
-**On NuGet:** `dotnet add package miPDFlib`
+**On NuGet:** `dotnet add package miPDFlib` – optional packages: `miPDFlib.Rendering` (pages to images) and
+`miPDFlib.PostScript` (PostScript and EPS to PDF)
 
 An open-source (Apache-2.0) PDF library for .NET 8 / .NET 10 – pure managed code, no native dependencies.
 Create, read, modify, merge, fill forms, extract text, encrypt and digitally sign (PAdES) PDF documents.
@@ -30,8 +31,22 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 - **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) (also with
   PDFBox, PdfPig, PDFsharp/MigraDoc and QuestPDF) and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
 
-> Status: **1.2.0** (stable) – all planned feature areas are implemented and tested (470 unit tests, real-world
+> Status: **1.3.0** (stable) – all planned feature areas are implemented and tested (695 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
+
+### New in 1.3.0
+
+- **PostScript and EPS** – new package `miPDFlib.PostScript`: convert PostScript files to PDF
+  (`PostScriptConverter.ToPdf`) and place EPS logos and drawings as vectors (`document.ImportEps`), with a sandboxed
+  LanguageLevel 3 interpreter in managed code – no Ghostscript needed. See the
+  [guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/postscript.md).
+- **JBIG2 and JPEG 2000** images are decoded – in rendering, image export and redaction – checked against Ghostscript
+  and the ISO/IEC 15444-4 conformance suite.
+- **Indic scripts** (Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam) are shaped
+  like HarfBuzz shapes them.
+- **PDF417** barcodes.
+
+All changes: [CHANGELOG](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md).
 
 ## Features
 

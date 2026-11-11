@@ -12,6 +12,9 @@ PDF documents, produce PDF/A, PDF/UA and ZUGFeRD / XRechnung e-invoices.
 dotnet add package miPDFlib
 ```
 
+Optional packages: **miPDFlib.Rendering** renders pages to images, **miPDFlib.PostScript** converts PostScript and
+EPS to PDF – both in managed code as well.
+
 ```csharp
 using MiPdf;
 using MiPdf.Fonts;

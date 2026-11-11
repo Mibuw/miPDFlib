@@ -1,15 +1,1 @@
 #nullable enable
-MiPdf.Barcodes.Pdf417
-MiPdf.Barcodes.Pdf417.CodewordRows.get -> int
-MiPdf.Barcodes.Pdf417.DataColumns.get -> int
-MiPdf.Barcodes.Pdf417.ErrorCorrectionLevel.get -> int
-MiPdf.Barcodes.Pdf417Options
-MiPdf.Barcodes.Pdf417Options.Columns.get -> int?
-MiPdf.Barcodes.Pdf417Options.Columns.set -> void
-MiPdf.Barcodes.Pdf417Options.ErrorCorrectionLevel.get -> int?
-MiPdf.Barcodes.Pdf417Options.ErrorCorrectionLevel.set -> void
-MiPdf.Barcodes.Pdf417Options.Pdf417Options() -> void
-MiPdf.Barcodes.Pdf417Options.RowHeight.get -> int
-MiPdf.Barcodes.Pdf417Options.RowHeight.set -> void
-static MiPdf.Barcodes.Pdf417.Create(byte[]! data, MiPdf.Barcodes.Pdf417Options? options = null) -> MiPdf.Barcodes.Pdf417!
-static MiPdf.Barcodes.Pdf417.Create(string! text, MiPdf.Barcodes.Pdf417Options? options = null) -> MiPdf.Barcodes.Pdf417!

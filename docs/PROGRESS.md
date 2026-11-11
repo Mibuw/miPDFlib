@@ -79,8 +79,9 @@ Current state: 695 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 1.0.0 is released; since then, changes after signing (DocMDP) are evaluated and page import keeps the tagged
 structure, documents can be encrypted for certificates, layers are supported and JPEG and CCITT images are
 decoded (1.1.0, released). 1.2.0 (released) adds the rendering package miPDFlib.Rendering, diagnostics and text
-shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below); shaping of the Indic scripts is
-done for the next release. Next steps:
+shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below). 1.3.0 (released) adds the
+PostScript package miPDFlib.PostScript (item 4), shaping of the Indic scripts, JBIG2 and JPEG 2000 decoding and
+PDF417 barcodes. Next steps:
 
 1. **Rendering** (pages to images, e.g. for previews and printing) as a separate package `miPDFlib.Rendering` in
    this repository: managed code only, no native dependencies and no System.Drawing; output as bitmaps/PNG at any
