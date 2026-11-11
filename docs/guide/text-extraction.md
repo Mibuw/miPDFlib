@@ -13,11 +13,25 @@ var options = new TextExtractionOptions
 {
     SortByPosition = true,      // reading order by position (default); false = content stream order
     DetectParagraphs = true,    // empty line for large vertical gaps
+    DetectColumns = true,       // read pages set in columns column by column (see below)
     IncludeXObjects = true,     // text in form XObjects (stamps, letterheads); default true
     IncludeAnnotations = true,  // text in annotation appearances, e.g. filled form fields
 };
 string text = page.ExtractText(options);
 ```
+
+### Columns
+
+By default the text is read line by line across the page, as Ghostscript and most tools do – fine for letters,
+invoices and forms, but on a page set in two or three columns the lines of the columns get mixed. With
+`DetectColumns` the page is split at its whitespace: columns are read one after the other, and a header, a title or
+author block, a caption across the page and a footer are read where they stand. Tables, an invoice's description next
+to its amounts, bulleted lists and line numbers keep their rows. The option applies to `ExtractText`, `ExtractLines`,
+`ExtractWords` and `ExtractLetters`.
+
+Measured on the pages of 84 recent arXiv papers against the order in which LaTeX wrote their text, the order of the
+words is right to 95–97 % on average (line by line: 76–85 %); a held-out set of papers not used while developing it
+gave 96.9 %.
 
 ## Words, lines and positions
 

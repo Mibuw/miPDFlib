@@ -70,6 +70,13 @@ public sealed class TextExtractionOptions
     /// <summary>Insert an empty line when the vertical gap between lines is large (paragraphs).</summary>
     public bool DetectParagraphs { get; set; }
 
+    /// <summary>
+    /// Read pages set in columns column by column (default false: line by line across the page). The page is split at
+    /// its whitespace into columns and bands (a headline above the columns, header, footer, side notes); tables stay
+    /// row by row. Applies with <see cref="SortByPosition"/>.
+    /// </summary>
+    public bool DetectColumns { get; set; }
+
     /// <summary>Include text of form XObjects (e.g. stamps, letterheads). Default: true.</summary>
     public bool IncludeXObjects { get; set; } = true;
 
@@ -120,7 +127,7 @@ public static class PdfTextExtractor
         try
         {
             var glyphs = new GlyphCollector(options).Collect(page);
-            return LineBuilder.Build(glyphs, options.SortByPosition);
+            return LineBuilder.Build(glyphs, options.SortByPosition, options.DetectColumns);
         }
         catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex))
         {
@@ -145,7 +152,7 @@ public static class PdfTextExtractor
         try
         {
             var glyphs = new GlyphCollector(options).Collect(page);
-            return LineBuilder.BuildGlyphLines(glyphs, options.SortByPosition).SelectMany(line => line.Select(e => e.Glyph.ToLetter())).ToList();
+            return LineBuilder.BuildGlyphLines(glyphs, options.SortByPosition, options.DetectColumns).SelectMany(line => line.Select(e => e.Glyph.ToLetter())).ToList();
         }
         catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex))
         {
@@ -666,7 +673,7 @@ internal sealed class GlyphCollector
 internal static class LineBuilder
 {
     /// <summary>Returns lines as glyph sequences; the flag marks glyphs that need a space before them.</summary>
-    public static List<List<(TextGlyph Glyph, bool SpaceBefore)>> BuildGlyphLines(List<TextGlyph> glyphs, bool sortByPosition)
+    public static List<List<(TextGlyph Glyph, bool SpaceBefore)>> BuildGlyphLines(List<TextGlyph> glyphs, bool sortByPosition, bool detectColumns = false)
     {
         var result = new List<List<(TextGlyph, bool)>>();
         if (glyphs.Count == 0) return result;
@@ -737,13 +744,13 @@ internal static class LineBuilder
             }
             if (entries.Count > 0) result.Add(entries);
         }
-        return result;
+        return sortByPosition && detectColumns ? ColumnLayout.Order(result) : result;
     }
 
-    public static IReadOnlyList<TextLineInfo> Build(List<TextGlyph> glyphs, bool sortByPosition)
+    public static IReadOnlyList<TextLineInfo> Build(List<TextGlyph> glyphs, bool sortByPosition, bool detectColumns = false)
     {
         var lines = new List<TextLineInfo>();
-        foreach (var line in BuildGlyphLines(glyphs, sortByPosition))
+        foreach (var line in BuildGlyphLines(glyphs, sortByPosition, detectColumns))
         {
             var words = new List<TextWord>();
             var wordText = new StringBuilder();

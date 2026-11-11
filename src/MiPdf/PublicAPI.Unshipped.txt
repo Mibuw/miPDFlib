@@ -1,4 +1,6 @@
 #nullable enable
+MiPdf.Text.TextExtractionOptions.DetectColumns.get -> bool
+MiPdf.Text.TextExtractionOptions.DetectColumns.set -> void
 MiPdf.Text.TextLetter
 MiPdf.Text.TextLetter.<Clone>$() -> MiPdf.Text.TextLetter!
 MiPdf.Text.TextLetter.Angle.get -> double

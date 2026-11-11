@@ -61,7 +61,7 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | Native dependencies | none | none | none | Skia, qpdf, HarfBuzz (bundled) | none |
 | Create PDFs | low-level content | low-level, simple text | low-level (PDFsharp), layout engine (MigraDoc) | layout engine | low-level canvas and layout engine |
 | Modify, merge, split | yes, incremental saving | merge; incremental updates only in prerelease builds (objects added or replaced by hand; not for encrypted or repaired files) | yes | merge, overlay via qpdf | yes; incremental saving with automatic change detection, also of encrypted and repaired files |
-| Text extraction | with positions | with positions and layout analysis | – | – | with positions, reading order; letters with font, colors and rendering mode |
+| Text extraction | with positions | with positions and layout analysis | – | – | with positions, reading order (also across columns); letters with font, colors and rendering mode |
 | Render pages to images, print | **yes** | – | – | only its own documents | to images and PNG with the package miPDFlib.Rendering; printing is left to the application |
 | AcroForms | fill, create, flatten | read only | fill, flatten | – | fill, create, flatten, FDF/XFDF |
 | Signatures | signing framework; PAdES levels and LTV only as example code with BouncyCastle; no validation | – | CMS (`adbe.pkcs7.detached`), optional time-stamp; no LTV, no validation | – | PAdES B-B to B-LTA, LTV, validation, no BouncyCastle |

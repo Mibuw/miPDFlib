@@ -63,8 +63,9 @@ Last update: 2026-11-10
 | 54 PostScript, stage 8 (converter) | ✅ done (695 tests; `PostScriptConverter.ToPdf` with the page size, automatic page rotation and the sandbox limits in `PostScriptOptions`; document information from the DSC comments (%%Title, %%Creator, %%For as author; strings in parentheses and hexadecimal UTF-16 decoded), pdfmark wins; pages rotated by %%PageOrientation, %%Orientation or the direction of most of their text, as Ghostscript's AutoRotatePages /PageByPage; EPS files become a page of their bounding box; PJL job headers, control-D and DOS EPS binary files; the rotations and the document information were compared with Ghostscript's ps2pdf, and all test files of the earlier stages convert as before) |
 | 55 Incremental updates of damaged files | ✅ done (705 tests; after a repair the update lists every object and has no /Prev, so the result needs no repair in any reader; damaged encrypted files with object streams open; checked with 886 damaged copies of the test corpus, read back by miPDFlib, pypdf (strict) and Ghostscript) |
 | 56 Letters with font, colors and rendering mode | ✅ done (708 tests; `PdfTextExtractor.ExtractLetters`: bounds, baseline, angle, font name and size, bold and italic, fill and stroke color (device colors as in the file, spot, Indexed and Lab colors as RGB, patterns null), rendering mode and visibility; checked on 1,134 corpus pages: the letters give exactly the text of ExtractText, as fast) |
+| 57 Layout analysis, stage 1 (columns and reading order) | ✅ done (714 tests; `TextExtractionOptions.DetectColumns`: lines cut at wide gaps, the page split at vertical channels found in a profile of the text height (a few spanning fragments allowed: header, title and author block, captions, footer) and at horizontal gaps; a channel separates columns only beside running text, so tables, invoices, lists and line numbers keep their rows. Measured against the LaTeX content order of 84 recent arXiv papers: 95.4 % on the 42 papers used while developing it (line by line 76.2 %, PdfPig's layout pipeline 93.7 %), 96.9 % on 42 held-out papers (84.8 %, PdfPig 96.1 %); all synthetic pages 100 %; 0.8 ms more per page) |
 
-Current state: 708 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 714 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -115,9 +116,9 @@ PDF417 barcodes. Next steps:
    completely (100 % in all cases, PdfPig 89–100 % depending on its extractor), tables are read row by row, but pages
    with two or three columns are read line by line across the columns (order 56 % and 38 %); PdfPig's layout
    pipeline (Docstrum, unsupervised reading order) gets columns right but breaks tables apart (43 %). Stages:
-   1. Blocks and reading order: segmentation by whitespace (columns, headers and footers, side notes) and the order
-      of the blocks, keeping tables row by row; an option of the text extraction, then the default once it is
-      proven on a corpus of multi-column documents.
+   1. Blocks and reading order ✅ (option `DetectColumns`): segmentation by whitespace (columns, headers and
+      footers, side notes) and the order of the blocks, keeping tables row by row; to become the default once it is
+      also proven on business documents (invoices, forms, letters).
    2. API `PdfLayoutAnalyzer.Analyze(page)`: blocks with lines, bounds and kind (heading, paragraph, list, table,
       header, footer), using font size and weight from `ExtractLetters`; headers and footers recognised across pages.
    3. Export: Markdown (for language models), hOCR and ALTO.
