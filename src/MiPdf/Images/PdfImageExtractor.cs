@@ -42,16 +42,17 @@ public sealed class PdfExtractedImage
     /// <summary>True for JPEG 2000 images; <see cref="GetEncodedData"/> returns a JPEG 2000 file.</summary>
     public bool IsJpeg2000 => Filters.StreamFilters.GetFilterNames(Stream).LastOrDefault()?.Value is "JPXDecode";
 
-    /// <summary>True if the image has a soft mask or stencil mask (transparency).</summary>
-    public bool HasTransparency => Stream.Get(PdfName.SMask) is PdfStream || Stream.Get(PdfName.Get("Mask")) is PdfStream || Stream.GetBool(PdfName.Get("ImageMask"));
+    /// <summary>True if the image has a soft mask, a stencil mask or a color key mask (transparency).</summary>
+    public bool HasTransparency => Stream.Get(PdfName.SMask) is PdfStream || Stream.Get(PdfName.Mask) is PdfStream or PdfArray || Stream.GetBool(PdfName.Get("ImageMask"));
 
     /// <summary>The data with all non-image filters removed (for JPEG/JPEG 2000 the original file data).</summary>
     public byte[] GetEncodedData() => Filters.StreamFilters.Decode(Stream.RawBytes, Stream, out _);
 
     /// <summary>
-    /// Decodes the image to PNG (with alpha channel from /SMask, /Mask, /SMaskInData or stencil masks). All image
-    /// filters are decoded (JPEG, JPEG 2000, JBIG2, CCITT fax); returns null if the image cannot be decoded (damaged
-    /// data, unsupported color space – reported in <see cref="PdfDocument.Diagnostics"/>).
+    /// Decodes the image to PNG (with alpha channel from /SMask, /Mask (stencil mask or color key), /SMaskInData or
+    /// stencil masks). All image filters are decoded (JPEG, JPEG 2000, JBIG2, CCITT fax); returns null if the image
+    /// cannot be decoded (damaged data, unsupported color space – reported in <see cref="PdfDocument.Diagnostics"/>).
+    /// A mask with a higher resolution than the image keeps its resolution: the PNG then has the size of the mask.
     /// </summary>
     /// <param name="background">If set, transparency is composited onto this color (the PNG has no alpha channel).</param>
     public byte[]? ToPng(PdfColor? background = null)
@@ -174,9 +175,83 @@ internal static class ImageDecoder
         var colorSpace = image.Get(PdfName.ColorSpace);
         if (!Convert(data, width, height, bpc, colorSpace, image.GetArray(PdfName.Decode), rgb)) return null;
 
-        if (image.Get(PdfName.SMask) is PdfStream smask) alpha = DecodeAlpha(smask, width, height, soft: true);
-        else if (image.Get(PdfName.Get("Mask")) is PdfStream mask) alpha = DecodeAlpha(mask, width, height, soft: false);
-        return (width, height, rgb, alpha);
+        (byte[] Alpha, int Width, int Height)? mask = null;
+        if (image.Get(PdfName.SMask) is PdfStream smask) mask = DecodeAlpha(smask, soft: true);
+        else if (image.Get(PdfName.Mask) is PdfStream stencil) mask = DecodeAlpha(stencil, soft: false);
+        else if (image.Get(PdfName.Mask) is PdfArray key
+                 && ColorKeyAlpha(data, width, height, ColorSpace.Resolve(colorSpace, null).Components, bpc, key) is { } keyed)
+            mask = (keyed, width, height);
+        return WithMask(width, height, rgb, mask);
+    }
+
+    /// <summary>
+    /// Color key masking (ISO 32000-2, 8.9.6.4): pixels whose samples, before decoding, all lie in the ranges of the
+    /// /Mask array are not painted. Returns null if the array or the data do not fit the image.
+    /// </summary>
+    private static byte[]? ColorKeyAlpha(byte[] data, int width, int height, int n, int bpc, PdfArray key)
+    {
+        if (n <= 0 || key.Count < 2 * n || bpc is not (1 or 2 or 4 or 8 or 16)) return null;
+        var ranges = new double[2 * n];
+        for (int i = 0; i < ranges.Length; i++) ranges[i] = key.GetDouble(i);
+        long rowBytes = ((long)width * n * bpc + 7) / 8;
+        if (rowBytes * height > data.Length) return null;
+        int max = (1 << Math.Min(bpc, 8)) - 1;
+        var alpha = new byte[width * height];
+        for (int y = 0; y < height; y++)
+        {
+            long row = y * rowBytes;
+            for (int x = 0; x < width; x++)
+            {
+                bool masked = true;
+                for (int c = 0; c < n && masked; c++)
+                {
+                    long i = (long)x * n + c;
+                    int v = bpc switch
+                    {
+                        8 => data[row + i],
+                        16 => data[row + i * 2] << 8 | data[row + i * 2 + 1],
+                        _ => (data[row + i * bpc / 8] >> (8 - bpc - (int)(i * bpc % 8))) & max,
+                    };
+                    masked = v >= ranges[2 * c] && v <= ranges[2 * c + 1];
+                }
+                alpha[y * width + x] = masked ? (byte)0 : (byte)255;
+            }
+        }
+        return alpha;
+    }
+
+    /// <summary>
+    /// Combines the image with its mask. A mask and an image of different sizes both map onto the unit square
+    /// (ISO 32000-2, 8.9.6.3 and 11.6.5.3): both are sampled at the finer resolution of the two, so a mask finer than
+    /// the image keeps its detail (up to <see cref="MaxMaskPixels"/>; beyond that, the mask is sampled at the
+    /// resolution of the image).
+    /// </summary>
+    private static (int Width, int Height, byte[] Rgb, byte[]? Alpha) WithMask(int width, int height, byte[] rgb, (byte[] Alpha, int Width, int Height)? mask)
+    {
+        if (mask is not { } m) return (width, height, rgb, null);
+        int w = Math.Max(width, m.Width), h = Math.Max(height, m.Height);
+        if ((long)w * h > Math.Min(MaxMaskPixels, PdfLimits.Current.MaxImagePixels)) (w, h) = (width, height);
+        if (w != width || h != height) rgb = Scale(rgb, width, height, w, h, 3);
+        var alpha = m.Width == w && m.Height == h ? m.Alpha : Scale(m.Alpha, m.Width, m.Height, w, h, 1);
+        return (w, h, rgb, alpha);
+    }
+
+    /// <summary>Largest size (in pixels) an image is enlarged to for a finer mask.</summary>
+    private const long MaxMaskPixels = 1L << 25;
+
+    /// <summary>Nearest-neighbor scaling of interleaved 8-bit samples.</summary>
+    private static byte[] Scale(byte[] source, int sw, int sh, int dw, int dh, int n)
+    {
+        var result = new byte[(long)dw * dh * n];
+        var columns = new int[dw];
+        for (int x = 0; x < dw; x++) columns[x] = (int)((long)x * sw / dw) * n;
+        for (int y = 0; y < dh; y++)
+        {
+            long row = (long)y * sh / dh * sw * n, target = (long)y * dw * n;
+            for (int x = 0; x < dw; x++)
+                for (int c = 0; c < n; c++) result[target + x * n + c] = source[row + columns[x] + c];
+        }
+        return result;
     }
 
     internal static bool IsJpx(PdfStream stream) =>
@@ -193,9 +268,10 @@ internal static class ImageDecoder
         var (samples, n, colorSpace, jpx) = decoded;
 
         byte[]? alpha = null;
+        (byte[] Alpha, int Width, int Height)? mask = null;
         int smaskInData = image.GetInt(PdfName.Get("SMaskInData"));
         int alphaChannel = jpx.AlphaChannel >= 0 ? jpx.AlphaChannel : jpx.Channels.Length > n ? jpx.Channels.Length - 1 : -1;
-        if (image.Get(PdfName.SMask) is PdfStream smask) alpha = DecodeAlpha(smask, width, height, soft: true);
+        if (image.Get(PdfName.SMask) is PdfStream smask) mask = DecodeAlpha(smask, soft: true);
         else if (smaskInData is 1 or 2 && alphaChannel >= 0)
         {
             alpha = Resample(jpx, new[] { alphaChannel }, width, height);
@@ -210,11 +286,12 @@ internal static class ImageDecoder
                 }
             }
         }
-        else if (image.Get(PdfName.Get("Mask")) is PdfStream mask) alpha = DecodeAlpha(mask, width, height, soft: false);
+        else if (image.Get(PdfName.Mask) is PdfStream stencil) mask = DecodeAlpha(stencil, soft: false);
+        if (alpha != null) mask = (alpha, width, height);
 
         var rgb = new byte[width * height * 3];
         if (!Convert(samples, width, height, 8, colorSpace, null, rgb)) return null;
-        return (width, height, rgb, alpha);
+        return WithMask(width, height, rgb, mask);
     }
 
     /// <summary>
@@ -284,14 +361,15 @@ internal static class ImageDecoder
         return result;
     }
 
-    private static byte[]? DecodeAlpha(PdfStream mask, int width, int height, bool soft)
+    /// <summary>A soft mask (opacity) or stencil mask as 8-bit alpha at its own resolution; null if not decodable.</summary>
+    private static (byte[] Alpha, int Width, int Height)? DecodeAlpha(PdfStream mask, bool soft)
     {
         int mw = mask.GetInt(PdfName.Get("Width")), mh = mask.GetInt(PdfName.Get("Height"));
-        if (mw <= 0 || mh <= 0) return null;
+        if (mw <= 0 || mh <= 0 || (long)mw * mh > PdfLimits.Current.MaxImagePixels) return null;
         if (soft && IsJpx(mask))
         {
             var jpx = DecodeJpxData(mask);
-            return jpx == null || jpx.Channels.Length == 0 ? null : Resample(jpx, new[] { 0 }, width, height);
+            return jpx == null || jpx.Channels.Length == 0 ? null : (Resample(jpx, new[] { 0 }, mw, mh), mw, mh);
         }
         byte[] data;
         try
@@ -308,18 +386,15 @@ internal static class ImageDecoder
         var samples = Samples(data, mw, mh, 1, bpc);
         if (samples == null) return null;
         bool inverted = mask.GetArray(PdfName.Decode) is { Count: >= 2 } d && d.GetDouble(0) == 1;
-        var alpha = new byte[width * height];
-        for (int y = 0; y < height; y++)
+        var alpha = new byte[mw * mh];
+        for (int i = 0; i < alpha.Length; i++)
         {
-            for (int x = 0; x < width; x++)
-            {
-                int v = samples[(y * mh / height) * mw + x * mw / width];
-                if (soft && bpc == 1) v *= 255;
-                // soft mask: sample = opacity; stencil /Mask: sample 1 (default decode) = masked out
-                alpha[y * width + x] = soft ? (byte)(inverted ? 255 - v : v) : (byte)((v != 0) != inverted ? 0 : 255);
-            }
+            int v = samples[i];
+            if (soft && bpc == 1) v *= 255;
+            // soft mask: sample = opacity; stencil /Mask: sample 1 (default decode) = masked out
+            alpha[i] = soft ? (byte)(inverted ? 255 - v : v) : (byte)((v != 0) != inverted ? 0 : 255);
         }
-        return alpha;
+        return (alpha, mw, mh);
     }
 
     /// <summary>Expands packed samples (1-16 bits) to one byte per sample (0-255; for 1 bit: 0 or 1 when raw).</summary>
