@@ -12,10 +12,12 @@
 - Text extraction: `PdfTextExtractor.ExtractLetters` returns every character with its position (bounds, baseline,
   angle), font (name, size as it appears, bold, italic), fill and stroke color and rendering mode – e.g. to find
   headings, colored text or the invisible OCR layer of scanned pages (`TextLetter.IsVisible`).
-- Text extraction: `TextExtractionOptions.DetectColumns` reads pages set in columns column by column. The page is split
-  at its whitespace into columns and sections; headers, title blocks, captions across the page and footers are read
-  where they stand, while tables, invoices, lists and line numbers keep their rows. On pages of recent arXiv papers the
-  word order matches the order of the LaTeX output to 96.9 % on average (line by line: 84.8 %).
+- Text extraction reads pages set in columns column by column (`TextExtractionOptions.DetectColumns`, on by default;
+  set it to false for the previous line-by-line order). The page is split at its whitespace into columns and sections;
+  headers, title blocks, captions across the page and footers are read where they stand, while tables, invoices, lists,
+  forms and line numbers keep their rows. On pages of recent arXiv papers the word order matches the order of the LaTeX
+  output to 96.9 % on average (line by line: 84.8 %), on IRS forms and instructions to 98.7 % (median; line by line
+  50.8 %); the reading order of 151 ZUGFeRD / Factur-X invoices is unchanged.
 
 ## 1.3.0
 

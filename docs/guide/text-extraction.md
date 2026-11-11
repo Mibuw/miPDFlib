@@ -13,7 +13,7 @@ var options = new TextExtractionOptions
 {
     SortByPosition = true,      // reading order by position (default); false = content stream order
     DetectParagraphs = true,    // empty line for large vertical gaps
-    DetectColumns = true,       // read pages set in columns column by column (see below)
+    DetectColumns = true,       // read pages set in columns column by column (default; see below)
     IncludeXObjects = true,     // text in form XObjects (stamps, letterheads); default true
     IncludeAnnotations = true,  // text in annotation appearances, e.g. filled form fields
 };
@@ -22,16 +22,23 @@ string text = page.ExtractText(options);
 
 ### Columns
 
-By default the text is read line by line across the page, as Ghostscript and most tools do – fine for letters,
-invoices and forms, but on a page set in two or three columns the lines of the columns get mixed. With
-`DetectColumns` the page is split at its whitespace: columns are read one after the other, and a header, a title or
-author block, a caption across the page and a footer are read where they stand. Tables, an invoice's description next
-to its amounts, bulleted lists and line numbers keep their rows. The option applies to `ExtractText`, `ExtractLines`,
-`ExtractWords` and `ExtractLetters`.
+Pages set in two or three columns are read column by column (`DetectColumns`, on by default): the page is split at
+its whitespace, columns are read one after the other, and a header, a title or author block, a caption across the
+page and a footer are read where they stand. Tables, an invoice's description next to its amounts, bulleted and
+numbered lists, forms and line numbers keep their rows, and tables set several times side by side (like a tax table)
+are read one after the other. This applies to `ExtractText`, `ExtractLines`, `ExtractWords` and `ExtractLetters`;
+`DetectColumns = false` reads line by line across the whole page, as Ghostscript and most tools do (and as miPDFlib
+did up to 1.3).
 
-Measured on the pages of 84 recent arXiv papers against the order in which LaTeX wrote their text, the order of the
-words is right to 95–97 % on average (line by line: 76–85 %); a held-out set of papers not used while developing it
-gave 96.9 %.
+How well it works was measured against a reference order – the order in which LaTeX wrote the text of a paper, or the
+content order of tagged (accessible) forms – as the share of words in the right order:
+
+| Documents | Line by line | Column by column |
+|---|---|---|
+| 42 recent arXiv papers (held out while developing it) | 84.8 % | 96.9 % |
+| 42 further arXiv papers | 76.2 % | 95.5 % |
+| IRS forms and instructions (median of 160 pages) | 50.8 % | 98.7 % |
+| 151 ZUGFeRD / Factur-X invoices (289 pages) | – | same order as line by line |
 
 ## Words, lines and positions
 

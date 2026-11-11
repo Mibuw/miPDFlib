@@ -43,14 +43,14 @@ internal static class ColumnLayout
         return result;
     }
 
-    /// <summary>Cuts a line where the gap between two glyphs is wider than about one em.</summary>
+    /// <summary>Cuts a line where the gap between two glyphs is wider than 0.6 em (wider than a word space even in justified text).</summary>
     private static IEnumerable<Fragment> Cut(List<(TextGlyph Glyph, bool SpaceBefore)> line)
     {
         var current = new List<(TextGlyph, bool)>();
         TextGlyph? previous = null;
         foreach (var (g, space) in line)
         {
-            if (previous != null && g.ParallelStart - previous.ParallelEnd > Math.Max(g.FontSize, previous.FontSize))
+            if (previous != null && g.ParallelStart - previous.ParallelEnd > 0.6 * Math.Max(g.FontSize, previous.FontSize))
             {
                 yield return Make(current);
                 current = new List<(TextGlyph, bool)>();
@@ -132,7 +132,11 @@ internal static class ColumnLayout
                 }
                 else break;
             }
-            result.AddRange(sectionChannels != null && j > i + 1 ? ReadColumns(section, sectionChannels, depth) : Segment(section, depth + 1));
+            if (sectionChannels == null || j == i + 1) result.AddRange(Segment(section, depth + 1));
+            // the joined bands must still be columns as a whole (not, say, a numbered list beside the column above)
+            else if (ColumnChannels(section) is { } joined) result.AddRange(ReadColumns(section, joined, depth));
+            else
+                for (int k = i; k < j; k++) result.AddRange(Segment(bands[k], depth + 1));
             i = j;
         }
         return result;
@@ -159,7 +163,32 @@ internal static class ColumnLayout
         var channels = Channels(region, Math.Max(4, 0.9 * size))
             .Where(c => region.Count(f => Crosses(f, new List<Channel> { c })) <= Math.Max(3, region.Count / 20)).ToList();
         if (channels.Count == 0) return null;
-        return AreColumns(Parts(region.Where(f => !Crosses(f, channels)).ToList(), channels)) ? channels : null;
+        var parts = Parts(region.Where(f => !Crosses(f, channels)).ToList(), channels);
+        if (AreColumns(parts)) return channels;
+        // tables set side by side (e.g. a tax table in three blocks): only the channels between the tables
+        int period = RepeatedTables(parts);
+        return period > 0 ? channels.Where((_, i) => (i + 1) % period == 0).ToList() : null;
+    }
+
+    /// <summary>
+    /// The number of columns of a table that is set several times side by side: the parts repeat with the same heads
+    /// (the text of their topmost fragment). Zero if there is no such repetition.
+    /// </summary>
+    private static int RepeatedTables(List<List<Fragment>> parts)
+    {
+        if (parts.Count < 4 || parts.Any(p => p.Count == 0)) return 0;
+        var heads = parts.Select(p => Text(p.MaxBy(f => f.Base)!)).ToList();
+        for (int period = 2; period <= parts.Count / 2; period++)
+        {
+            if (parts.Count % period != 0) continue;
+            bool repeats = true;
+            for (int i = period; i < heads.Count && repeats; i++) repeats = heads[i] == heads[i - period];
+            // the heads of one table differ from each other (not a column of equal cells cut apart)
+            if (repeats && heads.Take(period).Distinct().Count() > 1) return period;
+        }
+        return 0;
+
+        static string Text(Fragment f) => string.Concat(f.Items.Select(i => i.Glyph.Text)).Trim();
     }
 
     /// <summary>
@@ -283,27 +312,38 @@ internal static class ColumnLayout
     /// <summary>True if the parts beside each other are columns of text (see the class remarks).</summary>
     private static bool AreColumns(List<List<Fragment>> parts)
     {
-        int text = parts.Count(IsRunningText);
-        if (text >= 2) return true;
-        if (text == 0) return false;
-        // one side of running text: a side note if its neighbours' lines are not on the same baselines
-        var main = parts.First(IsRunningText);
-        var baselines = main.Select(f => f.Base).ToList();
-        var others = parts.Where(p => !ReferenceEquals(p, main)).SelectMany(p => p).ToList();
-        int aligned = others.Count(f => baselines.Any(b => Math.Abs(b - f.Base) < 0.3 * f.Size));
-        return aligned < 0.5 * others.Count;
+        var text = parts.Where(IsRunningText).ToList();
+        if (text.Count == 0) return false;
+        var lines = text.SelectMany(p => p).ToList();
+        // on the same baseline as a line of the text, with the tolerance the lines are built with
+        bool Aligned(Fragment f) => lines.Any(l => Math.Abs(l.Base - f.Base) <= Math.Max(1, 0.4 * Math.Max(l.Size, f.Size)));
+        var others = parts.Where(p => !text.Contains(p)).ToList();
+        if (text.Count >= 2)
+        {
+            // a table whose description columns look like text: further columns of cells on the same rows (amounts,
+            // rates) beside them
+            return !others.Any(p => p.Count >= 2 && p.Count(Aligned) >= 0.5 * p.Count);
+        }
+        // one side of running text: side notes if there are several beside it, not on the same baselines (a single
+        // label beside the text is a number or a bullet)
+        // Side notes are fewer and narrower than the text they accompany.
+        var rest = others.SelectMany(p => p).ToList();
+        double Width(List<Fragment> p) => p.Count == 0 ? 0 : p.Max(f => f.X1) - p.Min(f => f.X0);
+        return rest.Count >= 2 && rest.Count <= lines.Count && others.All(p => Width(p) < Width(text[0]))
+            && rest.Count(Aligned) < 0.5 * rest.Count;
     }
 
     /// <summary>
-    /// Running text: at least three lines of three words or more that fill most of the part's width, holding at least
-    /// 40 % of its words (labels of a figure next to the text do not count against it; a table column has few such lines).
+    /// Running text: at least three lines of five words or more that fill most of the part's width, holding at least
+    /// 40 % of its words (labels of a figure next to the text do not count against it; the cells of a table, even a
+    /// description column, rarely have five words).
     /// </summary>
     private static bool IsRunningText(List<Fragment> part)
     {
         if (part.Count < 3) return false;
         double width = part.Max(f => f.X1) - part.Min(f => f.X0);
         if (width <= 0) return false;
-        var full = part.Where(f => f.Words >= 3 && f.X1 - f.X0 >= 0.6 * width).ToList();
+        var full = part.Where(f => f.Words >= 5 && f.X1 - f.X0 >= 0.6 * width).ToList();
         return full.Count >= 3 && full.Sum(f => f.Words) >= 0.4 * part.Sum(f => f.Words);
     }
 
@@ -313,15 +353,23 @@ internal static class ColumnLayout
         var rows = new List<List<Fragment>>();
         foreach (var f in leaf.OrderByDescending(f => f.Base).ThenBy(f => f.X0))
         {
+            // the tolerance of the line builder: by the size of the fragment joining the row
             if (rows.Count > 0 && Math.Abs(rows[^1][0].Base - f.Base) <= Math.Max(1, 0.4 * f.Size)) rows[^1].Add(f);
             else rows.Add(new List<Fragment> { f });
         }
         foreach (var row in rows)
         {
-            var line = new List<(TextGlyph, bool)>();
+            var line = new List<(TextGlyph Glyph, bool SpaceBefore)>();
             foreach (var f in row.OrderBy(f => f.X0))
                 for (int i = 0; i < f.Items.Count; i++)
-                    line.Add((f.Items[i].Glyph, i == 0 ? line.Count > 0 : f.Items[i].SpaceBefore));
+                {
+                    var g = f.Items[i].Glyph;
+                    // where fragments meet, a space unless one of the glyphs is one already (as within a line)
+                    bool space = i == 0
+                        ? line.Count > 0 && !line[^1].Glyph.Text.EndsWith(' ') && !g.Text.StartsWith(' ')
+                        : f.Items[i].SpaceBefore;
+                    line.Add((g, space));
+                }
             yield return line;
         }
     }

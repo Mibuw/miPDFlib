@@ -43,14 +43,14 @@ public class ColumnReadingTests
             DrawColumn(c, right, 310, 780);
         });
         Assert.Equal(left.Concat(right), TextLines(page));
-        // without the option: line by line across the page, as before
-        Assert.Equal(left[0] + " " + right[0], TextLines(page, new TextExtractionOptions())[0]);
+        // without column detection: line by line across the page
+        Assert.Equal(left[0] + " " + right[0], TextLines(page, new TextExtractionOptions { DetectColumns = false })[0]);
 
-        var cols = new[] { Lines("a", 15, 3), Lines("b", 15, 3), Lines("c", 15, 3) };
+        var cols = new[] { Lines("a", 15, 5), Lines("b", 15, 5), Lines("c", 15, 5) };
         page = Page(c =>
         {
             c.DrawText("Headline over three columns", PdfStandardFont.HelveticaBold, 18, 50, 800);
-            for (int i = 0; i < 3; i++) DrawColumn(c, cols[i], 50 + i * 175, 760);
+            for (int i = 0; i < 3; i++) DrawColumn(c, cols[i], 40 + i * 180, 760, size: 7.5, leading: 9);
             c.DrawText("Page 7", Font, 8, 280, 40);
         });
         Assert.Equal(new[] { "Headline over three columns" }.Concat(cols[0]).Concat(cols[1]).Concat(cols[2]).Append("Page 7"), TextLines(page));
@@ -135,18 +135,45 @@ public class ColumnReadingTests
         {
             DrawColumn(c, main, 50, 760);
             // side notes on their own baselines, beside the text
-            c.DrawText("Note one", Font, 7, 470, 754);
-            c.DrawText("Note two", Font, 7, 470, 700);
-            c.DrawText("Note three", Font, 7, 470, 660);
+            c.DrawText("Note one", Font, 7, 470, 754);   // halfway between two baselines of the text
+            c.DrawText("Note two", Font, 7, 470, 694);
+            c.DrawText("Note three", Font, 7, 470, 658);
         });
         Assert.Equal(main.Concat(new[] { "Note one", "Note two", "Note three" }), TextLines(page));
     }
 
     [Fact]
+    public void BusinessLettersReadAsWithoutColumnDetection()
+    {
+        // sender line, address field with an information block beside it, subject, running text and a footer of
+        // three columns with company details: nothing here is set in columns of text
+        var page = Page(c =>
+        {
+            c.DrawText("Muster GmbH · Hauptstraße 1 · 12345 Musterstadt", Font, 7, 70, 720);
+            string[] address = { "Firma", "Beispiel AG", "Frau Erika Mustermann", "Industriestraße 5", "54321 Beispielstadt" };
+            string[] info = { "Ihr Zeichen: EM", "Unser Zeichen: MM", "Telefon: 0123 456789", "Datum: 11.11.2026" };
+            for (int i = 0; i < address.Length; i++) c.DrawText(address[i], Font, 10, 70, 700 - i * 12);
+            for (int i = 0; i < info.Length; i++) c.DrawText(info[i], Font, 9, 400, 700 - i * 12);
+            c.DrawText("Rechnung Nr. 4711 über die Wartung im Oktober", PdfStandardFont.HelveticaBold, 11, 70, 600);
+            var body = Lines("t", 12, 9);
+            DrawColumn(c, body, 70, 570, size: 10, leading: 13);
+            string[][] footer =
+            {
+                new[] { "Muster GmbH", "Hauptstraße 1", "12345 Musterstadt" },
+                new[] { "Geschäftsführer: Max Muster", "Amtsgericht Musterstadt", "HRB 12345" },
+                new[] { "Musterbank", "IBAN DE02 1203 0000 0000 2020 51", "BIC BYLADEM1001" },
+            };
+            for (int col = 0; col < 3; col++)
+                for (int i = 0; i < footer[col].Length; i++) c.DrawText(footer[col][i], Font, 7, 70 + col * 160, 80 - i * 9);
+        });
+        Assert.Equal(page.ExtractText(new TextExtractionOptions { DetectColumns = false }), page.ExtractText(Columns));
+    }
+
+    [Fact]
     public void WordsAndLettersFollowTheColumns()
     {
-        var left = Lines("a", 10, 4);
-        var right = Lines("b", 10, 4);
+        var left = Lines("a", 10, 5);
+        var right = Lines("b", 10, 5);
         var page = Page(c =>
         {
             DrawColumn(c, left, 50, 780);

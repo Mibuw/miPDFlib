@@ -71,11 +71,11 @@ public sealed class TextExtractionOptions
     public bool DetectParagraphs { get; set; }
 
     /// <summary>
-    /// Read pages set in columns column by column (default false: line by line across the page). The page is split at
-    /// its whitespace into columns and bands (a headline above the columns, header, footer, side notes); tables stay
-    /// row by row. Applies with <see cref="SortByPosition"/>.
+    /// Read pages set in columns column by column (default true; false: line by line across the page). The page is split
+    /// at its whitespace into columns and sections (a headline above the columns, header, footer, side notes); tables,
+    /// invoices, lists and forms keep their rows. Applies with <see cref="SortByPosition"/>.
     /// </summary>
-    public bool DetectColumns { get; set; }
+    public bool DetectColumns { get; set; } = true;
 
     /// <summary>Include text of form XObjects (e.g. stamps, letterheads). Default: true.</summary>
     public bool IncludeXObjects { get; set; } = true;
