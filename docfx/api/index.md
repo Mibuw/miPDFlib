@@ -15,5 +15,7 @@ The complete public API of miPDFlib, generated from the XML documentation of the
 | <xref:MiPdf.PdfA> | PDF/A conformance |
 | <xref:MiPdf.Invoicing> | ZUGFeRD / Factur-X / XRechnung |
 | <xref:MiPdf.Barcodes> | QR Code, Data Matrix, Code 128, EAN |
+| <xref:MiPdf.Rendering> | `PdfRenderer` (package miPDFlib.Rendering) |
+| <xref:MiPdf.PostScript> | `PostScriptConverter`, `EpsImport` (package miPDFlib.PostScript) |
 
 Use the search box (top right) to find a class or method by name.

@@ -27,11 +27,25 @@ public sealed class PostScriptOptions
     /// </summary>
     public bool IgnoreErrors { get; set; }
 
+    /// <summary>
+    /// The page size the converter starts with (default US Letter, 612 x 792 points); only its width and height count.
+    /// A program can change it with <c>setpagedevice</c>. EPS files are converted to a page of their bounding box.
+    /// </summary>
+    public PdfRectangle PageSize { get; set; } = global::MiPdf.PageSize.Letter;
+
+    /// <summary>
+    /// Rotate pages so that they are read upright (default true), as Ghostscript does: by the orientation in the DSC
+    /// comments (%%Orientation, %%PageOrientation), otherwise by the direction most of the text on the page runs in.
+    /// </summary>
+    public bool AutoRotatePages { get; set; } = true;
+
     internal PsLimits ToLimits()
     {
         if (MaxOperations <= 0) throw new ArgumentOutOfRangeException(nameof(MaxOperations));
         if (MaxMemory <= 0) throw new ArgumentOutOfRangeException(nameof(MaxMemory));
         if (Timeout is { } t && t <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(Timeout));
+        if (!(PageSize.Width is > 0 and <= 200_000) || !(PageSize.Height is > 0 and <= 200_000))
+            throw new ArgumentOutOfRangeException(nameof(PageSize));
         return new PsLimits { MaxOperations = MaxOperations, MaxMemory = MaxMemory, Timeout = Timeout };
     }
 }

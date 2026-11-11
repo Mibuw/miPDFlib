@@ -30,6 +30,8 @@
     href: ../../docs/guide/barcodes.md
   - name: Rendering to images
     href: ../../docs/guide/rendering.md
+  - name: PostScript and EPS
+    href: ../../docs/guide/postscript.md
   - name: Error handling and diagnostics
     href: ../../docs/guide/diagnostics.md
 - name: Background

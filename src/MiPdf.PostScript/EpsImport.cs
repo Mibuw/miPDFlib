@@ -35,8 +35,8 @@ public static class EpsImport
         var limits = options.ToLimits();
         try
         {
-            var program = EpsFile.PostScript(eps);
-            var box = EpsFile.BoundingBox(program) ?? throw new PdfException("The EPS file has no valid %%BoundingBox comment.");
+            var program = DscComments.PostScript(eps);
+            var box = new DscComments(program).BoundingBox ?? throw new PdfException("The EPS file has no valid %%BoundingBox comment.");
             var form = new PdfFormXObject(document, new PdfRectangle(0, 0, box.Width, box.Height));
             var device = new PsFormDevice(form, box.Left, box.Bottom);
             var interpreter = new PsInterpreter(limits, cancellationToken) { Encapsulated = true };

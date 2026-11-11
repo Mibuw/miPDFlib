@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- New package **miPDFlib.PostScript**: `PostScriptConverter.ToPdf` converts PostScript files to PDF (LanguageLevel 3:
+  all font types, images, patterns, shadings, forms, `setpagedevice`, `pdfmark`, document information from the DSC
+  comments, automatic page rotation), and `PdfDocument.ImportEps` places EPS graphics as form XObjects. The
+  interpreter is pure managed code and runs in a sandbox with limits on operations, memory and time. Compared page
+  by page with Ghostscript.
 - Images: JBIG2 (ITU-T T.88) and JPEG 2000 (ISO/IEC 15444-1) are decoded – in rendering, `ToPng` and redaction
   (partially covered images are blanked like JPEG images instead of being removed). JBIG2: generic, refinement,
   text and halftone regions, symbol and pattern dictionaries, arithmetic and Huffman coding including user tables

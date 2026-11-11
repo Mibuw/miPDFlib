@@ -39,7 +39,7 @@ internal abstract class PsDevice
         Height = height;
     }
 
-    public void ErasePage() => Content.Erase();
+    public virtual void ErasePage() => Content.Erase();
 
     public virtual void Fill(PsGState gs, PsDeviceColor color, bool evenOdd) => Content.Fill(gs, color, evenOdd);
 
@@ -103,15 +103,63 @@ internal sealed class PsPageDevice : PsDevice
 {
     private PdfPage _page = null!;
     private PsContentWriter _content = null!;
+    private readonly Matrix _defaultMatrix;
 
-    public PsPageDevice(PdfDocument document, double width, double height)
+    /// <summary>The characters shown on the current page whose baseline runs at 0, 90, 180 or 270 degrees.</summary>
+    private readonly long[] _textByDirection = new long[4];
+
+    /// <param name="document">The document the pages are added to.</param>
+    /// <param name="width">The page width in points.</param>
+    /// <param name="height">The page height in points.</param>
+    /// <param name="left">The left edge of the page in PostScript default user space (an EPS file cropped to its bounding box).</param>
+    /// <param name="bottom">The bottom edge of the page in PostScript default user space.</param>
+    public PsPageDevice(PdfDocument document, double width, double height, double left = 0, double bottom = 0)
     {
         Document = document;
         Images = new PsPdfImages(document);
         Marks = new PsPdfMarks(document);
         Width = width;
         Height = height;
+        _defaultMatrix = Matrix.Translate(-left, -bottom).Multiply(base.DefaultMatrix);
         NewPage();
+    }
+
+    public override Matrix DefaultMatrix => _defaultMatrix;
+
+    public override void ErasePage()
+    {
+        base.ErasePage();
+        Array.Clear(_textByDirection);
+    }
+
+    /// <summary>
+    /// Pages get a /Rotate entry so that they are read upright, as Ghostscript's AutoRotatePages /PageByPage does: by
+    /// the orientation from the DSC comments, otherwise by the direction most of the text runs in.
+    /// </summary>
+    public bool AutoRotate { get; init; }
+
+    /// <summary>The orientation of the pages from the DSC comments (0 or 90): of all pages, and of single pages.</summary>
+    public int? DocumentOrientation { get; init; }
+
+    public IReadOnlyList<int?> PageOrientations { get; init; } = Array.Empty<int?>();
+
+    public override void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth)
+    {
+        base.Text(gs, color, font, tm, codes, mode, lineWidth);
+        double angle = Math.Atan2(tm.B, tm.A) * 180 / Math.PI;
+        double quarter = Math.Round(angle / 90);
+        if (Math.Abs(angle - quarter * 90) <= 1) _textByDirection[((int)quarter % 4 + 4) % 4] += codes.Length;
+    }
+
+    /// <summary>The rotation of the page being finished (0 if it stays as it is).</summary>
+    private int PageRotation()
+    {
+        int? dsc = PagesShown < PageOrientations.Count ? PageOrientations[PagesShown] : null;
+        if ((dsc ?? DocumentOrientation) is { } orientation) return orientation;
+        int best = 0;
+        for (int i = 1; i < 4; i++)
+            if (_textByDirection[i] > _textByDirection[best]) best = i;
+        return best * 90;
     }
 
     /// <summary>What pdfmark adds to the document.</summary>
@@ -147,6 +195,10 @@ internal sealed class PsPageDevice : PsDevice
     {
         _page.Dictionary[PdfName.MediaBox] = PdfArray.FromRectangle(new PdfRectangle(0, 0, Width, Height));
         _page.Dictionary[PdfName.Contents] = Document!.AddObject(new PdfStream(_content.ToArray()));
+        // a rotation set with pdfmark is kept
+        if (AutoRotate && PageRotation() is var rotation and not 0 && !_page.Dictionary.ContainsKey(PdfName.Rotate))
+            _page.Dictionary[PdfName.Rotate] = new PdfNumber(rotation);
+        Array.Clear(_textByDirection);
         PagesShown++;
         NewPage();
     }

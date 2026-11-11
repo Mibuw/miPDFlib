@@ -60,8 +60,9 @@ Last update: 2026-11-10
 | 51 PostScript, stage 5 (patterns, shadings, forms, page device) | ✅ done (655 tests; makepattern, setpattern and the Pattern color space: colored and uncolored tiling patterns become PDF tiling patterns whose cell is what the PaintProc paints, shading patterns become PDF shading patterns; shfill with all seven shading types, function types 0, 2 and 3 as PDF functions, mesh data from arrays, strings and files; shadings in Separation, DeviceN, Indexed and CIE-based spaces are converted to device colors like all other colors; execform writes a form XObject that is painted again while the graphics state it depends on is the same; setpagedevice calls the BeginPage, EndPage and Install procedures as Ghostscript does (EndPage can drop pages or collect several on one sheet); errors as in Ghostscript; the test pages render like Ghostscript, also through ps2write and eps2write output; also fixed: bind makes nested procedures read-only, so a later bind does not bind them again) |
 | 52 PostScript, stage 6 (pdfmark) | ✅ done (678 tests; document information (DOCINFO), catalog and open action (DOCVIEW), bookmarks with nesting by /Count (OUT), annotations and links with their rectangles in the current user space, destinations and actions (ANN, LNK), named destinations (DEST), page entries (PAGE, PAGES), article threads (ARTICLE), embedded files (EMBED), named objects (OBJ, PUT, PUTINTERVAL, APPEND, CLOSE with {Catalog}, {DocInfo}, {ThisPage}, {PrevPage}, {NextPage}, {PageN}) and named pictures as form XObjects (BP, EP, SP); pages referred to before they are painted are created ahead; setdistillerparams and currentdistillerparams; the resulting objects and the errors were compared with Ghostscript's pdfwrite) |
 | 53 PostScript, stage 7 (EPS import) | ✅ done (689 tests; first public API of miPDFlib.PostScript: `PdfDocument.ImportEps` returns a form XObject of the bounding box (%%HiResBoundingBox preferred, (atend) read from the trailer), drawn with `PdfCanvas.DrawXObject`; DOS EPS binary files without their preview; showpage, erasepage, setpagedevice and the page size operators neither erase nor resize the graphic, as the EPSF specification asks; the form does not depend on the graphics state it is drawn with; `PostScriptOptions` (time, operation and memory limits, IgnoreErrors) and `PostScriptException`; compared with Ghostscript's -dEPSCrop rendering, also for the EPS files Ghostscript's eps2write made of the test pages of the earlier stages) |
+| 54 PostScript, stage 8 (converter) | ✅ done (695 tests; `PostScriptConverter.ToPdf` with the page size, automatic page rotation and the sandbox limits in `PostScriptOptions`; document information from the DSC comments (%%Title, %%Creator, %%For as author; strings in parentheses and hexadecimal UTF-16 decoded), pdfmark wins; pages rotated by %%PageOrientation, %%Orientation or the direction of most of their text, as Ghostscript's AutoRotatePages /PageByPage; EPS files become a page of their bounding box; PJL job headers, control-D and DOS EPS binary files; the rotations and the document information were compared with Ghostscript's ps2pdf, and all test files of the earlier stages convert as before) |
 
-Current state: 689 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 695 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -102,10 +103,10 @@ done for the next release. Next steps:
    joining forms and ligatures (OpenType GSUB), mark positioning (GPOS), optional Latin ligatures. Indic scripts ✅
    (the nine scripts of the Indic shaper, compared with HarfBuzz). Still open: Sinhala and the scripts of the
    Universal Shaping Engine (Khmer, Myanmar, Tibetan, ...), only on demand.
-4. **PostScript and EPS** (package miPDFlib.PostScript): first EPS import (EPS graphics as form XObjects in own
-   documents), then the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics ✅ (paths,
+4. **PostScript and EPS** (package miPDFlib.PostScript): EPS import (EPS graphics as form XObjects in own
+   documents) and the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics ✅ (paths,
    graphics state, clipping, colors), 3 text and fonts ✅ (Type 1, Type 3, Type 42, CID), 4 images and filters ✅, 5 Level
-   2/3 ✅ (shadings, patterns, forms, `setpagedevice`), 6 `pdfmark` ✅, 7 EPS import API ✅; then the converter.
+   2/3 ✅ (shadings, patterns, forms, `setpagedevice`), 6 `pdfmark` ✅, 7 EPS import API ✅, 8 converter ✅.
 
 Known gaps: see the roadmap above; in addition, hyphenation patterns are not bundled (load them from hyph-utf8).
 

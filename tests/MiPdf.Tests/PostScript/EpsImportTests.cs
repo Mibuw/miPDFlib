@@ -61,7 +61,7 @@ public class EpsImportTests
     [Fact]
     public void BoundingBoxComments()
     {
-        static PdfRectangle? Box(string text) => EpsFile.BoundingBox(Encoding.Latin1.GetBytes(text));
+        static PdfRectangle? Box(string text) => new DscComments(Encoding.Latin1.GetBytes(text)).BoundingBox;
         // the high resolution box is preferred
         Assert.Equal(new PdfRectangle(0.5, 0.25, 99.5, 49.75), Box("%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 100 50\n%%HiResBoundingBox: 0.5 0.25 99.5 49.75\n%%EndComments\n"));
         // (atend): the last one in the file, after an embedded EPS with its own

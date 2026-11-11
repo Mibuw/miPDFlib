@@ -17,6 +17,12 @@ internal sealed class PsScanner
 
     public static bool IsWhitespace(int c) => c is 0 or 9 or 10 or 12 or 13 or 32;
 
+    /// <summary>
+    /// Whitespace between tokens: also control-D, the end-of-job character of serial and parallel printer connections
+    /// that print files often contain (Ghostscript skips it the same way; in strings it stays).
+    /// </summary>
+    private static bool IsTokenSpace(int c) => IsWhitespace(c) || c == 4;
+
     public static bool IsDelimiter(int c) => c is '(' or ')' or '<' or '>' or '[' or ']' or '{' or '}' or '/' or '%';
 
     /// <summary>Reads the next token; false at the end of the file.</summary>
@@ -69,7 +75,7 @@ internal sealed class PsScanner
         {
             c = file.ReadByte();
             if (c < 0) return false;
-            if (IsWhitespace(c)) continue;
+            if (IsTokenSpace(c)) continue;
             if (c == '%')
             {
                 // comment up to the end of the line
@@ -152,7 +158,7 @@ internal sealed class PsScanner
         {
             int c = file.ReadByte();
             if (c < 0) break;
-            if (IsWhitespace(c))
+            if (IsTokenSpace(c))
             {
                 // the terminating whitespace is consumed; CR LF counts as one newline
                 if (c == '\r')

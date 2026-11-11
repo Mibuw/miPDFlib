@@ -388,8 +388,9 @@ internal sealed partial class PsInterpreter
     private PdfArray UserRectangle(in PsObject rect)
     {
         var r = NumberArray(rect, 4);
-        var toDefault = GState.Ctm;
-        if ((Device?.DefaultMatrix ?? Matrix.Identity).TryInvert(out var inverse)) toDefault = toDefault.Multiply(inverse);
+        // to device space and from there to the space of the page (which starts at the device origin, also for an EPS
+        // file cropped to its bounding box)
+        var toDefault = GState.Ctm.Multiply(Matrix.Scale(1 / PsContentWriter.DeviceScale, 1 / PsContentWriter.DeviceScale));
         var corners = new[] { toDefault.Transform(r[0], r[1]), toDefault.Transform(r[2], r[1]), toDefault.Transform(r[0], r[3]), toDefault.Transform(r[2], r[3]) };
         double Round(double v) => Math.Round(v, 4);
         return new PdfArray(new PdfNumber(Round(corners.Min(c => c.X))), new PdfNumber(Round(corners.Min(c => c.Y))),
