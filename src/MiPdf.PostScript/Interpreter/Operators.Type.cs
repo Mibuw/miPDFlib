@@ -166,9 +166,16 @@ internal sealed partial class PsInterpreter
                     array.Storage.Items[array.Offset + i] = value;
                 }
             }
-            else if (item.IsProcedure && item.CanRead)
+            else if (item.IsProcedure && item.CanWrite)
             {
+                // a nested procedure is bound and made read-only (PLRM bind), so a later bind of a procedure that
+                // contains it leaves it as it is
                 Bind(item, visited, depth + 1);
+                if (writable)
+                {
+                    BeforeChange(array.Storage);
+                    array.Storage.Items[array.Offset + i] = item.WithAttributes(item.Attributes | PsAttributes.ReadOnly);
+                }
             }
         }
     }

@@ -63,22 +63,14 @@ internal sealed partial class PsInterpreter
         });
         Op("currentcolorspace", ip =>
         {
-            var space = ip.GState.ColorSpace;
-            ip.Push(space.Definition.IsArray ? space.Definition
-                : ip.NewArray(new[] { PsObject.Name(ip.Name(space.Family.ToString())) }));
+            ip.Push(ip.ColorSpaceObject(ip.GState.ColorSpace));
         });
         Op("setcolor", ip =>
         {
             var space = ip.GState.ColorSpace;
             if (space.Family == PsColorFamily.Pattern)
             {
-                var pattern = ip.Pop();
-                if (pattern.Type != PsType.Dictionary) throw new PsError("typecheck");
-                int n = space.Base?.Components ?? 0;
-                var components = new double[n];
-                for (int i = n - 1; i >= 0; i--) components[i] = ip.PopReal();
-                ip.GState.Color = components;
-                ip.GState.Pattern = pattern;
+                ip.SetPatternColor();
                 return;
             }
             var values = new double[space.Components];
@@ -92,14 +84,25 @@ internal sealed partial class PsInterpreter
         });
         Op("setpattern", ip =>
         {
-            // pattern colors are painted from stage 5 on; the color space and pattern are already set up
-            var pattern = ip.Pop();
-            if (pattern.Type != PsType.Dictionary) throw new PsError("typecheck");
-            ip.GState.ColorSpace = new PsColorSpace { Family = PsColorFamily.Pattern, Components = 1, Base = null };
-            ip.GState.Color = Array.Empty<double>();
-            ip.GState.Pattern = pattern;
+            // PLRM: currentcolorspace 0 get /Pattern ne { [/Pattern currentcolorspace] setcolorspace } if setcolor
+            if (ip.Ops.Count == 0) throw new PsError("stackunderflow");
+            if (ip.Ops.Peek().Type != PsType.Dictionary) throw new PsError("typecheck");
+            var current = ip.GState.ColorSpace;
+            if (current.Family != PsColorFamily.Pattern)
+            {
+                ip.GState.ColorSpace = new PsColorSpace
+                {
+                    Family = PsColorFamily.Pattern, Components = 1, Base = current,
+                    Definition = ip.NewArray(new[] { PsObject.Name(ip.Name("Pattern")), ip.ColorSpaceObject(current) }),
+                };
+            }
+            ip.SetPatternColor();
         });
     }
+
+    /// <summary>The color space as returned by currentcolorspace: its array, or an array with the family name.</summary>
+    private PsObject ColorSpaceObject(PsColorSpace space) => space.Definition.IsArray ? space.Definition
+        : NewArray(new[] { PsObject.Name(Name(space.Family.ToString())) });
 
     private void SetColor(PsColorSpace space, params double[] values)
     {

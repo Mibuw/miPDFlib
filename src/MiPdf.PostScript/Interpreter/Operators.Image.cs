@@ -469,7 +469,7 @@ internal sealed partial class PsInterpreter
         PsDeviceColor color = PsDeviceColor.Black;
         if (output.IsStencil)
         {
-            if (CurrentDeviceColor() is not { } c) return; // patterns (stage 5) and Separation /None
+            if (PaintColor() is not { } c) return; // Separation /None, a Pattern space without pattern
             color = c;
         }
         var unitToDevice = new Matrix(spec.Width, 0, 0, -rows, 0, rows).Multiply(inverse).Multiply(GState.Ctm);

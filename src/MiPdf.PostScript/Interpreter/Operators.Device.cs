@@ -2,10 +2,17 @@ using MiPdf.PostScript.Graphics;
 
 namespace MiPdf.PostScript.Interpreter;
 
-/// <summary>Page device operators (PLRM 6.1): the page size; the other parameters are kept but have no effect.</summary>
+/// <summary>
+/// Page device operators (PLRM 6.1): the page size and the BeginPage, EndPage and Install procedures; the other
+/// parameters are kept but have no effect.
+/// </summary>
 internal sealed partial class PsInterpreter
 {
     private PsDict? _pageDevice;
+    private PsObject _defaultBeginPage, _defaultEndPage, _defaultInstall;
+
+    /// <summary>The number of pages shown (showpage and copypage) as passed to BeginPage and EndPage.</summary>
+    private int _pageCount;
 
     /// <summary>The page sizes of the LanguageLevel 1 page size operators (in points).</summary>
     private static readonly Dictionary<string, (double Width, double Height)> PageSizes = new()
@@ -21,6 +28,8 @@ internal sealed partial class PsInterpreter
         {
             var request = ip.PopDict();
             var current = ip.PageDeviceDict();
+            // the current page ends as at the end of the device (EndPage with reason 2, normally not shown)
+            if (ip.EndPage(2)) ip.Device?.ShowPage();
             foreach (var (key, value) in request.Map) current.Map[key] = value;
             if (request.Map.TryGetValue(ip.Key("PageSize"), out var size) && size.IsArray && size.AsArray.Length >= 2
                 && size.AsArray[0].IsNumber && size.AsArray[1].IsNumber)
@@ -29,9 +38,15 @@ internal sealed partial class PsInterpreter
                 if (w <= 0 || h <= 0 || w > 200_000 || h > 200_000) throw new PsError("rangecheck");
                 ip.Device?.SetPageSize(w, h);
             }
-            // setpagedevice starts a new page with a fresh graphics state
+            // setpagedevice starts a new page with a fresh graphics state (the page count goes on, as in Ghostscript)
             ip.Device?.ErasePage();
             ip.InitGraphics(ip.Device);
+            if (ip.PageProcedure("Install", ip._defaultInstall) is { } install) ip.PushAll(ip.CallProcedure(install, ReadOnlySpan<PsObject>.Empty));
+            ip.BeginPage();
+        });
+        Op(".endjobpage", ip =>
+        {
+            if (ip.EndPage(2)) ip.Device?.ShowPage();
         });
         Op("currentpagedevice", ip =>
         {
@@ -63,9 +78,66 @@ internal sealed partial class PsInterpreter
             _pageDevice.Map[Key("Orientation")] = PsObject.Integer(0);
             _pageDevice.Map[Key("NumCopies")] = PsObject.Null;
             _pageDevice.Map[Key("Policies")] = PsObject.Dictionary(NewDict(0));
+            _defaultBeginPage = Procedure("{pop}");
+            _defaultEndPage = Procedure("{exch pop 2 ne}");
+            _defaultInstall = Procedure("{}");
+            _pageDevice.Map[Key("BeginPage")] = _defaultBeginPage;
+            _pageDevice.Map[Key("EndPage")] = _defaultEndPage;
+            _pageDevice.Map[Key("Install")] = _defaultInstall;
         }
         double w = Device?.Width ?? 612, h = Device?.Height ?? 792;
         _pageDevice.Map[Key("PageSize")] = NewArray(new[] { PsObject.RealValue((float)w), PsObject.RealValue((float)h) });
         return _pageDevice;
+    }
+
+    private PsObject Procedure(string source)
+    {
+        _scanner.Next(new PsMemoryFile(System.Text.Encoding.ASCII.GetBytes(source)), out var proc);
+        return proc;
+    }
+
+    /// <summary>A page device procedure set by the program (null for the default, which needs no call).</summary>
+    private PsObject? PageProcedure(string key, PsObject defaultProc)
+    {
+        if (_pageDevice == null || !_pageDevice.Map.TryGetValue(Key(key), out var proc) || !proc.IsProcedure) return null;
+        return defaultProc.IsArray && proc.AsArray.SameAs(defaultProc.AsArray) ? null : proc;
+    }
+
+    private void PushAll(PsObject[] values)
+    {
+        foreach (var v in values) Push(v);
+    }
+
+    /// <summary>EndPage with the page count and the reason (0 showpage, 1 copypage, 2 end of the device): true to show the page.</summary>
+    private bool EndPage(int reason)
+    {
+        if (PageProcedure("EndPage", _defaultEndPage) is not { } proc) return reason != 2;
+        var results = CallProcedure(proc, new[] { PsObject.Integer(_pageCount), PsObject.Integer(reason) });
+        if (results.Length == 0 || results[^1].Type != PsType.Boolean) throw new PsError("typecheck");
+        PushAll(results[..^1]);
+        return results[^1].Bool;
+    }
+
+    private void BeginPage()
+    {
+        if (PageProcedure("BeginPage", _defaultBeginPage) is { } proc) PushAll(CallProcedure(proc, new[] { PsObject.Integer(_pageCount) }));
+    }
+
+    /// <summary>
+    /// showpage (and copypage, which keeps the graphics state): EndPage, the page, BeginPage. A page that EndPage does
+    /// not let through is not erased either: the next page is painted over it (N-up printing works this way).
+    /// </summary>
+    private void ShowPage(bool erase)
+    {
+        if (EndPage(0)) Device?.ShowPage();
+        if (erase) InitGraphics(Device);
+        _pageCount++;
+        BeginPage();
+    }
+
+    /// <summary>The end of the job: a program's EndPage procedure is called with reason 2 and may show the page.</summary>
+    public void EndJob()
+    {
+        if (PageProcedure("EndPage", _defaultEndPage) != null) Run(System.Text.Encoding.ASCII.GetBytes(".endjobpage"));
     }
 }

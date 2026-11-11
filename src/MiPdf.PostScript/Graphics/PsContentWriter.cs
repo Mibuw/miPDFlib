@@ -26,20 +26,37 @@ internal sealed class PsContentWriter
     private int _cap, _join;
     private double _miter;
     private string _dash = "";
-    private bool _overprint, _strokeAdjust;
+    private bool _overprint, _strokeAdjust, _extGStateKnown;
     private int _textMode;
-    private readonly bool _glyphSpace;
+    private readonly bool _glyphSpace, _unknownStart;
+    private readonly Matrix _deviceToContent;
     private readonly Dictionary<PdfReference, PdfName> _fonts = new();
     private readonly Dictionary<PdfReference, PdfName> _xobjects = new();
+    private readonly Dictionary<PdfReference, PdfName> _patterns = new();
+    private readonly Dictionary<PdfReference, PdfName> _shadings = new();
+    private readonly Dictionary<PsColorFamily, PdfName> _patternSpaces = new();
 
     /// <param name="resources">Where fonts and graphics states are registered (null: the null device).</param>
     /// <param name="glyphSpace">Content of a Type 3 glyph: coordinates are glyph space, without the device scaling.</param>
-    public PsContentWriter(IResourceContainer? resources, bool glyphSpace = false)
+    /// <param name="deviceToContent">
+    /// The transformation from device space to the default space of the content stream, written at its start (default:
+    /// the scaling to points, or nothing in glyph space). Pattern cells and form XObjects have their own.
+    /// </param>
+    /// <param name="unknownStart">
+    /// The graphics state at the start of the content is not known (form XObjects and pattern cells inherit it): every
+    /// parameter is written before it is used.
+    /// </param>
+    public PsContentWriter(IResourceContainer? resources, bool glyphSpace = false, Matrix? deviceToContent = null, bool unknownStart = false)
     {
         _resources = resources;
         _glyphSpace = glyphSpace;
+        _deviceToContent = deviceToContent ?? (glyphSpace ? Matrix.Identity : Matrix.Scale(1 / DeviceScale, 1 / DeviceScale));
+        _unknownStart = unknownStart;
         Begin();
     }
+
+    /// <summary>The transformation from device space to the default space of the content stream.</summary>
+    public Matrix DeviceToContent => _deviceToContent;
 
     /// <summary>True when something was painted.</summary>
     public bool HasContent { get; private set; }
@@ -50,7 +67,12 @@ internal sealed class PsContentWriter
     private void Begin()
     {
         _sb.Clear();
-        _sb.Append(_glyphSpace ? "q\n" : "0.1 0 0 0.1 0 0 cm\nq\n");
+        if (_deviceToContent != Matrix.Identity)
+        {
+            WriteMatrix(_deviceToContent);
+            _sb.Append("cm\n");
+        }
+        _sb.Append("q\n");
         ResetState();
         _clip = null;
         HasContent = false;
@@ -143,6 +165,16 @@ internal sealed class PsContentWriter
 
     private void ResetState()
     {
+        if (_unknownStart)
+        {
+            // the state at the start of the content (which Q returns to) is inherited
+            _fill = _stroke = null;
+            _lineWidth = _miter = double.NaN;
+            _cap = _join = _textMode = -1;
+            _dash = "";
+            _extGStateKnown = false;
+            return;
+        }
         // the PDF defaults after Q
         _fill = _stroke = PsDeviceColor.Black;
         _lineWidth = 1;
@@ -150,7 +182,40 @@ internal sealed class PsContentWriter
         _miter = 10;
         _dash = "[] 0";
         _overprint = _strokeAdjust = false;
+        _extGStateKnown = true;
         _textMode = 0;
+    }
+
+    /// <summary>Paints a shading (<c>shfill</c>): <paramref name="toDevice"/> maps the shading's space to device space.</summary>
+    public void Shading(PsGState gs, PdfReference shading, Matrix toDevice)
+    {
+        if (_resources == null) return;
+        SyncClip(gs.Clip);
+        SyncExtGState(gs.Overprint, _strokeAdjust);
+        if (!_shadings.TryGetValue(shading, out var name))
+            _shadings[shading] = name = _resources.AddResource(PdfName.Shading, shading, "Sh");
+        _sb.Append("q ");
+        WriteMatrix(toDevice);
+        _sb.Append("cm /").Append(name.Value).Append(" sh Q\n");
+        HasContent = true;
+    }
+
+    /// <summary>Paints a form XObject: <paramref name="toDevice"/> maps form space to device space.</summary>
+    public void Form(PsGState gs, PdfReference form, Matrix toDevice)
+    {
+        if (_resources == null) return;
+        SyncClip(gs.Clip);
+        if (!_xobjects.TryGetValue(form, out var name))
+            _xobjects[form] = name = _resources.AddResource(PdfName.XObject, form, "Fm");
+        _sb.Append("q ");
+        WriteMatrix(toDevice);
+        _sb.Append("cm /").Append(name.Value).Append(" Do Q\n");
+        HasContent = true;
+    }
+
+    private void WriteMatrix(Matrix m)
+    {
+        foreach (double v in new[] { m.A, m.B, m.C, m.D, m.E, m.F }) _sb.Append(Precise(v)).Append(' ');
     }
 
     public void Fill(PsGState gs, PsDeviceColor color, bool evenOdd)
@@ -236,6 +301,32 @@ internal sealed class PsContentWriter
 
     private void WriteColor(PsDeviceColor c, bool stroke)
     {
+        if (c.Pattern is { } pattern)
+        {
+            if (_resources == null) return;
+            var reference = pattern.Resolve(_deviceToContent);
+            if (!_patterns.TryGetValue(reference, out var name))
+                _patterns[reference] = name = _resources.AddResource(PdfName.Pattern, reference, "P");
+            if (pattern.Colored) _sb.Append("/Pattern ");
+            else
+            {
+                // an uncolored pattern: the color it is painted with, in [/Pattern /DeviceXXX]
+                if (!_patternSpaces.TryGetValue(c.Family, out var space))
+                {
+                    var array = new PdfArray(PdfName.Pattern, PdfName.Get(c.Family.ToString()));
+                    _patternSpaces[c.Family] = space = _resources.AddResource(PdfName.ColorSpace, array, "CS");
+                }
+                _sb.Append('/').Append(space.Value).Append(' ');
+            }
+            _sb.Append(stroke ? "CS " : "cs ");
+            if (!pattern.Colored)
+            {
+                int n = c.Family switch { PsColorFamily.DeviceGray => 1, PsColorFamily.DeviceRGB => 3, _ => 4 };
+                Numbers(4, new[] { c.C0, c.C1, c.C2, c.C3 }[..n]);
+            }
+            _sb.Append('/').Append(name.Value).Append(stroke ? " SCN\n" : " scn\n");
+            return;
+        }
         switch (c.Family)
         {
             case PsColorFamily.DeviceGray:
@@ -294,7 +385,7 @@ internal sealed class PsContentWriter
 
     private void SyncExtGState(bool overprint, bool strokeAdjust)
     {
-        if (_overprint == overprint && _strokeAdjust == strokeAdjust) return;
+        if (_extGStateKnown && _overprint == overprint && _strokeAdjust == strokeAdjust) return;
         if (_resources == null) return; // null device
         if (!_extGStates.TryGetValue((overprint, strokeAdjust), out var name))
         {
@@ -311,6 +402,7 @@ internal sealed class PsContentWriter
         _sb.Append('/').Append(name.Value).Append(" gs\n");
         _overprint = overprint;
         _strokeAdjust = strokeAdjust;
+        _extGStateKnown = true;
     }
 
     private void WritePath(IEnumerable<PsSegment> segments, int decimals)
@@ -343,7 +435,15 @@ internal sealed class PsContentWriter
         foreach (double v in values) _sb.Append(Format(v, decimals)).Append(' ');
     }
 
-    private static readonly string[] Formats = Enumerable.Range(0, 10).Select(d => "0." + new string('#', d)).ToArray();
+    private static readonly string[] Formats = Enumerable.Range(0, 16).Select(d => "0." + new string('#', d)).ToArray();
+
+    /// <summary>A number with about ten significant digits (matrices, whose elements may be very small or large).</summary>
+    internal static string Precise(double value)
+    {
+        if (!double.IsFinite(value) || value == 0) return "0";
+        int decimals = Math.Clamp(9 - (int)Math.Floor(Math.Log10(Math.Abs(value))), 0, 15);
+        return Format(value, decimals);
+    }
 
     internal static string Format(double value, int decimals)
     {

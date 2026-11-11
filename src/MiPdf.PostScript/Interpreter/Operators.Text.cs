@@ -322,7 +322,7 @@ internal sealed partial class PsInterpreter
         double x = path.CurrentX, y = path.CurrentY;
         var device = Device;
         var fonts = device?.Document != null ? device.Fonts ??= new PsPdfFonts(device.Document, this) : null;
-        var color = device != null ? CurrentDeviceColor() : null;
+        var color = device != null ? PaintColor() : null;
         var run = new List<byte>();
         PdfFontEntry? runFont = null;
         Matrix runMatrix = default;

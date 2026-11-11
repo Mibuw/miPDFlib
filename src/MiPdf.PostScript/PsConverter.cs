@@ -13,6 +13,7 @@ internal static class PsConverter
         var interpreter = new PsInterpreter(limits);
         interpreter.InitGraphics(device);
         result = interpreter.Run(program);
+        interpreter.EndJob();
         device.Finish();
         return document;
     }

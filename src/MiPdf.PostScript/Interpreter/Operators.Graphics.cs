@@ -388,12 +388,8 @@ internal sealed partial class PsInterpreter
             ip.GState.Path = saved;
         });
         Op("erasepage", ip => ip.Device?.ErasePage());
-        Op("showpage", ip =>
-        {
-            ip.Device?.ShowPage();
-            ip.InitGraphics(ip.Device);
-        });
-        Op("copypage", ip => ip.Device?.ShowPage());
+        Op("showpage", ip => ip.ShowPage(erase: true));
+        Op("copypage", ip => ip.ShowPage(erase: false));
         // ---------------------------------------------------------------- user paths (LanguageLevel 2)
         Op("setbbox", ip =>
         {
@@ -680,13 +676,13 @@ internal sealed partial class PsInterpreter
 
     private void Fill(bool evenOdd)
     {
-        if (Device != null && CurrentDeviceColor() is { } color) Device.Fill(GState, color, evenOdd);
+        if (Device != null && PaintColor() is { } color) Device.Fill(GState, color, evenOdd);
         GState.Path = new PsPath();
     }
 
     private void Stroke()
     {
-        if (Device != null && CurrentDeviceColor() is { } color) Device.Stroke(GState, color);
+        if (Device != null && PaintColor() is { } color) Device.Stroke(GState, color);
         GState.Path = new PsPath();
     }
 

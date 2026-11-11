@@ -17,10 +17,17 @@ internal enum PsColorFamily : byte
     Pattern,
 }
 
-/// <summary>A device color: the components of DeviceGray, DeviceRGB or DeviceCMYK, written natively to PDF.</summary>
+/// <summary>
+/// A device color: the components of DeviceGray, DeviceRGB or DeviceCMYK, written natively to PDF. A pattern color has
+/// a <see cref="Pattern"/>: the family Pattern for a colored pattern, for an uncolored one the family and components
+/// of the color the pattern is painted with.
+/// </summary>
 internal readonly record struct PsDeviceColor(PsColorFamily Family, double C0, double C1, double C2, double C3)
 {
     public static readonly PsDeviceColor Black = new(PsColorFamily.DeviceGray, 0, 0, 0, 0);
+
+    /// <summary>The pattern painted (null for a plain color).</summary>
+    public PsPatternPaint? Pattern { get; init; }
 
     public static PsDeviceColor Gray(double g) => new(PsColorFamily.DeviceGray, Clamp(g), 0, 0, 0);
     public static PsDeviceColor Rgb(double r, double g, double b) => new(PsColorFamily.DeviceRGB, Clamp(r), Clamp(g), Clamp(b), 0);

@@ -56,6 +56,12 @@ internal abstract class PsDevice
         var xobject = PsPdfImages.IsInline(image) ? null : Images.Get(image);
         Content.Image(gs, unitToDevice, image, xobject, color);
     }
+
+    /// <summary>Paints a shading; <paramref name="toDevice"/> maps the shading's space to device space.</summary>
+    public virtual void PaintShading(PsGState gs, PdfReference shading, Matrix toDevice) => Content.Shading(gs, shading, toDevice);
+
+    /// <summary>Paints a form XObject; <paramref name="toDevice"/> maps form space to device space.</summary>
+    public virtual void PaintForm(PsGState gs, PdfReference form, Matrix toDevice) => Content.Form(gs, form, toDevice);
 }
 
 /// <summary><c>nulldevice</c>: painting has no effect (used to measure or to run code for its side effects).</summary>
@@ -80,6 +86,14 @@ internal sealed class PsNullDevice : PsDevice
     }
 
     public override void Image(PsGState gs, Matrix unitToDevice, PsImageOutput image, PsDeviceColor color)
+    {
+    }
+
+    public override void PaintShading(PsGState gs, PdfReference shading, Matrix toDevice)
+    {
+    }
+
+    public override void PaintForm(PsGState gs, PdfReference form, Matrix toDevice)
     {
     }
 }
@@ -188,6 +202,39 @@ internal sealed class PsGlyphDevice : PsDevice
     }
 }
 
+/// <summary>
+/// Captures what a pattern's or a form's PaintProc paints into the content of a pattern cell or form XObject. Painting
+/// happens in device space as on the parent device; the content transforms it back to pattern or form space.
+/// </summary>
+internal sealed class PsCaptureDevice : PsDevice
+{
+    private readonly PsContentWriter _content;
+    private readonly Matrix _defaultMatrix;
+
+    public PsCaptureDevice(PsDevice parent, PsContentWriter content)
+    {
+        _content = content;
+        _defaultMatrix = parent.DefaultMatrix;
+        Document = parent.Document;
+        Fonts = parent.Fonts;
+        Images = parent.Images;
+        Width = parent.Width;
+        Height = parent.Height;
+    }
+
+    public override PsContentWriter Content => _content;
+
+    public override Matrix DefaultMatrix => _defaultMatrix;
+
+    public override void ShowPage()
+    {
+    }
+
+    public override void SetPageSize(double width, double height)
+    {
+    }
+}
+
 /// <summary>charpath with Type 3 fonts: what the glyph procedure paints is collected as path (in device space).</summary>
 internal sealed class PsPathDevice : PsDevice
 {
@@ -218,6 +265,10 @@ internal sealed class PsPathDevice : PsDevice
     }
 
     public override void Image(PsGState gs, Matrix unitToDevice, PsImageOutput image, PsDeviceColor color)
+    {
+    }
+
+    public override void PaintShading(PsGState gs, PdfReference shading, Matrix toDevice)
     {
     }
 }
