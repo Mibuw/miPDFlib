@@ -95,6 +95,17 @@ internal sealed partial class PsInterpreter
             if (b == 0) throw new PsError("undefinedresult");
             ip.Push(b == -1 ? 0 : a % b);
         });
+        // Ghostscript extensions used by some programs: the larger or smaller of two numbers (keeping its type)
+        foreach (string name in new[] { "max", ".max", "min", ".min" })
+        {
+            bool larger = name.EndsWith("max", StringComparison.Ordinal);
+            Op(name, ip =>
+            {
+                var b = ip.PopNumber();
+                var a = ip.PopNumber();
+                ip.Push(larger ? (b.Number > a.Number ? b : a) : (b.Number < a.Number ? b : a));
+            });
+        }
         Op("abs", ip =>
         {
             var a = ip.PopNumber();
@@ -164,8 +175,10 @@ internal sealed partial class PsInterpreter
         });
         Op("srand", ip =>
         {
-            long seed = ip.PopInt() % int.MaxValue;
-            if (seed < 1) seed += int.MaxValue - 1;
+            // as Ghostscript: a nonzero state for all inputs
+            long seed = ip.PopInt();
+            if (seed < 1) seed = -(seed % 0x7ffffffe) + 1;
+            else if (seed > 0x7ffffffe) seed = 0x7ffffffe;
             ip._randomSeed = (int)seed;
         });
         Op("rrand", ip => ip.Push(ip._randomSeed));

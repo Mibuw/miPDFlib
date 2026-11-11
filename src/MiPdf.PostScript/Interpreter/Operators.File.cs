@@ -270,7 +270,7 @@ internal sealed partial class PsInterpreter
             "LZWDecode" or "LZW" => new PsLzwDecode(input, pdfParms?.GetInt(PdfName.EarlyChange, 1) ?? 1),
             "SubFileDecode" => new PsSubFileDecode(input, count, eod!),
             "CCITTFaxDecode" or "CCF" => new PsBufferedFilter(() => Decoded(() => MiPdf.Filters.CcittFaxDecoder.Decode(PsBufferedFilter.ReadAll(input, limit), pdfParms))),
-            "DCTDecode" or "DCT" => new PsBufferedFilter(() => Decoded(() => MiPdf.Filters.JpegDecoder.Decode(PsBufferedFilter.ReadJpeg(input, limit), pdfParms, out _, out _, out _))),
+            "DCTDecode" or "DCT" => new PsDctDecode(input, pdfParms, limit),
             _ => throw new PsError("undefined"),
         };
         // a predictor (Flate and LZW) works on the decoded data as a whole

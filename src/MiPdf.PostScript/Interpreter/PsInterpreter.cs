@@ -35,6 +35,9 @@ internal sealed class PsLimits
     public int MaxExecStack { get; init; } = 100_000;
     public int MaxStringLength { get; init; } = 1 << 26;
     public int MaxArrayLength { get; init; } = 1 << 24;
+
+    /// <summary>The largest image (bytes of sample data, also after a conversion).</summary>
+    public long MaxImageBytes { get; init; } = 1L << 28;
 }
 
 /// <summary>The outcome of a job: the error that ended it (if any) and the text written to %stdout and %stderr.</summary>

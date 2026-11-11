@@ -36,6 +36,26 @@ internal abstract class PsFile
 
     protected virtual int ReadRaw() => -1;
 
+    /// <summary>Reads up to <paramref name="buffer"/>.Length bytes; fewer only at the end of the data.</summary>
+    public int Read(Span<byte> buffer)
+    {
+        int n = 0;
+        if (_pushback >= 0 && buffer.Length > 0)
+        {
+            buffer[n++] = (byte)_pushback;
+            _pushback = -1;
+        }
+        if (Closed) return n;
+        return n + ReadRaw(buffer[n..]);
+    }
+
+    protected virtual int ReadRaw(Span<byte> buffer)
+    {
+        int n = 0, b;
+        while (n < buffer.Length && (b = ReadRaw()) >= 0) buffer[n++] = (byte)b;
+        return n;
+    }
+
     public virtual void Write(ReadOnlySpan<byte> data) => throw new PsError("ioerror");
 
     public virtual void Flush()
@@ -49,6 +69,14 @@ internal abstract class PsFile
     public virtual long Position => -1;
 
     public virtual void Close() => Closed = true;
+
+    /// <summary>
+    /// After an image read its data: a filter whose data is used up consumes its end-of-data marker (and so on down
+    /// the chain of sources), as filters that decode ahead into a buffer do (Ghostscript). Data that follows stays.
+    /// </summary>
+    public virtual void SkipEod()
+    {
+    }
 
     /// <summary>Reads to the end of the data (used by <c>flushfile</c> on input files).</summary>
     public void Drain()
@@ -76,6 +104,14 @@ internal sealed class PsMemoryFile : PsFile
     public override bool CanRead => true;
 
     protected override int ReadRaw() => _position < _end ? _data[_position++] : -1;
+
+    protected override int ReadRaw(Span<byte> buffer)
+    {
+        int n = Math.Min(buffer.Length, _end - _position);
+        _data.AsSpan(_position, n).CopyTo(buffer);
+        _position += n;
+        return n;
+    }
 
     public override int BytesAvailable => Closed ? -1 : _end - _position;
 
@@ -144,6 +180,23 @@ internal abstract class PsDecodeFilter : PsFile
 
     public override bool CanRead => true;
 
+    public override void SkipEod()
+    {
+        if (!_ended && !HasPushback && !Closed)
+        {
+            try
+            {
+                int b = ReadRaw();
+                if (b >= 0) Unread(b);
+            }
+            catch (PsError)
+            {
+                // damaged data after the image: reported when it is read
+            }
+        }
+        if (_ended) Source.SkipEod();
+    }
+
     protected sealed override int ReadRaw()
     {
         if (_ended) return -1;
@@ -194,23 +247,31 @@ internal sealed class PsAscii85Decode : PsDecodeFilter
 {
     private readonly byte[] _group = new byte[4];
     private int _available, _next;
+    private bool _end;
 
     public PsAscii85Decode(PsFile source) : base(source) { }
 
     protected override int Decode()
     {
         if (_next < _available) return _group[_next++];
+        if (_end) return -1;
         int count = 0;
         long value = 0;
         while (count < 5)
         {
             int c = Source.ReadByte();
-            if (c < 0) break;
+            if (c < 0)
+            {
+                _end = true;
+                break;
+            }
             if (PsScanner.IsWhitespace(c)) continue;
             if (c == '~')
             {
+                // the end of the data (the last group may be partial)
                 int d = Source.ReadByte();
                 if (d != '>') Source.Unread(d);
+                _end = true;
                 break;
             }
             if (c == 'z' && count == 0)
@@ -495,6 +556,71 @@ internal sealed class PsBufferedFilter : PsFile
             previous = b;
         }
         return bytes.ToArray();
+    }
+}
+
+/// <summary>
+/// DCTDecode: the JPEG data is decoded as a whole when it is first read. An image whose data source is this filter can
+/// take the JPEG data before anything was read and write it to PDF unchanged.
+/// </summary>
+internal sealed class PsDctDecode : PsFile
+{
+    private readonly PsFile _input;
+    private readonly int _limit;
+    private byte[]? _data;
+    private int _position;
+
+    public PsDctDecode(PsFile input, MiPdf.Objects.PdfDictionary? parameters, int limit)
+    {
+        _input = input;
+        Parameters = parameters;
+        _limit = limit;
+    }
+
+    public MiPdf.Objects.PdfDictionary? Parameters { get; }
+
+    /// <summary>The JPEG data (after <see cref="Load"/>).</summary>
+    public byte[] Jpeg { get; private set; } = Array.Empty<byte>();
+
+    public int Width { get; private set; }
+    public int Height { get; private set; }
+    public int Components { get; private set; }
+
+    /// <summary>True if nothing was read yet.</summary>
+    public bool Untouched => _data == null && !HasPushback && !Closed;
+
+    public override bool CanRead => true;
+
+    /// <summary>Reads and decodes the JPEG data.</summary>
+    public void Load()
+    {
+        if (_data != null) return;
+        _data = Array.Empty<byte>();
+        Jpeg = PsBufferedFilter.ReadJpeg(_input, _limit);
+        try
+        {
+            _data = MiPdf.Filters.JpegDecoder.Decode(Jpeg, Parameters, out int w, out int h, out int n);
+            (Width, Height, Components) = (w, h, n);
+        }
+        catch (PdfException)
+        {
+            throw new PsError("ioerror");
+        }
+    }
+
+    /// <summary>The decoded data was used as a whole (the JPEG data was passed through).</summary>
+    public void Consume() => _position = _data?.Length ?? 0;
+
+    public override void SkipEod()
+    {
+        // the JPEG data was read to its end marker when it was decoded
+        if (_data != null) _input.SkipEod();
+    }
+
+    protected override int ReadRaw()
+    {
+        Load();
+        return _position < _data!.Length ? _data[_position++] : -1;
     }
 }
 

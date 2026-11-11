@@ -30,6 +30,7 @@ internal sealed class PsContentWriter
     private int _textMode;
     private readonly bool _glyphSpace;
     private readonly Dictionary<PdfReference, PdfName> _fonts = new();
+    private readonly Dictionary<PdfReference, PdfName> _xobjects = new();
 
     /// <param name="resources">Where fonts and graphics states are registered (null: the null device).</param>
     /// <param name="glyphSpace">Content of a Type 3 glyph: coordinates are glyph space, without the device scaling.</param>
@@ -87,6 +88,52 @@ internal sealed class PsContentWriter
         _sb.Append("Tm <").Append(Convert.ToHexString(codes)).Append("> Tj ET\n");
         HasContent = true;
     }
+
+    /// <summary>
+    /// Paints an image: <paramref name="unitToDevice"/> maps the unit square of the image to device space. A stencil
+    /// mask is painted with <paramref name="color"/>. The image is an XObject or (null) written inline.
+    /// </summary>
+    public void Image(PsGState gs, Matrix unitToDevice, PsImageOutput image, PdfReference? xobject, PsDeviceColor color)
+    {
+        if (_resources == null) return;
+        SyncClip(gs.Clip);
+        if (image.IsStencil) SyncFill(color);
+        SyncExtGState(gs.Overprint, _strokeAdjust);
+        var m = unitToDevice;
+        _sb.Append("q ");
+        Numbers(_glyphSpace ? 8 : 5, m.A, m.B, m.C, m.D, m.E, m.F);
+        _sb.Append("cm\n");
+        if (xobject != null)
+        {
+            if (!_xobjects.TryGetValue(xobject, out var name))
+                _xobjects[xobject] = name = _resources.AddResource(PdfName.XObject, xobject, "Im");
+            _sb.Append('/').Append(name.Value).Append(" Do Q\n");
+        }
+        else
+        {
+            _sb.Append("BI /W ").Append(image.Width).Append(" /H ").Append(image.Height);
+            if (image.IsStencil) _sb.Append(" /IM true");
+            else _sb.Append(" /CS ").Append(Inline(image.ColorSpace!)).Append(" /BPC ").Append(image.BitsPerComponent);
+            if (image.Decode != null)
+            {
+                _sb.Append(" /D [");
+                foreach (double d in image.Decode) _sb.Append(Format(d, 6)).Append(' ');
+                _sb.Append(']');
+            }
+            if (image.Interpolate) _sb.Append(" /I true");
+            _sb.Append(" /F /AHx ID\n").Append(Convert.ToHexString(image.Data)).Append(">\nEI Q\n");
+        }
+        HasContent = true;
+    }
+
+    private static string Inline(PdfObject colorSpace) => colorSpace switch
+    {
+        PdfName n => "/" + n.Value,
+        PdfArray a => "[" + string.Join(" ", a.Select(Inline)) + "]",
+        PdfString s => "<" + Convert.ToHexString(s.Bytes) + ">",
+        PdfNumber n => n.ToString() ?? "0",
+        _ => "",
+    };
 
     /// <summary>Discards everything painted so far (<c>erasepage</c>).</summary>
     public void Erase() => Begin();

@@ -23,6 +23,9 @@ internal abstract class PsDevice
     /// <summary>The fonts of the document.</summary>
     public PsPdfFonts? Fonts { get; set; }
 
+    /// <summary>The images of the document.</summary>
+    public PsPdfImages? Images { get; set; }
+
     /// <summary>The default transformation from user space (points) to device space.</summary>
     public virtual Matrix DefaultMatrix => Matrix.Scale(PsContentWriter.DeviceScale, PsContentWriter.DeviceScale);
 
@@ -44,6 +47,15 @@ internal abstract class PsDevice
 
     public virtual void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth) =>
         Content.ShowText(gs, color, font.Reference, tm, codes, mode, lineWidth);
+
+    /// <summary>Paints an image; <paramref name="unitToDevice"/> maps the unit square to device space.</summary>
+    public virtual void Image(PsGState gs, Matrix unitToDevice, PsImageOutput image, PsDeviceColor color)
+    {
+        if (Document == null) return;
+        Images ??= new PsPdfImages(Document);
+        var xobject = PsPdfImages.IsInline(image) ? null : Images.Get(image);
+        Content.Image(gs, unitToDevice, image, xobject, color);
+    }
 }
 
 /// <summary><c>nulldevice</c>: painting has no effect (used to measure or to run code for its side effects).</summary>
@@ -66,6 +78,10 @@ internal sealed class PsNullDevice : PsDevice
     public override void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth)
     {
     }
+
+    public override void Image(PsGState gs, Matrix unitToDevice, PsImageOutput image, PsDeviceColor color)
+    {
+    }
 }
 
 /// <summary>Writes each page shown with <c>showpage</c> as a page of a PDF document.</summary>
@@ -77,6 +93,7 @@ internal sealed class PsPageDevice : PsDevice
     public PsPageDevice(PdfDocument document, double width, double height)
     {
         Document = document;
+        Images = new PsPdfImages(document);
         Width = width;
         Height = height;
         NewPage();
@@ -128,6 +145,7 @@ internal sealed class PsFormDevice : PsDevice
     {
         Form = form;
         Document = form.Document;
+        Images = new PsPdfImages(form.Document);
         Width = form.Width;
         Height = form.Height;
         _content = new PsContentWriter(form);
@@ -158,6 +176,7 @@ internal sealed class PsGlyphDevice : PsDevice
         _content = content;
         Document = parent?.Document;
         Fonts = parent?.Fonts;
+        Images = parent?.Images;
     }
 
     public override PsContentWriter Content => _content;
@@ -195,6 +214,10 @@ internal sealed class PsPathDevice : PsDevice
     public override void Stroke(PsGState gs, PsDeviceColor color) => Collected.AddRange(PsStroker.Outline(gs).Segments);
 
     public override void Text(PsGState gs, PsDeviceColor color, PdfFontEntry font, Matrix tm, ReadOnlySpan<byte> codes, int mode, double lineWidth)
+    {
+    }
+
+    public override void Image(PsGState gs, Matrix unitToDevice, PsImageOutput image, PsDeviceColor color)
     {
     }
 }
