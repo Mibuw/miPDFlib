@@ -32,6 +32,30 @@ foreach (var line in PdfTextExtractor.ExtractLines(page))
 
 Coordinates are in PDF user space (points, origin bottom-left).
 
+## Letters: font, color and rendering mode
+
+`ExtractLetters` returns every character as it is drawn, in the same order as the lines – for example to find
+headings by size and weight, to pick out colored or highlighted text, or to separate the invisible OCR text layer of a
+scanned page from visible text:
+
+```csharp
+foreach (var letter in PdfTextExtractor.ExtractLetters(page))
+{
+    // position: Bounds, BaselineStart, BaselineEnd, Angle (degrees; 90 = text running upwards)
+    // font: FontName, FontSize (as it appears, in points), IsBold, IsItalic
+    // drawing: FillColor, StrokeColor, RenderingMode, IsVisible
+    if (letter.IsBold && letter.FontSize >= 14) Console.Write(letter.Text);
+}
+
+bool hasOcrLayer = PdfTextExtractor.ExtractLetters(page).Any(l => !l.IsVisible);
+```
+
+Colors in gray, RGB and CMYK are returned as they are in the file (ICC-based colors by their number of components);
+spot colors (Separation, DeviceN), Indexed and Lab colors are converted to RGB, and text painted with a pattern has
+no single color (`null`). Bold and italic come from the font descriptor (weight, flags, italic angle) or the font name.
+`Bounds` is the glyph cell (the advance along the baseline, 0.8 em above and 0.2 em below it), the same box the words
+and the text search use.
+
 ## Searching text
 
 `FindText` returns the bounding boxes of all matches – useful to place stamps or signature fields at a

@@ -1,1 +1,36 @@
 #nullable enable
+MiPdf.Text.TextLetter
+MiPdf.Text.TextLetter.<Clone>$() -> MiPdf.Text.TextLetter!
+MiPdf.Text.TextLetter.Angle.get -> double
+MiPdf.Text.TextLetter.Angle.init -> void
+MiPdf.Text.TextLetter.BaselineEnd.get -> (double X, double Y)
+MiPdf.Text.TextLetter.BaselineEnd.init -> void
+MiPdf.Text.TextLetter.BaselineStart.get -> (double X, double Y)
+MiPdf.Text.TextLetter.BaselineStart.init -> void
+MiPdf.Text.TextLetter.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Text.TextLetter.Bounds.init -> void
+MiPdf.Text.TextLetter.Equals(MiPdf.Text.TextLetter? other) -> bool
+MiPdf.Text.TextLetter.FillColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Text.TextLetter.FillColor.init -> void
+MiPdf.Text.TextLetter.FontName.get -> string!
+MiPdf.Text.TextLetter.FontName.init -> void
+MiPdf.Text.TextLetter.FontSize.get -> double
+MiPdf.Text.TextLetter.FontSize.init -> void
+MiPdf.Text.TextLetter.IsBold.get -> bool
+MiPdf.Text.TextLetter.IsBold.init -> void
+MiPdf.Text.TextLetter.IsItalic.get -> bool
+MiPdf.Text.TextLetter.IsItalic.init -> void
+MiPdf.Text.TextLetter.IsVisible.get -> bool
+MiPdf.Text.TextLetter.RenderingMode.get -> int
+MiPdf.Text.TextLetter.RenderingMode.init -> void
+MiPdf.Text.TextLetter.StrokeColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Text.TextLetter.StrokeColor.init -> void
+MiPdf.Text.TextLetter.Text.get -> string!
+MiPdf.Text.TextLetter.Text.init -> void
+MiPdf.Text.TextLetter.TextLetter() -> void
+override MiPdf.Text.TextLetter.Equals(object? obj) -> bool
+override MiPdf.Text.TextLetter.GetHashCode() -> int
+override MiPdf.Text.TextLetter.ToString() -> string!
+static MiPdf.Text.PdfTextExtractor.ExtractLetters(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextLetter!>!
+static MiPdf.Text.TextLetter.operator !=(MiPdf.Text.TextLetter? left, MiPdf.Text.TextLetter? right) -> bool
+static MiPdf.Text.TextLetter.operator ==(MiPdf.Text.TextLetter? left, MiPdf.Text.TextLetter? right) -> bool

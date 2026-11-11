@@ -11,6 +11,56 @@ public sealed record TextWord(string Text, PdfRectangle Bounds, double FontSize,
 /// <summary>A line of text.</summary>
 public sealed record TextLineInfo(string Text, PdfRectangle Bounds, IReadOnlyList<TextWord> Words);
 
+/// <summary>
+/// A character on the page as it is drawn: one glyph (or several characters, for a ligature or a replacement text from
+/// <c>/ActualText</c>) with its position, font, colors and rendering mode. Coordinates are user space of the page
+/// (points, origin bottom-left).
+/// </summary>
+public sealed record TextLetter
+{
+    /// <summary>The character(s) the glyph stands for.</summary>
+    public required string Text { get; init; }
+
+    /// <summary>Axis-aligned bounds of the glyph cell: the advance along the baseline, 0.8 em above and 0.2 em below it.</summary>
+    public PdfRectangle Bounds { get; init; }
+
+    /// <summary>Where the glyph starts on the baseline.</summary>
+    public (double X, double Y) BaselineStart { get; init; }
+
+    /// <summary>Where the glyph ends on the baseline (start plus the advance, including character and word spacing).</summary>
+    public (double X, double Y) BaselineEnd { get; init; }
+
+    /// <summary>Direction of the baseline in degrees, counterclockwise from the x axis (0 for normal text, 90 for text running upwards).</summary>
+    public double Angle { get; init; }
+
+    /// <summary>The size the text appears in, in points (font size scaled by the text and transformation matrices).</summary>
+    public double FontSize { get; init; }
+
+    /// <summary>The font name without a subset prefix, e.g. <c>Helvetica-Bold</c>.</summary>
+    public string FontName { get; init; } = "";
+
+    /// <summary>True for a bold font (by its descriptor's weight or flags, or its name).</summary>
+    public bool IsBold { get; init; }
+
+    /// <summary>True for an italic or oblique font (by its descriptor's italic angle or flags, or its name).</summary>
+    public bool IsItalic { get; init; }
+
+    /// <summary>
+    /// The fill color: gray, RGB and CMYK as in the file (ICC-based colors by their number of components), other color
+    /// spaces converted to RGB; null for a pattern.
+    /// </summary>
+    public PdfColor? FillColor { get; init; }
+
+    /// <summary>The stroke color (used by the rendering modes that stroke), like <see cref="FillColor"/>.</summary>
+    public PdfColor? StrokeColor { get; init; }
+
+    /// <summary>The text rendering mode (0 fill, 1 stroke, 2 fill and stroke, 3 invisible, 4–7 the same and add to the clip).</summary>
+    public int RenderingMode { get; init; }
+
+    /// <summary>False for invisible text (rendering mode 3 or 7), e.g. the text layer of a scanned page made by OCR.</summary>
+    public bool IsVisible => RenderingMode is not (3 or 7);
+}
+
 /// <summary>Options for <see cref="PdfTextExtractor"/>.</summary>
 public sealed class TextExtractionOptions
 {
@@ -81,6 +131,27 @@ public static class PdfTextExtractor
     /// <summary>Returns all words of a page with their bounding boxes.</summary>
     public static IReadOnlyList<TextWord> ExtractWords(PdfPage page, TextExtractionOptions? options = null) =>
         ExtractLines(page, options).SelectMany(l => l.Words).ToList();
+
+    /// <summary>
+    /// Returns every character of a page with its position, font, colors and rendering mode, in the order of
+    /// <see cref="ExtractLines"/> (reading order, or content order without <see cref="TextExtractionOptions.SortByPosition"/>).
+    /// Glyphs drawn twice at the same place to look bold are returned once.
+    /// </summary>
+    public static IReadOnlyList<TextLetter> ExtractLetters(PdfPage page, TextExtractionOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        using var diagnostics = DiagnosticContext.Enter(page);
+        options ??= new TextExtractionOptions();
+        try
+        {
+            var glyphs = new GlyphCollector(options).Collect(page);
+            return LineBuilder.BuildGlyphLines(glyphs, options.SortByPosition).SelectMany(line => line.Select(e => e.Glyph.ToLetter())).ToList();
+        }
+        catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex))
+        {
+            throw new PdfException("Text extraction failed (damaged content): " + ex.Message, ex);
+        }
+    }
 
     /// <summary>
     /// Finds all occurrences of <paramref name="search"/> on a page (within a line) and returns their bounding boxes,
@@ -161,6 +232,25 @@ internal sealed class TextGlyph
     public required string FontName;
     public PdfRectangle Bounds;
     public int Order;
+    public bool Bold, Italic;
+    public PdfColor? Fill, Stroke;
+    public int RenderingMode;
+
+    public TextLetter ToLetter() => new()
+    {
+        Text = Text,
+        Bounds = Bounds,
+        BaselineStart = (X0, Y0),
+        BaselineEnd = (X1, Y1),
+        Angle = Math.Round(Math.Atan2(DirY, DirX) * 180 / Math.PI, 2),
+        FontSize = Math.Round(FontSize, 2),
+        FontName = FontName,
+        IsBold = Bold,
+        IsItalic = Italic,
+        FillColor = Fill,
+        StrokeColor = Stroke,
+        RenderingMode = RenderingMode,
+    };
 
     public double Perpendicular => DirX * Y0 - DirY * X0;
 
@@ -186,7 +276,83 @@ internal sealed class GlyphCollector
         public Matrix Ctm = Matrix.Identity;
         public PdfDictionary? Font;
         public double FontSize = 1, CharSpacing, WordSpacing, HorizontalScale = 1, Leading, Rise;
+        public int RenderingMode;
+        public ColorSpace FillSpace = ColorSpace.Gray, StrokeSpace = ColorSpace.Gray;
+        public PdfColor? Fill = PdfColor.Black, Stroke = PdfColor.Black;
         public State Clone() => (State)MemberwiseClone();
+    }
+
+    /// <summary>
+    /// A color as <see cref="TextLetter"/> reports it: device colors (and ICC-based colors by their number of
+    /// components) as they are, other spaces converted to RGB, patterns null.
+    /// </summary>
+    private static PdfColor? ToColor(ColorSpace space, IReadOnlyList<PdfObject> operands)
+    {
+        // a damaged color space or tint function costs the color, not the text
+        try
+        {
+            return Convert(space, operands);
+        }
+        catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex) || ex is PdfException)
+        {
+            return null;
+        }
+    }
+
+    private static ColorSpace ResolveSpace(PdfObject operand, PdfDictionary? resources)
+    {
+        try
+        {
+            return ColorSpace.Resolve(operand, resources);
+        }
+        catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex) || ex is PdfException)
+        {
+            return ColorSpace.Gray;
+        }
+    }
+
+    private static PdfColor? Convert(ColorSpace space, IReadOnlyList<PdfObject> operands)
+    {
+        if (space.IsPattern) return null;
+        var c = new double[space.Components];
+        for (int i = 0; i < c.Length && i < operands.Count; i++) c[i] = operands[i] is PdfNumber n ? n.Value : 0;
+        if (ReferenceEquals(space, ColorSpace.Gray)) return PdfColor.Gray(Unit(c[0]));
+        if (ReferenceEquals(space, ColorSpace.Rgb)) return PdfColor.Rgb(Unit(c[0]), Unit(c[1]), Unit(c[2]));
+        if (ReferenceEquals(space, ColorSpace.Cmyk)) return PdfColor.Cmyk(Unit(c[0]), Unit(c[1]), Unit(c[2]), Unit(c[3]));
+        var rgb = space.ToRgb(c);
+        return PdfColor.FromRgb(rgb.R, rgb.G, rgb.B);
+
+        // rounded to the precision of PDF numbers (0.3 is read as 0.30000000000000004)
+        static double Unit(double v) => double.IsFinite(v) ? Math.Round(Math.Clamp(v, 0, 1), 5) : 0;
+    }
+
+    /// <summary>The initial color of a color space (black for device spaces), as <see cref="ToColor"/> reports it.</summary>
+    private static PdfColor? InitialColor(ColorSpace space) =>
+        ToColor(space, space.Initial.Select(v => (PdfObject)new PdfNumber(v)).ToList());
+
+    private readonly Dictionary<PdfDictionary, (bool Bold, bool Italic)> _styles = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>
+    /// Bold and italic from the font descriptor (weight 600 or more or the ForceBold flag; an italic angle or the
+    /// Italic flag), for a composite font that of its descendant, and from the font name.
+    /// </summary>
+    private (bool Bold, bool Italic) Style(PdfDictionary? font)
+    {
+        if (font == null) return (false, false);
+        if (_styles.TryGetValue(font, out var style)) return style;
+        var descriptor = font.GetDictionary(PdfName.Get("FontDescriptor"))
+            ?? (font.GetArray(PdfName.Get("DescendantFonts"))?.Count > 0 ? (font.GetArray(PdfName.Get("DescendantFonts"))![0].Resolve() as PdfDictionary)?.GetDictionary(PdfName.Get("FontDescriptor")) : null);
+        string name = font.GetName(PdfName.BaseFont)?.Value ?? "";
+        int flags = (int)(descriptor?.GetDouble(PdfName.Get("Flags")) ?? 0);
+        double weight = descriptor?.GetDouble(PdfName.Get("FontWeight")) ?? 0;
+        double angle = descriptor?.GetDouble(PdfName.Get("ItalicAngle")) ?? 0;
+        bool bold = weight >= 600 || (flags & 0x40000) != 0
+            || name.Contains("Bold", StringComparison.OrdinalIgnoreCase) || name.Contains("Black", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("Heavy", StringComparison.OrdinalIgnoreCase) || name.Contains("Semibold", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("Demi", StringComparison.OrdinalIgnoreCase);
+        bool italic = Math.Abs(angle) > 0.5 || (flags & 0x40) != 0
+            || name.Contains("Italic", StringComparison.OrdinalIgnoreCase) || name.Contains("Oblique", StringComparison.OrdinalIgnoreCase);
+        return _styles[font] = (bold, italic);
     }
 
     public GlyphCollector(TextExtractionOptions options) => _options = options;
@@ -273,6 +439,52 @@ internal sealed class GlyphCollector
                         gs.Font = o[0] is PdfName fn ? resources?.GetDictionary(PdfName.Font)?.GetDictionary(fn) : null;
                         gs.FontSize = N(o, 1);
                     }
+                    break;
+                case "Tr": gs.RenderingMode = Math.Clamp((int)N(o, 0), 0, 7); break;
+                // colors (only for TextLetter)
+                case "g":
+                    gs.FillSpace = ColorSpace.Gray;
+                    gs.Fill = ToColor(gs.FillSpace, o);
+                    break;
+                case "G":
+                    gs.StrokeSpace = ColorSpace.Gray;
+                    gs.Stroke = ToColor(gs.StrokeSpace, o);
+                    break;
+                case "rg":
+                    gs.FillSpace = ColorSpace.Rgb;
+                    gs.Fill = ToColor(gs.FillSpace, o);
+                    break;
+                case "RG":
+                    gs.StrokeSpace = ColorSpace.Rgb;
+                    gs.Stroke = ToColor(gs.StrokeSpace, o);
+                    break;
+                case "k":
+                    gs.FillSpace = ColorSpace.Cmyk;
+                    gs.Fill = ToColor(gs.FillSpace, o);
+                    break;
+                case "K":
+                    gs.StrokeSpace = ColorSpace.Cmyk;
+                    gs.Stroke = ToColor(gs.StrokeSpace, o);
+                    break;
+                case "cs":
+                    if (o.Count >= 1)
+                    {
+                        gs.FillSpace = ResolveSpace(o[0], resources);
+                        gs.Fill = InitialColor(gs.FillSpace);
+                    }
+                    break;
+                case "CS":
+                    if (o.Count >= 1)
+                    {
+                        gs.StrokeSpace = ResolveSpace(o[0], resources);
+                        gs.Stroke = InitialColor(gs.StrokeSpace);
+                    }
+                    break;
+                case "sc" or "scn":
+                    gs.Fill = ToColor(gs.FillSpace, o);
+                    break;
+                case "SC" or "SCN":
+                    gs.Stroke = ToColor(gs.StrokeSpace, o);
                     break;
                 case "Tc": gs.CharSpacing = N(o, 0); break;
                 case "Tw": gs.WordSpacing = N(o, 0); break;
@@ -366,6 +578,11 @@ internal sealed class GlyphCollector
             FontName = first.FontName,
             Bounds = new PdfRectangle(parts.Min(g => g.Bounds.Left), parts.Min(g => g.Bounds.Bottom), parts.Max(g => g.Bounds.Right), parts.Max(g => g.Bounds.Top)),
             Order = start,
+            Bold = first.Bold,
+            Italic = first.Italic,
+            Fill = first.Fill,
+            Stroke = first.Stroke,
+            RenderingMode = first.RenderingMode,
         });
     }
 
@@ -390,6 +607,7 @@ internal sealed class GlyphCollector
         if (decoder == null) return;
         string fontName = gs.Font?.GetName(PdfName.BaseFont)?.Value ?? "";
         if (fontName.Contains('+')) fontName = fontName[(fontName.IndexOf('+') + 1)..]; // subset prefix
+        var (bold, italic) = Style(gs.Font);
         foreach (var glyph in decoder.Decode(bytes))
         {
             double tx = (glyph.Width * gs.FontSize + gs.CharSpacing + (glyph.IsSingleByteSpace ? gs.WordSpacing : 0)) * gs.HorizontalScale;
@@ -432,6 +650,11 @@ internal sealed class GlyphCollector
                         Bounds = new PdfRectangle(Math.Min(Math.Min(x0, x1), Math.Min(x2, x3)), Math.Min(Math.Min(y0, y1), Math.Min(y2, y3)),
                             Math.Max(Math.Max(x0, x1), Math.Max(x2, x3)), Math.Max(Math.Max(y0, y1), Math.Max(y2, y3))),
                         Order = _glyphs.Count,
+                        Bold = bold,
+                        Italic = italic,
+                        Fill = gs.Fill,
+                        Stroke = gs.Stroke,
+                        RenderingMode = gs.RenderingMode,
                     });
             }
             tm = Matrix.Translate(tx, 0).Multiply(tm);

@@ -9,6 +9,9 @@
   miPDFlib, pypdf (strict) and Ghostscript.
 - Damaged encrypted files whose objects are in object streams can be opened: the object streams are read once the
   password is known (before: "no catalog found").
+- Text extraction: `PdfTextExtractor.ExtractLetters` returns every character with its position (bounds, baseline,
+  angle), font (name, size as it appears, bold, italic), fill and stroke color and rendering mode – e.g. to find
+  headings, colored text or the invisible OCR layer of scanned pages (`TextLetter.IsVisible`).
 
 ## 1.3.0
 
