@@ -30,15 +30,26 @@ internal static class ColumnLayout
     }
 
     /// <summary>Puts the lines of one text direction into reading order; lines may be cut into fragments.</summary>
-    public static List<List<(TextGlyph Glyph, bool SpaceBefore)>> Order(List<List<(TextGlyph Glyph, bool SpaceBefore)>> lines)
+    public static List<List<(TextGlyph Glyph, bool SpaceBefore)>> Order(List<List<(TextGlyph Glyph, bool SpaceBefore)>> lines) =>
+        OrderWithRegions(lines).Select(l => l.Line).ToList();
+
+    /// <summary>
+    /// Like <see cref="Order"/>, with the region each line belongs to (a column, or a section of one), numbered in
+    /// reading order; the layout analysis finds its blocks within the regions.
+    /// </summary>
+    public static List<(List<(TextGlyph Glyph, bool SpaceBefore)> Line, int Region)> OrderWithRegions(List<List<(TextGlyph Glyph, bool SpaceBefore)>> lines)
     {
-        var result = new List<List<(TextGlyph, bool)>>();
+        var result = new List<(List<(TextGlyph, bool)>, int)>();
+        int region = 0;
         // lines are grouped by direction already; each direction is laid out on its own
         foreach (var group in lines.GroupBy(l => l[0].Glyph.Orientation))
         {
             var fragments = group.SelectMany(Cut).ToList();
             foreach (var leaf in Segment(fragments, 0))
-                result.AddRange(Lines(leaf));
+            {
+                foreach (var line in Lines(leaf)) result.Add((line, region));
+                region++;
+            }
         }
         return result;
     }

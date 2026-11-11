@@ -243,6 +243,9 @@ internal sealed class TextGlyph
     public PdfColor? Fill, Stroke;
     public int RenderingMode;
 
+    /// <summary>The marked-content identifier the glyph is shown under on its page (-1 if none).</summary>
+    public int Mcid = -1;
+
     public TextLetter ToLetter() => new()
     {
         Text = Text,
@@ -276,6 +279,8 @@ internal sealed class GlyphCollector
     private PdfDocument? _document;
     // nesting depth of marked content of hidden layers; glyphs inside are positioned but not collected
     private int _hidden;
+    // the innermost marked-content identifier of the page's content (-1 outside)
+    private int _mcid = -1;
     private readonly Dictionary<PdfDictionary, FontDecoder> _decoders = new(ReferenceEqualityComparer.Instance);
 
     private sealed class State
@@ -353,12 +358,17 @@ internal sealed class GlyphCollector
         int flags = (int)(descriptor?.GetDouble(PdfName.Get("Flags")) ?? 0);
         double weight = descriptor?.GetDouble(PdfName.Get("FontWeight")) ?? 0;
         double angle = descriptor?.GetDouble(PdfName.Get("ItalicAngle")) ?? 0;
+        string bare = name.Contains('+') ? name[(name.IndexOf('+') + 1)..] : name;
         bool bold = weight >= 600 || (flags & 0x40000) != 0
             || name.Contains("Bold", StringComparison.OrdinalIgnoreCase) || name.Contains("Black", StringComparison.OrdinalIgnoreCase)
             || name.Contains("Heavy", StringComparison.OrdinalIgnoreCase) || name.Contains("Semibold", StringComparison.OrdinalIgnoreCase)
-            || name.Contains("Demi", StringComparison.OrdinalIgnoreCase);
+            || name.Contains("Demi", StringComparison.OrdinalIgnoreCase) || name.Contains("-Medi", StringComparison.Ordinal)
+            // TeX fonts: Computer Modern and its relatives name the series (CMBX12, SFBX1200, CMSSBX10, EUBX, ...)
+            || System.Text.RegularExpressions.Regex.IsMatch(bare, @"^(CM|SF|EC|TC|LM|EU)[A-Z]*BX\d");
         bool italic = Math.Abs(angle) > 0.5 || (flags & 0x40) != 0
-            || name.Contains("Italic", StringComparison.OrdinalIgnoreCase) || name.Contains("Oblique", StringComparison.OrdinalIgnoreCase);
+            || name.Contains("Italic", StringComparison.OrdinalIgnoreCase) || name.Contains("Oblique", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("Ital", StringComparison.Ordinal)
+            || System.Text.RegularExpressions.Regex.IsMatch(bare, @"^(CM|SF|EC|TC|LM)(TI|SL|BXTI|BXSL|SSI)\d");
         return _styles[font] = (bold, italic);
     }
 
@@ -393,7 +403,7 @@ internal sealed class GlyphCollector
         var stack = new Stack<State>();
         // per marked-content sequence: does it hide its content, and its replacement text (/ActualText) with the
         // number of glyphs collected before it
-        var marked = new Stack<(bool Hides, string? ActualText, int Start)>();
+        var marked = new Stack<(bool Hides, string? ActualText, int Start, int Mcid)>();
         var gs = initial;
         Matrix tm = Matrix.Identity, tlm = Matrix.Identity;
         foreach (var op in ContentParser.Parse(content))
@@ -414,7 +424,7 @@ internal sealed class GlyphCollector
                     tm = tlm = Matrix.Identity;
                     break;
                 case "BMC":
-                    marked.Push((false, null, _glyphs.Count));
+                    marked.Push((false, null, _glyphs.Count, -1));
                     break;
                 case "BDC":
                 {
@@ -428,15 +438,19 @@ internal sealed class GlyphCollector
                     } : null;
                     // the outermost replacement text wins
                     string? actual = marked.Any(m => m.ActualText != null) ? null : properties?.GetText(PdfName.ActualText);
-                    marked.Push((hides, actual, _glyphs.Count));
+                    // the marked-content identifier that links the content to the structure tree (of the page itself)
+                    int mcid = depth == 0 && properties?.Get(PdfName.Get("MCID")) is PdfNumber id ? (int)id.Value : -1;
+                    marked.Push((hides, actual, _glyphs.Count, mcid));
                     if (hides) _hidden++;
+                    _mcid = marked.Any(m => m.Mcid >= 0) ? marked.First(m => m.Mcid >= 0).Mcid : -1;
                     break;
                 }
                 case "EMC":
                     if (marked.Count > 0)
                     {
-                        var (hides, actual, start) = marked.Pop();
+                        var (hides, actual, start, _) = marked.Pop();
                         if (hides) _hidden--;
+                        _mcid = marked.Any(m => m.Mcid >= 0) ? marked.First(m => m.Mcid >= 0).Mcid : -1;
                         if (actual != null) ReplaceWithActualText(start, actual);
                     }
                     break;
@@ -585,6 +599,7 @@ internal sealed class GlyphCollector
             FontName = first.FontName,
             Bounds = new PdfRectangle(parts.Min(g => g.Bounds.Left), parts.Min(g => g.Bounds.Bottom), parts.Max(g => g.Bounds.Right), parts.Max(g => g.Bounds.Top)),
             Order = start,
+            Mcid = first.Mcid,
             Bold = first.Bold,
             Italic = first.Italic,
             Fill = first.Fill,
@@ -657,6 +672,7 @@ internal sealed class GlyphCollector
                         Bounds = new PdfRectangle(Math.Min(Math.Min(x0, x1), Math.Min(x2, x3)), Math.Min(Math.Min(y0, y1), Math.Min(y2, y3)),
                             Math.Max(Math.Max(x0, x1), Math.Max(x2, x3)), Math.Max(Math.Max(y0, y1), Math.Max(y2, y3))),
                         Order = _glyphs.Count,
+                        Mcid = _mcid,
                         Bold = bold,
                         Italic = italic,
                         Fill = gs.Fill,
@@ -751,44 +767,47 @@ internal static class LineBuilder
     {
         var lines = new List<TextLineInfo>();
         foreach (var line in BuildGlyphLines(glyphs, sortByPosition, detectColumns))
-        {
-            var words = new List<TextWord>();
-            var wordText = new StringBuilder();
-            var wordGlyphs = new List<TextGlyph>();
-            var lineText = new StringBuilder();
-
-            void FlushWord()
-            {
-                if (wordText.Length == 0) return;
-                var first = wordGlyphs[0];
-                words.Add(new TextWord(wordText.ToString(), PdfTextExtractor.Union(wordGlyphs.Select(g => g.Bounds)), Math.Round(first.FontSize, 2), first.FontName));
-                wordText.Clear();
-                wordGlyphs.Clear();
-            }
-
-            foreach (var (g, spaceBefore) in line)
-            {
-                if (spaceBefore)
-                {
-                    lineText.Append(' ');
-                    FlushWord();
-                }
-                lineText.Append(g.Text);
-                foreach (char c in g.Text)
-                {
-                    if (char.IsWhiteSpace(c)) FlushWord();
-                    else
-                    {
-                        wordText.Append(c);
-                        if (wordGlyphs.Count == 0 || !ReferenceEquals(wordGlyphs[^1], g)) wordGlyphs.Add(g);
-                    }
-                }
-            }
-            FlushWord();
-            var text = lineText.ToString().TrimEnd();
-            if (text.Length == 0) continue;
-            lines.Add(new TextLineInfo(text, PdfTextExtractor.Union(line.Select(e => e.Glyph.Bounds)), words));
-        }
+            if (ToLineInfo(line) is { } info) lines.Add(info);
         return lines;
+    }
+
+    /// <summary>A line of glyphs as text with its words; null for a line of nothing but whitespace.</summary>
+    public static TextLineInfo? ToLineInfo(List<(TextGlyph Glyph, bool SpaceBefore)> line)
+    {
+        var words = new List<TextWord>();
+        var wordText = new StringBuilder();
+        var wordGlyphs = new List<TextGlyph>();
+        var lineText = new StringBuilder();
+
+        void FlushWord()
+        {
+            if (wordText.Length == 0) return;
+            var first = wordGlyphs[0];
+            words.Add(new TextWord(wordText.ToString(), PdfTextExtractor.Union(wordGlyphs.Select(g => g.Bounds)), Math.Round(first.FontSize, 2), first.FontName));
+            wordText.Clear();
+            wordGlyphs.Clear();
+        }
+
+        foreach (var (g, spaceBefore) in line)
+        {
+            if (spaceBefore)
+            {
+                lineText.Append(' ');
+                FlushWord();
+            }
+            lineText.Append(g.Text);
+            foreach (char c in g.Text)
+            {
+                if (char.IsWhiteSpace(c)) FlushWord();
+                else
+                {
+                    wordText.Append(c);
+                    if (wordGlyphs.Count == 0 || !ReferenceEquals(wordGlyphs[^1], g)) wordGlyphs.Add(g);
+                }
+            }
+        }
+        FlushWord();
+        var text = lineText.ToString().TrimEnd();
+        return text.Length == 0 ? null : new TextLineInfo(text, PdfTextExtractor.Union(line.Select(e => e.Glyph.Bounds)), words);
     }
 }

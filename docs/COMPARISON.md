@@ -61,7 +61,7 @@ widely used in .NET. Each has a different focus, and in several areas they are a
 | Native dependencies | none | none | none | Skia, qpdf, HarfBuzz (bundled) | none |
 | Create PDFs | low-level content | low-level, simple text | low-level (PDFsharp), layout engine (MigraDoc) | layout engine | low-level canvas and layout engine |
 | Modify, merge, split | yes, incremental saving | merge; incremental updates only in prerelease builds (objects added or replaced by hand; not for encrypted or repaired files) | yes | merge, overlay via qpdf | yes; incremental saving with automatic change detection, also of encrypted and repaired files |
-| Text extraction | with positions | with positions and layout analysis | – | – | with positions, reading order (also across columns); letters with font, colors and rendering mode |
+| Text extraction | with positions | with positions and layout analysis | – | – | with positions, reading order (also across columns); letters with font, colors and rendering mode; layout analysis (headings, paragraphs, lists, tables, headers and footers) |
 | Render pages to images, print | **yes** | – | – | only its own documents | to images and PNG with the package miPDFlib.Rendering; printing is left to the application |
 | AcroForms | fill, create, flatten | read only | fill, flatten | – | fill, create, flatten, FDF/XFDF |
 | Signatures | signing framework; PAdES levels and LTV only as example code with BouncyCastle; no validation | – | CMS (`adbe.pkcs7.detached`), optional time-stamp; no LTV, no validation | – | PAdES B-B to B-LTA, LTV, validation, no BouncyCastle |
@@ -93,7 +93,9 @@ licence terms are those of the projects.
 - **Commercial support, FIPS or the widest feature set:** iText or Syncfusion with a commercial licence.
 - **Rendering PDFs to images or printing:** PDFBox (Java); in .NET miPDFlib.Rendering (managed code only) or a
   PDFium-based library.
-- **Reading and analysing text in .NET:** PdfPig.
+- **Reading and analysing text in .NET:** PdfPig (several layout analysis algorithms, export to ALTO, hOCR and PAGE),
+  or miPDFlib (reading order across columns, layout analysis with headings, lists and tables, next to everything
+  else in the same library).
 - **PostScript or EPS to PDF without Ghostscript (AGPL) and without native code:** miPDFlib.PostScript.
 - **Document generation with Arabic, Hebrew or Indic scripts:** QuestPDF within its licence terms, or miPDFlib
   (managed code only).

@@ -18,6 +18,12 @@
   forms and line numbers keep their rows. On pages of recent arXiv papers the word order matches the order of the LaTeX
   output to 96.9 % on average (line by line: 84.8 %), on IRS forms and instructions to 98.7 % (median; line by line
   50.8 %); the reading order of 151 ZUGFeRD / Factur-X invoices is unchanged.
+- Layout analysis: `PdfLayoutAnalyzer.Analyze` returns the text of a page or document as blocks in reading order –
+  headings with their levels, paragraphs, list items, tables, captions, running headers and footers – with their
+  lines, bounds, font size and weight. Compared with the structure tree of tagged IRS instructions, 89 % of the
+  headings, 88 % of the list items and 83 % of the paragraphs are recognised.
+- Text extraction: bold and italic are also recognised for TeX fonts (CMBX, SFTI, ...) and Times fonts named "Medi"
+  and "Ital".
 
 ## 1.3.0
 

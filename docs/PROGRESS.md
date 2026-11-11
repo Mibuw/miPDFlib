@@ -65,8 +65,9 @@ Last update: 2026-11-10
 | 56 Letters with font, colors and rendering mode | ✅ done (708 tests; `PdfTextExtractor.ExtractLetters`: bounds, baseline, angle, font name and size, bold and italic, fill and stroke color (device colors as in the file, spot, Indexed and Lab colors as RGB, patterns null), rendering mode and visibility; checked on 1,134 corpus pages: the letters give exactly the text of ExtractText, as fast) |
 | 57 Layout analysis, stage 1 (columns and reading order) | ✅ done (714 tests; `TextExtractionOptions.DetectColumns`: lines cut at wide gaps, the page split at vertical channels found in a profile of the text height (a few spanning fragments allowed: header, title and author block, captions, footer) and at horizontal gaps; a channel separates columns only beside running text, so tables, invoices, lists and line numbers keep their rows. Measured against the LaTeX content order of 84 recent arXiv papers: 95.4 % on the 42 papers used while developing it (line by line 76.2 %, PdfPig's layout pipeline 93.7 %), 96.9 % on 42 held-out papers (84.8 %, PdfPig 96.1 %); all synthetic pages 100 %; 0.8 ms more per page) |
 | 58 Column reading on business documents, now the default | ✅ done (715 tests; checked on 151 ZUGFeRD / Factur-X invoices (289 pages: same order as line by line, every line item still on one line with its amount), IRS forms and instructions (median 98.7 % instead of 50.8 %) and business letters (unchanged); tables of text-like cells, numbered lists, side notes and joined bands made stricter, tables set side by side read one after the other; `DetectColumns` is on by default) |
+| 59 Layout analysis, stage 2 (blocks and their kinds) | ✅ done (719 tests; `PdfLayoutAnalyzer.Analyze` for a page or a document: blocks in reading order within the columns, split at wider gaps, size changes, list markers, indented first lines and rows of cells; kinds heading (with levels ranked across the document), paragraph, list item, table, caption, header and footer (by position, page numbers and repetition on the pages); compared with the structure tree of tagged IRS instructions: headings 89 %, list items 88 %, paragraphs 83 %; generated documents of the layout engine 97-100 % per kind; 579 corpus files without errors, about 3 ms per page) |
 
-Current state: 715 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 719 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -120,8 +121,8 @@ PDF417 barcodes. Next steps:
    1. Blocks and reading order ✅ (`DetectColumns`, the default since it was also checked on invoices, forms and
       letters): segmentation by whitespace (columns, headers and footers, side notes) and the order of the blocks,
       keeping tables row by row.
-   2. API `PdfLayoutAnalyzer.Analyze(page)`: blocks with lines, bounds and kind (heading, paragraph, list, table,
-      header, footer), using font size and weight from `ExtractLetters`; headers and footers recognised across pages.
+   2. API `PdfLayoutAnalyzer.Analyze(page)` ✅: blocks with lines, bounds and kind (heading, paragraph, list item,
+      table, caption, header, footer), using font size and weight; headers and footers recognised across pages.
    3. Export: Markdown (for language models), hOCR and ALTO.
    4. Tables: cells from text alignment and ruling lines (needs the paths of the page).
 

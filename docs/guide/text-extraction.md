@@ -40,6 +40,42 @@ content order of tagged (accessible) forms – as the share of words in the righ
 | IRS forms and instructions (median of 160 pages) | 50.8 % | 98.7 % |
 | 151 ZUGFeRD / Factur-X invoices (289 pages) | – | same order as line by line |
 
+## Layout analysis: headings, paragraphs, lists, tables
+
+`PdfLayoutAnalyzer` returns the text of a page as blocks in reading order and tells what each block is – for
+document processing, search indexes or language-model pipelines that need the structure, not just the text:
+
+```csharp
+foreach (var page in PdfLayoutAnalyzer.Analyze(document))
+    foreach (var block in page.Blocks)
+    {
+        switch (block.Kind)
+        {
+            case LayoutBlockKind.Heading: Console.WriteLine($"{new string('#', block.Level)} {block.Text}"); break;
+            case LayoutBlockKind.ListItem: Console.WriteLine($"- {block.Text}"); break;
+            case LayoutBlockKind.Header or LayoutBlockKind.Footer: break;   // running heads, page numbers
+            default: Console.WriteLine(block.Text); break;
+        }
+    }
+```
+
+| Kind | Recognised by |
+|---|---|
+| `Heading` (with `Level`) | short blocks set larger than the running text, or bold where the text is not, or numbered titles ("2.1 Method") set a little larger; levels rank the sizes across the document |
+| `Paragraph` | running text, split at wider line gaps, indented first lines and changes of font size; a bold beginning that runs on stays in its paragraph |
+| `ListItem` | a bullet or a number ("1.", "a)", "(iv)") at the start, with its indented further lines |
+| `Table` | consecutive rows of cells separated by wide gaps, with a bold head row; each line of the block is a row |
+| `Caption` | "Figure 3.", "Table 1:", "Abbildung 2", "Tabelle 1" … at the start |
+| `Header`, `Footer` | blocks in the top or bottom tenth of the page that repeat on the pages of the document (with their numbers left out), page numbers, and a smaller outermost line |
+
+`Analyze(page)` analyses a single page; `Analyze(document)` also finds headers and footers by their repetition and
+ranks the headings of the whole document. Each block has its `Lines` (with words and positions), `Bounds`,
+`FontSize` and `IsBold`. Blocks are found within the columns of the page (see above).
+
+Compared with the structure tree of tagged instructions (IRS), 89 % of the headings, 88 % of the list items and
+83 % of the paragraphs are recognised; on forms, whose labels are hard to tell apart, less. The analysis takes about
+3 ms per page.
+
 ## Words, lines and positions
 
 ```csharp
