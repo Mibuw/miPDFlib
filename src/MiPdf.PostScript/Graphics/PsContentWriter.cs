@@ -26,7 +26,7 @@ internal sealed class PsContentWriter
     private int _cap, _join;
     private double _miter;
     private string _dash = "";
-    private bool _overprint, _strokeAdjust, _extGStateKnown;
+    private bool _overprint, _strokeAdjust, _extGStateKnown, _textStateKnown;
     private int _textMode;
     private readonly bool _glyphSpace, _unknownStart;
     private readonly Matrix _deviceToContent;
@@ -101,6 +101,12 @@ internal sealed class PsContentWriter
         if (!_fonts.TryGetValue(font, out var name))
             _fonts[font] = name = _resources.AddResource(PdfName.Font, font, "F");
         _sb.Append("BT /").Append(name.Value).Append(" 1 Tf ");
+        if (!_textStateKnown)
+        {
+            // an inherited state may space, scale or raise the glyphs
+            _sb.Append("0 Tc 0 Tw 100 Tz 0 Ts ");
+            _textStateKnown = true;
+        }
         if (_textMode != mode)
         {
             _sb.Append(mode).Append(" Tr ");
@@ -173,6 +179,7 @@ internal sealed class PsContentWriter
             _cap = _join = _textMode = -1;
             _dash = "";
             _extGStateKnown = false;
+            _textStateKnown = false;
             return;
         }
         // the PDF defaults after Q
@@ -183,6 +190,7 @@ internal sealed class PsContentWriter
         _dash = "[] 0";
         _overprint = _strokeAdjust = false;
         _extGStateKnown = true;
+        _textStateKnown = true;
         _textMode = 0;
     }
 

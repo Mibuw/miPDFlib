@@ -22,12 +22,26 @@ internal sealed partial class PsInterpreter
         ["b5"] = (516, 729), ["executivepage"] = (540, 720),
     };
 
+    /// <summary>
+    /// The program is an encapsulated graphic (EPS import): as the EPSF specification asks of an importing application,
+    /// showpage and copypage do nothing, and the page level operators it forbids (erasepage, setpagedevice and the page
+    /// size operators) do not erase what was painted, reset the graphics state or change the size.
+    /// </summary>
+    public bool Encapsulated { get; init; }
+
     private void RegisterDeviceOperators()
     {
         Op("setpagedevice", ip =>
         {
             var request = ip.PopDict();
             var current = ip.PageDeviceDict();
+            if (ip.Encapsulated)
+            {
+                // the parameters are kept (currentpagedevice returns them), but there is no new page
+                foreach (var (key, value) in request.Map)
+                    if (key.Type != PsType.Name || key.AsName.Text != "PageSize") current.Map[key] = value;
+                return;
+            }
             // the current page ends as at the end of the device (EndPage with reason 2, normally not shown)
             if (ip.EndPage(2)) ip.Device?.ShowPage();
             foreach (var (key, value) in request.Map) current.Map[key] = value;
@@ -59,6 +73,7 @@ internal sealed partial class PsInterpreter
             double width = w, height = h;
             UserDict.Map[Key(name)] = PsObject.Operator(new PsOperator(Name(name), ip =>
             {
+                if (ip.Encapsulated) return;
                 ip.Device?.SetPageSize(width, height);
                 ip.Device?.ErasePage();
                 ip.InitGraphics(ip.Device);

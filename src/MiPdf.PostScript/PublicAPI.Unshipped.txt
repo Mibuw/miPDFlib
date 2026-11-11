@@ -1,1 +1,18 @@
 #nullable enable
+MiPdf.PostScript.EpsImport
+MiPdf.PostScript.PostScriptException
+MiPdf.PostScript.PostScriptException.ErrorName.get -> string!
+MiPdf.PostScript.PostScriptException.OffendingCommand.get -> string!
+MiPdf.PostScript.PostScriptException.Output.get -> string!
+MiPdf.PostScript.PostScriptOptions
+MiPdf.PostScript.PostScriptOptions.IgnoreErrors.get -> bool
+MiPdf.PostScript.PostScriptOptions.IgnoreErrors.set -> void
+MiPdf.PostScript.PostScriptOptions.MaxMemory.get -> long
+MiPdf.PostScript.PostScriptOptions.MaxMemory.set -> void
+MiPdf.PostScript.PostScriptOptions.MaxOperations.get -> long
+MiPdf.PostScript.PostScriptOptions.MaxOperations.set -> void
+MiPdf.PostScript.PostScriptOptions.PostScriptOptions() -> void
+MiPdf.PostScript.PostScriptOptions.Timeout.get -> System.TimeSpan?
+MiPdf.PostScript.PostScriptOptions.Timeout.set -> void
+static MiPdf.PostScript.EpsImport.ImportEps(this MiPdf.PdfDocument! document, byte[]! eps, MiPdf.PostScript.PostScriptOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> MiPdf.Graphics.PdfFormXObject!
+static MiPdf.PostScript.EpsImport.ImportEps(this MiPdf.PdfDocument! document, System.IO.Stream! eps, MiPdf.PostScript.PostScriptOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> MiPdf.Graphics.PdfFormXObject!

@@ -171,26 +171,42 @@ internal sealed class PsPageDevice : PsDevice
     }
 }
 
-/// <summary>Writes everything painted into one form XObject (EPS import); <c>showpage</c> is ignored.</summary>
+/// <summary>
+/// Writes everything painted into one form XObject (EPS import); <c>showpage</c> is ignored. As with Ghostscript's
+/// EPSCrop, the device is as large as the bounding box and the default matrix moves its lower left corner to the
+/// origin. The content does not rely on the graphics state it is drawn with.
+/// </summary>
 internal sealed class PsFormDevice : PsDevice
 {
     private readonly PsContentWriter _content;
+    private readonly Matrix _defaultMatrix;
 
-    public PsFormDevice(PdfFormXObject form)
+    /// <param name="form">The form XObject; its size is the size of the device.</param>
+    /// <param name="left">The left edge of the graphic in PostScript default user space.</param>
+    /// <param name="bottom">The bottom edge of the graphic in PostScript default user space.</param>
+    public PsFormDevice(PdfFormXObject form, double left = 0, double bottom = 0)
     {
         Form = form;
         Document = form.Document;
         Images = new PsPdfImages(form.Document);
         Width = form.Width;
         Height = form.Height;
-        _content = new PsContentWriter(form);
+        _defaultMatrix = Matrix.Translate(-left, -bottom).Multiply(Matrix.Scale(PsContentWriter.DeviceScale, PsContentWriter.DeviceScale));
+        _content = new PsContentWriter(form, unknownStart: true);
     }
 
     public PdfFormXObject Form { get; }
 
     public override PsContentWriter Content => _content;
 
+    public override Matrix DefaultMatrix => _defaultMatrix;
+
     public override void ShowPage()
+    {
+    }
+
+    /// <summary>The graphic keeps its bounding box.</summary>
+    public override void SetPageSize(double width, double height)
     {
     }
 

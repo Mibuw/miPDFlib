@@ -387,9 +387,18 @@ internal sealed partial class PsInterpreter
             ip.GState.Ctm = savedCtm;
             ip.GState.Path = saved;
         });
-        Op("erasepage", ip => ip.Device?.ErasePage());
-        Op("showpage", ip => ip.ShowPage(erase: true));
-        Op("copypage", ip => ip.ShowPage(erase: false));
+        Op("erasepage", ip =>
+        {
+            if (!ip.Encapsulated) ip.Device?.ErasePage();
+        });
+        Op("showpage", ip =>
+        {
+            if (!ip.Encapsulated) ip.ShowPage(erase: true);
+        });
+        Op("copypage", ip =>
+        {
+            if (!ip.Encapsulated) ip.ShowPage(erase: false);
+        });
         // ---------------------------------------------------------------- user paths (LanguageLevel 2)
         Op("setbbox", ip =>
         {
