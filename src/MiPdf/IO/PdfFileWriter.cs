@@ -291,7 +291,17 @@ internal sealed class PdfFileWriter
         int encryptNumber = _store.Trailer[PdfName.Encrypt] is PdfReference er ? er.ObjectNumber : -1;
         var directStreams = new Dictionary<PdfStream, PdfReference>(ReferenceEqualityComparer.Instance);
         var changed = FindChangedObjects(directStreams);
-        int xrefNumber = _options.UseObjectStreams || _store.UsesXrefStreams ? _store.AllocateNumber() : -1;
+        // The cross-reference information of a repaired file is damaged: chaining the update to it with /Prev would
+        // leave a file that other readers have to repair as well (or cannot read). The update then lists every object
+        // instead, unchanged ones where the scan found them, and has no /Prev; the original bytes stay as they are.
+        bool complete = _store.WasRepaired || _store.LastXrefOffset < 0;
+        var written = complete ? new HashSet<int>(changed) : null;
+        var unchanged = complete
+            ? _store.FileEntries().Where(e => !written!.Contains(e.Number) && !_store.DeletedObjectNumbers.Contains(e.Number)).ToList()
+            : new List<(int Number, XrefEntry Entry)>();
+        // objects in object streams can only be listed in a cross-reference stream
+        bool compressed = unchanged.Any(e => e.Entry.Type == XrefEntryType.Compressed);
+        int xrefNumber = _options.UseObjectStreams || _store.UsesXrefStreams || compressed ? _store.AllocateNumber() : -1;
 
         (int, int)? MapReference(PdfReference r)
         {
@@ -308,25 +318,28 @@ internal sealed class PdfFileWriter
             IsUnencryptedObject = n => n == encryptNumber || n == xrefNumber,
         };
 
-        var offsets = new SortedDictionary<int, (long Offset, int Generation, bool Free)>();
+        // per object number: type (0 free, 1 in use, 2 in an object stream) and the two fields of the entry
+        var offsets = new SortedDictionary<int, (int Type, long Field2, int Field3)>();
         foreach (int number in changed)
         {
             if (number == xrefNumber) continue;
             var obj = _store.GetObject(number)!;
             int gen = _store.GetGeneration(number);
-            offsets[number] = (output.Position, gen, false);
+            offsets[number] = (1, output.Position, gen);
             serializer.WriteIndirect(output, number, gen, obj);
         }
         foreach (int number in _store.DeletedObjectNumbers)
-            if (_store.ExistsInFile(number)) offsets[number] = (0, Math.Min(_store.GetGeneration(number) + 1, 65535), true);
+            if (_store.ExistsInFile(number)) offsets[number] = (0, 0, Math.Min(_store.GetGeneration(number) + 1, 65535));
+        foreach (var (number, entry) in unchanged)
+            offsets[number] = entry.Type == XrefEntryType.Compressed ? (2, entry.StreamNumber, entry.StreamIndex) : (1, entry.Offset, entry.Generation);
 
         var trailer = new PdfDictionary();
         CopyTrailerEntries(_store.Trailer, trailer);
-        long prev = _store.LastXrefOffset;
+        long prev = complete ? -1 : _store.LastXrefOffset;
 
         if (xrefNumber > 0)
         {
-            var entries = offsets.Select(kv => (kv.Key, kv.Value.Free ? 0 : 1, kv.Value.Free ? 0L : kv.Value.Offset, kv.Value.Generation)).ToList();
+            var entries = offsets.Select(kv => (kv.Key, kv.Value.Type, kv.Value.Field2, kv.Value.Field3)).ToList();
             entries.Add((xrefNumber, 1, output.Position, 0));
             trailer.Set(PdfName.Size, _store.Size);
             WriteXrefStream(output, serializer, trailer, entries, xrefNumber, prev);
@@ -346,12 +359,12 @@ internal sealed class PdfFileWriter
                 for (int k = i; k <= j; k++)
                 {
                     var e = all[k].Value;
-                    output.Write(e.Free ? $"0000000000 {e.Generation:D5} f\r\n" : $"{e.Offset:D10} {e.Generation:D5} n\r\n");
+                    output.Write(e.Type == 0 ? $"0000000000 {e.Field3:D5} f\r\n" : $"{e.Field2:D10} {e.Field3:D5} n\r\n");
                 }
                 i = j + 1;
             }
             trailer.Set(PdfName.Size, _store.Size);
-            trailer.Set(PdfName.Prev, prev);
+            if (prev >= 0) trailer.Set(PdfName.Prev, prev);
             output.WriteLine("trailer");
             serializer.Write(trailer, output);
             output.Write($"\nstartxref\n{xrefOffset}\n%%EOF\n");

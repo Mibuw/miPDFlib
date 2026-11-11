@@ -119,6 +119,8 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver, IDisposable
             _objects.Clear();
             _objectToReference.Clear();
             _objectStreams.Clear();
+            // a repaired encrypted file: its object streams can be read now
+            if (_repaired && value != null) CompleteRepair();
         }
     }
 
@@ -242,6 +244,10 @@ internal sealed partial class PdfObjectStore : IPdfObjectResolver, IDisposable
     public IReadOnlyCollection<int> DeletedObjectNumbers => _deleted;
 
     public bool ExistsInFile(int number) => _xref.TryGetValue(number, out var e) && e.Type != XrefEntryType.Free;
+
+    /// <summary>The cross-reference entries of the objects in the original file; after a repair as the scan found them.</summary>
+    public IEnumerable<(int Number, XrefEntry Entry)> FileEntries() =>
+        _xref.Where(kv => kv.Value.Type != XrefEntryType.Free).Select(kv => (kv.Key, kv.Value));
 
     /// <summary>
     /// True if <paramref name="number"/> has the same cross-reference entry in both stores, i.e. the object was not

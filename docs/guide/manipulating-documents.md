@@ -49,6 +49,20 @@ doc.Save("same.pdf",  new PdfSaveOptions { Incremental = true });      // append
 | `UpdateModificationDate` | sets the modification date to now (default true) |
 | `UpdateProducer` | documents opened from a file: appends "; modified with miPDFlib" to the producer (default true) |
 
+### Incremental updates
+
+An incremental save appends an update to the unchanged original bytes: the objects changed, added or deleted since
+opening – found automatically, no need to register them – and a cross-reference section for them. Earlier
+revisions stay intact, so existing signatures remain valid, and the update is small.
+
+- The update uses the format of the original: a cross-reference table, or a cross-reference stream for files with
+  object streams.
+- Encrypted documents stay encrypted with their original key (changing the encryption needs a full save).
+- Damaged files whose cross-reference data had to be repaired when opening (`doc.WasRepaired`) are updated as well:
+  the update then lists every object of the file and does not refer back to the damaged data, so the result opens
+  without repair in any reader – while the original bytes are still kept.
+- `Save(path)` may write over the file the document was opened from; `ToArray` returns the whole file.
+
 ### Document information on saving
 
 Saving sets the modification date (`/ModDate`) and, for a document opened from a file, notes the edit in the

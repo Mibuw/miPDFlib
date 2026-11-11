@@ -110,6 +110,105 @@ public class DocumentRoundTripTests
         Assert.True(Assert.Single(MiPdf.Signatures.PdfSignatureValidator.Validate(signed)).IsIntegrityValid);
     }
 
+    /// <summary>Damages a saved file: a wrong startxref offset, no cross-reference section at all, or a cut-off end.</summary>
+    private static byte[] Damage(byte[] pdf, string damage)
+    {
+        string text = Encoding.Latin1.GetString(pdf);
+        int startxref = text.LastIndexOf("startxref", StringComparison.Ordinal);
+        return damage switch
+        {
+            "wrong-startxref" => Encoding.Latin1.GetBytes(text[..startxref] + "startxref\n17\n%%EOF\n"),
+            // the last cross-reference section (table or stream object) and everything after it is gone
+            "no-xref" => Encoding.Latin1.GetBytes(text[..XrefStart(text, startxref)] + "%%EOF\n"),
+            "truncated" => pdf[..(startxref - 5)],
+            _ => throw new ArgumentException(damage),
+        };
+
+        static int XrefStart(string text, int startxref)
+        {
+            long offset = long.Parse(text[(startxref + 9)..].Trim().Split('\n', '\r')[0]);
+            return (int)offset;
+        }
+    }
+
+    [Theory]
+    [InlineData(false, "wrong-startxref")]
+    [InlineData(false, "no-xref")]
+    [InlineData(false, "truncated")]
+    [InlineData(true, "wrong-startxref")]
+    [InlineData(true, "no-xref")]
+    [InlineData(true, "truncated")]
+    public void IncrementalUpdateOfADamagedFileListsAllObjects(bool objectStreams, string damage)
+    {
+        var original = Damage(CreateSample().ToArray(new PdfSaveOptions { UseObjectStreams = objectStreams }), damage);
+        var doc = PdfDocument.Open(original);
+        Assert.True(doc.WasRepaired);
+        doc.Info.Title = "Changed";
+        doc.AddPage(PageSize.A5);
+        var updated = doc.ToArray(new PdfSaveOptions { Incremental = true });
+
+        // the damaged original stays as it is; the update does not refer back to its cross-reference data
+        Assert.True(updated.AsSpan(0, original.Length).SequenceEqual(original), "original bytes must be preserved");
+        var appended = Encoding.Latin1.GetString(updated, original.Length, updated.Length - original.Length);
+        Assert.DoesNotContain("/Prev", appended);
+        // objects in object streams can only be listed in a cross-reference stream
+        if (objectStreams) Assert.Contains("/XRef", appended);
+
+        var reopened = PdfDocument.Open(updated);
+        Assert.False(reopened.WasRepaired);
+        Assert.Equal(4, reopened.PageCount);
+        Assert.Equal("Changed", reopened.Info.Title);
+        Assert.Contains("page 2", Encoding.ASCII.GetString(reopened.GetPage(2).GetContentBytes()));
+
+        // a further update chains to the complete one as usual
+        reopened.GetPage(1).Rotation = 90;
+        var again = PdfDocument.Open(reopened.ToArray(new PdfSaveOptions { Incremental = true }));
+        Assert.False(again.WasRepaired);
+        Assert.Equal(90, again.GetPage(1).Rotation);
+        Assert.Equal("Changed", again.Info.Title);
+    }
+
+    [Theory]
+    [InlineData(false, "wrong-startxref")]
+    [InlineData(true, "wrong-startxref")]
+    [InlineData(true, "truncated")]
+    [InlineData(false, "wrong-object-offset")]
+    public void IncrementalUpdateOfADamagedEncryptedFile(bool objectStreams, string damage)
+    {
+        var doc = CreateSample();
+        doc.Encrypt(new MiPdf.Security.PdfEncryptionOptions { UserPassword = "user", OwnerPassword = "owner" });
+        var saved = doc.ToArray(new PdfSaveOptions { UseObjectStreams = objectStreams });
+        // the objects of an encrypted file in object streams are found once the password is known; a wrong offset in
+        // the table is only noticed when the object is read (the repair then runs with the decryptor set)
+        var original = damage == "wrong-object-offset" ? WrongOffset(saved) : Damage(saved, damage);
+        var opened = PdfDocument.Open(original, "owner");
+        Assert.Equal(3, opened.PageCount);
+        Assert.True(opened.WasRepaired);
+        opened.Info.Title = "Changed title";
+        var updated = opened.ToArray(new PdfSaveOptions { Incremental = true });
+        Assert.True(updated.AsSpan(0, original.Length).SequenceEqual(original));
+        Assert.DoesNotContain("Changed title", Encoding.Latin1.GetString(updated));
+        var reopened = PdfDocument.Open(updated, "user");
+        Assert.False(reopened.WasRepaired);
+        Assert.Equal("Changed title", reopened.Info.Title);
+        Assert.Equal(3, reopened.PageCount);
+        Assert.Contains("page 3", Encoding.ASCII.GetString(reopened.GetPage(3).GetContentBytes()));
+
+        // the table entry of the page tree points into the header
+        static byte[] WrongOffset(byte[] pdf)
+        {
+            string text = Encoding.Latin1.GetString(pdf);
+            int pages = text.IndexOf("/Type/Pages", StringComparison.Ordinal);
+            int header = text.LastIndexOf(" 0 obj", pages, StringComparison.Ordinal);
+            int numberStart = text.LastIndexOf('\n', header) + 1;
+            int number = int.Parse(text[numberStart..header]);
+            int xref = text.LastIndexOf("\nxref", StringComparison.Ordinal) + 1;
+            int firstEntry = text.IndexOf('\n', text.IndexOf('\n', xref) + 1) + 1;  // after "xref" and "0 n"
+            int entry = firstEntry + number * 20;
+            return Encoding.Latin1.GetBytes(text[..entry] + "0000000009" + text[(entry + 10)..]);
+        }
+    }
+
     [Fact]
     public void IncrementalUpdateWithoutChangesAppendsNoObjects()
     {

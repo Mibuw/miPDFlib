@@ -107,8 +107,9 @@ public sealed class FileReadingTests : IClassFixture<TestPki>, IDisposable
             // both saves read the unchanged data from the file
             foreach (bool incremental in new[] { false, true })
             {
-                if (incremental && doc.WasRepaired) continue;
+                // an incremental update of a repaired file lists all objects: the result needs no repair
                 var saved = PdfDocument.Open(doc.ToArray(new PdfSaveOptions { Incremental = incremental }), password);
+                Assert.False(saved.WasRepaired);
                 Assert.Equal(PdfTextExtractor.ExtractText(expected), PdfTextExtractor.ExtractText(saved));
                 if (kind != "no-xref") Assert.Equal(Image(expected, 3), Image(saved, 3));
             }

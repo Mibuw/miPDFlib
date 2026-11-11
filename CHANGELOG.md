@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Incremental saving of damaged files: when the cross-reference data had to be repaired on opening, the update now
+  lists every object of the file and has no `/Prev`, so the result opens without repair in any reader (before, the
+  update was chained to the damaged data, and a file without `startxref` got `/Prev -1`, which strict readers
+  reject). The original bytes are kept as before. Checked with 886 damaged copies of the test corpus, read back by
+  miPDFlib, pypdf (strict) and Ghostscript.
+- Damaged encrypted files whose objects are in object streams can be opened: the object streams are read once the
+  password is known (before: "no catalog found").
+
 ## 1.3.0
 
 New features, no breaking changes. A third package, **miPDFlib.PostScript**, converts PostScript to PDF and places

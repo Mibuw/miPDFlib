@@ -65,7 +65,37 @@ internal sealed partial class PdfObjectStore
             }
             else if (type == PdfName.ObjStm) objectStreams.Add(number);
         }
-        foreach (int stm in objectStreams)
+        foreach (var (k, v) in oldTrailer)
+            if (!trailer.ContainsKey(k)) trailer[k] = v;
+        Trailer = trailer;
+        Trailer.Remove(PdfName.Prev);
+        Trailer.Remove(PdfName.XRefStm);
+        Trailer.Remove(PdfName.Index);
+        Trailer.Remove(PdfName.W);
+        UsesXrefStreams = false;
+        _repairedObjectStreams = objectStreams;
+
+        // the object streams of an encrypted file can only be read once the decryptor is set
+        // (a repair later on, when an object is not found, has the decryptor already)
+        if (_decryptor == null && Trailer.ContainsKey(PdfName.Encrypt) && Trailer[PdfName.Root] is PdfReference)
+        {
+            UpdateNextNumber();
+            Trailer.Set(PdfName.Size, _nextNumber);
+            return;
+        }
+        CompleteRepair();
+    }
+
+    private List<int> _repairedObjectStreams = new();
+
+    /// <summary>
+    /// The second part of a repair: the objects in the object streams are added (later definitions in the file win) and
+    /// the catalog is looked for if the trailer does not lead to it. For an encrypted file this runs when the decryptor
+    /// is set.
+    /// </summary>
+    private void CompleteRepair()
+    {
+        foreach (int stm in _repairedObjectStreams)
         {
             try
             {
@@ -75,16 +105,8 @@ internal sealed partial class PdfObjectStore
                     if (!_xref.ContainsKey(index.Numbers[i]))
                         _xref[index.Numbers[i]] = new XrefEntry { Type = XrefEntryType.Compressed, StreamNumber = stm, StreamIndex = i };
             }
-            catch (Exception ex) when (ex is PdfParseException or IndexOutOfRangeException or ArgumentOutOfRangeException) { }
+            catch (Exception ex) when (ex is PdfParseException or IndexOutOfRangeException or ArgumentOutOfRangeException or InvalidDataException) { }
         }
-
-        foreach (var (k, v) in oldTrailer)
-            if (!trailer.ContainsKey(k)) trailer[k] = v;
-        Trailer = trailer;
-        Trailer.Remove(PdfName.Prev);
-        Trailer.Remove(PdfName.XRefStm);
-        Trailer.Remove(PdfName.Index);
-        Trailer.Remove(PdfName.W);
 
         if (Trailer.Get(PdfName.Root) is not PdfDictionary)
         {
@@ -100,7 +122,6 @@ internal sealed partial class PdfObjectStore
         }
         if (Trailer.Get(PdfName.Root) is not PdfDictionary)
             throw new PdfParseException("The file is not a valid PDF document (no catalog found).");
-        UsesXrefStreams = false;
         UpdateNextNumber();
         Trailer.Set(PdfName.Size, _nextNumber);
     }
