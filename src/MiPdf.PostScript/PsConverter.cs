@@ -10,7 +10,7 @@ internal static class PsConverter
     {
         var document = PdfDocument.Create();
         var device = new PsPageDevice(document, width, height);
-        var interpreter = new PsInterpreter(limits);
+        var interpreter = new PsInterpreter(limits) { PageDevice = device };
         interpreter.InitGraphics(device);
         result = interpreter.Run(program);
         interpreter.EndJob();

@@ -69,6 +69,7 @@ internal sealed partial class PsInterpreter
         RegisterImageOperators();
         RegisterPatternOperators();
         RegisterShadingOperators();
+        RegisterPdfMarkOperators();
 
         SystemDict.Access = PsDictAccess.ReadOnly;
     }

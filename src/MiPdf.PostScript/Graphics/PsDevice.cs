@@ -108,9 +108,27 @@ internal sealed class PsPageDevice : PsDevice
     {
         Document = document;
         Images = new PsPdfImages(document);
+        Marks = new PsPdfMarks(document);
         Width = width;
         Height = height;
         NewPage();
+    }
+
+    /// <summary>What pdfmark adds to the document.</summary>
+    public PsPdfMarks Marks { get; }
+
+    /// <summary>The number of the page being painted (1-based).</summary>
+    public int CurrentPageNumber => PagesShown + 1;
+
+    /// <summary>
+    /// The page with a number (1-based), created ahead if it does not exist yet (pdfmark refers to later pages): the
+    /// device paints into it when it gets there. Null for numbers out of reach.
+    /// </summary>
+    public PdfPage? PageObject(int number)
+    {
+        if (number < 1 || number > CurrentPageNumber + 10_000) return null;
+        while (Document!.PageCount < number) Document.AddPage(new PdfRectangle(0, 0, Width, Height));
+        return Document.GetPage(number);
     }
 
     public override PsContentWriter Content => _content;
@@ -120,7 +138,8 @@ internal sealed class PsPageDevice : PsDevice
     private void NewPage()
     {
         // the page object exists from the start (resources are added while painting); it is removed if never shown
-        _page = Document!.AddPage(new PdfRectangle(0, 0, Width, Height));
+        _page = PageObject(CurrentPageNumber)!;
+        _page.Dictionary[PdfName.MediaBox] = PdfArray.FromRectangle(new PdfRectangle(0, 0, Width, Height));
         _content = new PsContentWriter(_page);
     }
 
@@ -145,8 +164,10 @@ internal sealed class PsPageDevice : PsDevice
     public void Finish()
     {
         if (PagesShown == 0 && _content.HasContent) ShowPage();
-        Document!.RemovePage(Document.PageCount - 1);
+        // the page begun after the last showpage, and pages created ahead that were never reached
+        while (Document!.PageCount > PagesShown) Document.RemovePage(Document.PageCount - 1);
         Fonts?.Finish();
+        Marks.Finish();
     }
 }
 
