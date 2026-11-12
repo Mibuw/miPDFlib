@@ -99,7 +99,8 @@ public class LayoutAnalysisTests
         Assert.Equal(LayoutBlockKind.Paragraph, paragraph.Kind);
         Assert.Equal(3, paragraph.Lines.Count);
         Assert.Equal(LayoutBlockKind.Caption, page.Blocks.Single(b => b.Text.StartsWith("Figure 3")).Kind);
-        Assert.Equal(LayoutBlockKind.Paragraph, page.Blocks.Single(b => b.Text.StartsWith("Preprint")).Kind);
+        // text running in another direction than the page's text is outside the flow (and never a heading)
+        Assert.Equal(LayoutBlockKind.Other, page.Blocks.Single(b => b.Text.StartsWith("Preprint")).Kind);
         Assert.Equal(LayoutBlockKind.Footer, page.Blocks.Single(b => b.Text == "7").Kind);
     }
 

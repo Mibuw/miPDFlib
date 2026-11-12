@@ -76,6 +76,31 @@ Compared with the structure tree of tagged instructions (IRS), 89 % of the headi
 83 % of the paragraphs are recognised; on forms, whose labels are hard to tell apart, less. The analysis takes about
 3 ms per page.
 
+### Export: Markdown, hOCR, ALTO
+
+`PdfLayoutExport` writes the analysed layout in three formats:
+
+```csharp
+string markdown = PdfLayoutExport.ToMarkdown(document);   // for language models, search indexes, readers
+string hocr = PdfLayoutExport.ToHocr(document);           // hOCR 1.2 (XHTML), as OCR engines write it
+string alto = PdfLayoutExport.ToAlto(document);           // ALTO 4.4 XML, as digitisation projects use it
+```
+
+**Markdown** writes headings as `#` to `######`, paragraphs with their lines joined, list items as `-` or with their
+numbers, tables as pipe tables and captions in italics, and escapes characters Markdown would read as markup. Words
+hyphenated at the end of a line are joined; a hyphen that belongs to the word ("self-employed") is kept – the
+document's own words decide, and otherwise a hyphen after a lower-case letter is taken as a break. A paragraph broken
+by the end of a page or column is joined again. Headers, footers and text outside the flow (a stamp running up the
+margin) are left out unless `MarkdownExportOptions.IncludeHeadersAndFooters` is set; `PageSeparator` writes a line
+such as `---` between pages.
+
+**hOCR** has an `ocr_page` per page, an `ocr_carea` with an `ocr_par` (or `ocr_header`, `ocr_footer`, `ocr_caption`)
+per block, `ocr_line`s and `ocrx_word`s with their bounding boxes; headings, list items and tables carry a `data-kind`
+attribute. **ALTO** has per page a `PrintSpace` with `TextBlock`, `TextLine`, `String` and `SP` elements, headers and
+footers in `TopMargin` and `BottomMargin`, block kinds as layout tags (`TAGREFS`) and fonts as text styles; its output
+validates against the ALTO 4.4 schema. Both measure from the top left corner of the page: hOCR in points
+(`scan_res 72 72`), ALTO in 1/1200 inch (`inch1200`).
+
 ## Words, lines and positions
 
 ```csharp

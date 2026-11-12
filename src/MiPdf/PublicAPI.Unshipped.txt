@@ -13,13 +13,26 @@ MiPdf.Text.LayoutBlockKind.Footer = 6 -> MiPdf.Text.LayoutBlockKind
 MiPdf.Text.LayoutBlockKind.Header = 5 -> MiPdf.Text.LayoutBlockKind
 MiPdf.Text.LayoutBlockKind.Heading = 1 -> MiPdf.Text.LayoutBlockKind
 MiPdf.Text.LayoutBlockKind.ListItem = 2 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Other = 7 -> MiPdf.Text.LayoutBlockKind
 MiPdf.Text.LayoutBlockKind.Paragraph = 0 -> MiPdf.Text.LayoutBlockKind
 MiPdf.Text.LayoutBlockKind.Table = 3 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.MarkdownExportOptions
+MiPdf.Text.MarkdownExportOptions.IncludeHeadersAndFooters.get -> bool
+MiPdf.Text.MarkdownExportOptions.IncludeHeadersAndFooters.set -> void
+MiPdf.Text.MarkdownExportOptions.JoinBrokenParagraphs.get -> bool
+MiPdf.Text.MarkdownExportOptions.JoinBrokenParagraphs.set -> void
+MiPdf.Text.MarkdownExportOptions.JoinHyphenatedWords.get -> bool
+MiPdf.Text.MarkdownExportOptions.JoinHyphenatedWords.set -> void
+MiPdf.Text.MarkdownExportOptions.MarkdownExportOptions() -> void
+MiPdf.Text.MarkdownExportOptions.PageSeparator.get -> string?
+MiPdf.Text.MarkdownExportOptions.PageSeparator.set -> void
 MiPdf.Text.PageLayout
 MiPdf.Text.PageLayout.Blocks.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.LayoutBlock!>!
 MiPdf.Text.PageLayout.BodyFontSize.get -> double
+MiPdf.Text.PageLayout.PageBox.get -> MiPdf.PdfRectangle
 MiPdf.Text.PageLayout.PageNumber.get -> int
 MiPdf.Text.PdfLayoutAnalyzer
+MiPdf.Text.PdfLayoutExport
 MiPdf.Text.TextExtractionOptions.DetectColumns.get -> bool
 MiPdf.Text.TextExtractionOptions.DetectColumns.set -> void
 MiPdf.Text.TextLetter
@@ -57,6 +70,12 @@ override MiPdf.Text.TextLetter.GetHashCode() -> int
 override MiPdf.Text.TextLetter.ToString() -> string!
 static MiPdf.Text.PdfLayoutAnalyzer.Analyze(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.PageLayout!>!
 static MiPdf.Text.PdfLayoutAnalyzer.Analyze(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> MiPdf.Text.PageLayout!
+static MiPdf.Text.PdfLayoutExport.ToAlto(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? textOptions = null) -> string!
+static MiPdf.Text.PdfLayoutExport.ToAlto(System.Collections.Generic.IEnumerable<MiPdf.Text.PageLayout!>! pages) -> string!
+static MiPdf.Text.PdfLayoutExport.ToHocr(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? textOptions = null) -> string!
+static MiPdf.Text.PdfLayoutExport.ToHocr(System.Collections.Generic.IEnumerable<MiPdf.Text.PageLayout!>! pages) -> string!
+static MiPdf.Text.PdfLayoutExport.ToMarkdown(MiPdf.PdfDocument! document, MiPdf.Text.MarkdownExportOptions? options = null, MiPdf.Text.TextExtractionOptions? textOptions = null) -> string!
+static MiPdf.Text.PdfLayoutExport.ToMarkdown(System.Collections.Generic.IEnumerable<MiPdf.Text.PageLayout!>! pages, MiPdf.Text.MarkdownExportOptions? options = null) -> string!
 static MiPdf.Text.PdfTextExtractor.ExtractLetters(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextLetter!>!
 static MiPdf.Text.TextLetter.operator !=(MiPdf.Text.TextLetter? left, MiPdf.Text.TextLetter? right) -> bool
 static MiPdf.Text.TextLetter.operator ==(MiPdf.Text.TextLetter? left, MiPdf.Text.TextLetter? right) -> bool

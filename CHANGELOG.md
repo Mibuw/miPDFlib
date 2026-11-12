@@ -22,6 +22,10 @@
   headings with their levels, paragraphs, list items, tables, captions, running headers and footers – with their
   lines, bounds, font size and weight. Compared with the structure tree of tagged IRS instructions, 89 % of the
   headings, 88 % of the list items and 83 % of the paragraphs are recognised.
+- Layout export: `PdfLayoutExport.ToMarkdown` (headings, paragraphs, lists, pipe tables, captions; words hyphenated
+  at line ends and paragraphs broken by a page or column end joined again), `ToHocr` (hOCR 1.2) and `ToAlto` (ALTO 4.4,
+  valid against its schema), with the positions of blocks, lines and words. Text running in another direction than
+  the page's text, such as a stamp in the margin, is a block of the kind `Other`.
 - Text extraction: bold and italic are also recognised for TeX fonts (CMBX, SFTI, ...) and Times fonts named "Medi"
   and "Ital".
 

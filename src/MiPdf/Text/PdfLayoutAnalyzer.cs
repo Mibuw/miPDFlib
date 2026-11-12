@@ -25,6 +25,9 @@ public enum LayoutBlockKind
 
     /// <summary>A running footer or page number at the bottom of the page.</summary>
     Footer,
+
+    /// <summary>Text outside the flow of the page, such as a stamp running up the margin.</summary>
+    Other,
 }
 
 /// <summary>A block of text on a page: a paragraph, heading, list item, table, caption, header or footer.</summary>
@@ -66,15 +69,19 @@ public sealed class LayoutBlock
 /// <summary>The blocks of a page in reading order.</summary>
 public sealed class PageLayout
 {
-    internal PageLayout(int pageNumber, IReadOnlyList<LayoutBlock> blocks, double bodyFontSize)
+    internal PageLayout(int pageNumber, PdfRectangle pageBox, IReadOnlyList<LayoutBlock> blocks, double bodyFontSize)
     {
         PageNumber = pageNumber;
+        PageBox = pageBox;
         Blocks = blocks;
         BodyFontSize = bodyFontSize;
     }
 
     /// <summary>The number of the page (1-based).</summary>
     public int PageNumber { get; }
+
+    /// <summary>The visible area of the page (its crop box) in user space; exports measure from its top left corner.</summary>
+    public PdfRectangle PageBox { get; }
 
     /// <summary>The blocks in reading order (columns one after the other, see <see cref="TextExtractionOptions.DetectColumns"/>).</summary>
     public IReadOnlyList<LayoutBlock> Blocks { get; }
@@ -99,7 +106,7 @@ public static class PdfLayoutAnalyzer
         var lines = Collect(page, options);
         double body = BodySize(lines);
         var blocks = Blocks(lines, body);
-        var layout = new PageLayout(page.Document.Pages.ToList().IndexOf(page) + 1, blocks.Select(b => b.Block).ToList(), body);
+        var layout = new PageLayout(page.Document.Pages.ToList().IndexOf(page) + 1, page.CropBox, blocks.Select(b => b.Block).ToList(), body);
         ClassifyMargins(new[] { (layout, page, blocks) }, singlePage: true);
         RankHeadings(new[] { layout });
         return layout;
@@ -119,7 +126,7 @@ public static class PdfLayoutAnalyzer
         for (int i = 0; i < pages.Count; i++)
         {
             var blocks = Blocks(lines[i], body);
-            analysed.Add((new PageLayout(i + 1, blocks.Select(b => b.Block).ToList(), body), pages[i], blocks));
+            analysed.Add((new PageLayout(i + 1, pages[i].CropBox, blocks.Select(b => b.Block).ToList(), body), pages[i], blocks));
         }
         ClassifyMargins(analysed, singlePage: pages.Count == 1);
         RankHeadings(analysed.Select(a => a.Layout).ToList());
@@ -135,7 +142,8 @@ public static class PdfLayoutAnalyzer
         public required int Region;
         public double Size, Base, X0, X1;
         public bool Bold;
-        public bool Rotated;        // not running from left to right (e.g. a stamp in the margin)
+        public int Orientation;     // direction of the baseline in degrees
+        public bool Rotated;        // running in another direction than most of the page's text (e.g. a stamp in the margin)
         public int Cells;           // pieces separated by gaps of 1.5 em or more
         public int Characters;
 
@@ -172,13 +180,19 @@ public static class PdfLayoutAnalyzer
                     // the size most characters have (superscripts and footnote marks do not count)
                     Size = visible.GroupBy(g => Math.Round(g.FontSize * 2) / 2).MaxBy(g => g.Sum(x => x.Text.Length))!.Key,
                     Bold = visible.Where(g => g.Bold).Sum(g => g.Text.Length) >= 0.6 * chars,
-                    Rotated = Math.Abs(visible[0].DirY) > 0.1 || visible[0].DirX < 0,
+                    Orientation = visible[0].Orientation,
                     Base = visible[0].Perpendicular,
                     X0 = info.Bounds.Left,
                     X1 = info.Bounds.Right,
                     Cells = cells,
                     Characters = chars,
                 });
+            }
+            // the direction most characters run in; lines in another direction are outside the flow
+            if (result.Count > 0)
+            {
+                int main = result.GroupBy(l => l.Orientation).MaxBy(g => g.Sum(l => l.Characters))!.Key;
+                foreach (var line in result) line.Rotated = line.Orientation != main;
             }
             return result;
         }
@@ -290,7 +304,8 @@ public static class PdfLayoutAnalyzer
         var block = new LayoutBlock(lines.Select(l => l.Info).ToList(), size, bold);
         string first = lines[0].Text;
         int chars = lines.Sum(l => l.Characters);
-        if (lines.Count >= 2 && lines.All(l => l.Cells >= 3)) block.Kind = LayoutBlockKind.Table;
+        if (lines.All(l => l.Rotated)) block.Kind = LayoutBlockKind.Other;
+        else if (lines.Count >= 2 && lines.All(l => l.Cells >= 3)) block.Kind = LayoutBlockKind.Table;
         else if (CaptionStart.IsMatch(first)) block.Kind = LayoutBlockKind.Caption;
         // a bullet makes a list item even in bold; a numbered heading ("2.1 Method") is told from a numbered item by its size or weight
         else if (Bullet.IsMatch(first)) block.Kind = LayoutBlockKind.ListItem;
