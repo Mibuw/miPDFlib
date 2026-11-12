@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
-using MiPdf.Rendering.Raster;
+using MiPdf.Graphics;
 
-namespace MiPdf.Rendering.Fonts;
+namespace MiPdf.Fonts.Programs;
 
 /// <summary>
 /// Reads glyph outlines from TrueType and OpenType fonts as embedded in PDF files (often subsets with only some

@@ -1,7 +1,6 @@
 using MiPdf.Graphics;
-using MiPdf.Rendering.Raster;
 
-namespace MiPdf.Rendering.Fonts;
+namespace MiPdf.Fonts.Programs;
 
 /// <summary>
 /// Compact Font Format (Adobe TN 5176) with Type 2 charstrings (TN 5177): the outlines of FontFile3 /Type1C and

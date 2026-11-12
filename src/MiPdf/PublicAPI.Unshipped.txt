@@ -70,6 +70,8 @@ MiPdf.Text.PageXmlExportOptions.ImageFileName.set -> void
 MiPdf.Text.PageXmlExportOptions.PageXmlExportOptions() -> void
 MiPdf.Text.PageXmlExportOptions.Resolution.get -> double
 MiPdf.Text.PageXmlExportOptions.Resolution.set -> void
+MiPdf.Text.TextLetter.InkBounds.get -> MiPdf.PdfRectangle?
+MiPdf.Text.TextLetter.InkBounds.init -> void
 override MiPdf.Content.PdfPathSegment.GetHashCode() -> int
 static MiPdf.Content.PdfGraphicsExtractor.ExtractPaths(MiPdf.PdfPage! page, MiPdf.Content.PathExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfPath!>!
 static MiPdf.Content.PdfPathSegment.operator !=(MiPdf.Content.PdfPathSegment left, MiPdf.Content.PdfPathSegment right) -> bool

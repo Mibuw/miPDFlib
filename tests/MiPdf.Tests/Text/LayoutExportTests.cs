@@ -163,7 +163,7 @@ public class LayoutExportTests
 
         // a line with its baseline: the heading's first word starts at the left margin (60 pt = 120 px)
         var line = (XmlElement)regions[1].SelectSingleNode("p:TextLine", ns)!;
-        var baseline = line.SelectSingleNode("p:Baseline/@points", ns)!.Value.Split(' ')[0].Split(',').Select(int.Parse).ToArray();
+        var baseline = line.SelectSingleNode("p:Baseline/@points", ns)!.Value!.Split(' ')[0].Split(',').Select(int.Parse).ToArray();
         Assert.InRange(baseline[0], 118, 122);
         Assert.InRange(baseline[1], 140 + 2 * 12, 140 + 2 * 18);   // below the top margin, about one line down
         Assert.Matches(@"^\d+,\d+ \d+,\d+ \d+,\d+ \d+,\d+$", line.SelectSingleNode("p:Coords/@points", ns)!.Value);

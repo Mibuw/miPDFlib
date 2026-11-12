@@ -34,6 +34,65 @@ internal static partial class StandardFontMetrics
 
     public static bool IsStandardFont(string name) => Fonts.ContainsKey(name);
 
+    /// <summary>The standard font a font name stands for (the names of the metric-compatible Windows fonts too).</summary>
+    public static string CanonicalName(string name) => name switch
+    {
+        "Arial" or "ArialMT" => "Helvetica",
+        "Arial,Bold" or "Arial-BoldMT" => "Helvetica-Bold",
+        "Arial,Italic" or "Arial-ItalicMT" => "Helvetica-Oblique",
+        "Arial,BoldItalic" or "Arial-BoldItalicMT" => "Helvetica-BoldOblique",
+        "TimesNewRoman" or "TimesNewRomanPSMT" => "Times-Roman",
+        "TimesNewRoman,Bold" or "TimesNewRomanPS-BoldMT" => "Times-Bold",
+        "TimesNewRoman,Italic" or "TimesNewRomanPS-ItalicMT" => "Times-Italic",
+        "TimesNewRoman,BoldItalic" or "TimesNewRomanPS-BoldItalicMT" => "Times-BoldItalic",
+        "CourierNew" or "CourierNewPSMT" => "Courier",
+        "CourierNew,Bold" or "CourierNewPS-BoldMT" => "Courier-Bold",
+        "CourierNew,Italic" or "CourierNewPS-ItalicMT" => "Courier-Oblique",
+        "CourierNew,BoldItalic" or "CourierNewPS-BoldItalicMT" => "Courier-BoldOblique",
+        // the URW clones of the standard fonts (Ghostscript, TeX distributions), current and older names
+        "NimbusSans-Regular" or "NimbusSanL-Regu" => "Helvetica",
+        "NimbusSans-Bold" or "NimbusSanL-Bold" => "Helvetica-Bold",
+        "NimbusSans-Italic" or "NimbusSans-Oblique" or "NimbusSanL-ReguItal" => "Helvetica-Oblique",
+        "NimbusSans-BoldItalic" or "NimbusSans-BoldOblique" or "NimbusSanL-BoldItal" => "Helvetica-BoldOblique",
+        "NimbusRoman-Regular" or "NimbusRomNo9L-Regu" => "Times-Roman",
+        "NimbusRoman-Bold" or "NimbusRomNo9L-Medi" => "Times-Bold",
+        "NimbusRoman-Italic" or "NimbusRomNo9L-ReguItal" => "Times-Italic",
+        "NimbusRoman-BoldItalic" or "NimbusRomNo9L-MediItal" => "Times-BoldItalic",
+        "NimbusMonoPS-Regular" or "NimbusMonL-Regu" => "Courier",
+        "NimbusMonoPS-Bold" or "NimbusMonL-Bold" => "Courier-Bold",
+        "NimbusMonoPS-Italic" or "NimbusMonL-ReguObli" => "Courier-Oblique",
+        "NimbusMonoPS-BoldItalic" or "NimbusMonL-BoldObli" => "Courier-BoldOblique",
+        "StandardSymbolsPS" or "StandardSymL" => "Symbol",
+        "D050000L" or "Dingbats" => "ZapfDingbats",
+        _ => name,
+    };
+
+    /// <summary>The glyph boxes of a standard font by glyph name (1/1000 em) and its built-in encoding.</summary>
+    internal sealed record GlyphBoxes(Dictionary<string, (short Left, short Bottom, short Right, short Top)> ByName, string?[] BuiltIn);
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, GlyphBoxes> ParsedBoxes = new();
+
+    /// <summary>The glyph boxes of a standard font (by any of its names), or null for other fonts.</summary>
+    public static GlyphBoxes? GetGlyphBoxes(string name)
+    {
+        name = CanonicalName(name);
+        if (!GlyphBoundsData.TryGetValue(name, out var data)) return null;
+        return ParsedBoxes.GetOrAdd(name, _ =>
+        {
+            var byName = new Dictionary<string, (short, short, short, short)>(StringComparer.Ordinal);
+            var builtIn = new string?[256];
+            foreach (var item in data.Split('|'))
+            {
+                var f = item.Split(' ');
+                byName[f[0]] = (short.Parse(f[2], System.Globalization.CultureInfo.InvariantCulture), short.Parse(f[3], System.Globalization.CultureInfo.InvariantCulture),
+                    short.Parse(f[4], System.Globalization.CultureInfo.InvariantCulture), short.Parse(f[5], System.Globalization.CultureInfo.InvariantCulture));
+                int code = int.Parse(f[1], System.Globalization.CultureInfo.InvariantCulture);
+                if (code is >= 0 and < 256) builtIn[code] = f[0];
+            }
+            return new GlyphBoxes(byName, builtIn);
+        });
+    }
+
     /// <summary>Width of a character code (32..255) in 1/1000 em.</summary>
     public static int GetWidth(StandardFontInfo info, int code)
     {

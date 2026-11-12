@@ -3,8 +3,8 @@ using MiPdf.Fonts;
 using MiPdf.Graphics;
 using MiPdf.Objects;
 using MiPdf.Rendering;
+using MiPdf.Fonts.Programs;
 using MiPdf.Rendering.Fonts;
-using MiPdf.Rendering.Raster;
 using MiPdf.Text;
 
 namespace MiPdf.Tests.Rendering;

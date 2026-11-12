@@ -1,8 +1,7 @@
 using System.Text;
 using MiPdf.Graphics;
-using MiPdf.Rendering.Raster;
 
-namespace MiPdf.Rendering.Fonts;
+namespace MiPdf.Fonts.Programs;
 
 /// <summary>
 /// Type 1 fonts (FontFile, Adobe Type 1 Font Format): the clear-text part with the encoding and font matrix, the

@@ -183,3 +183,29 @@ https://www.unicode.org/Public/16.0.0/ucd/, which is distributed under the follo
   not be used in advertising or otherwise to promote the sale, use or other
   dealings in these Data Files or Software without prior written
   authorization of the copyright holder.
+
+It contains the glyph bounding boxes of the standard 14 fonts
+(src/MiPdf/Fonts/StandardFontMetrics.GlyphBounds.cs), derived from the Adobe Core 14
+AFM files. Modified: only the glyph names, codes and bounding boxes of the character
+metrics are taken over and reformatted. The notices of the AFM files:
+
+   Copyright (c) 1989, 1990, 1991, 1992, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+   (c) 1989, 1990, 1991, 1992, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+   Copyright (c) 1989, 1990, 1991, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+   (c) 1989, 1990, 1991, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+   Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated.  All Rights Reserved.Helvetica is a trademark of Linotype-Hell AG and/or its subsidiaries.
+   (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+   Copyright (c) 1985, 1987, 1989, 1990, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.Times is a trademark of Linotype-Hell AG and/or its subsidiaries.
+   (c) 1985, 1987, 1989, 1990, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+   Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All rights reserved.
+   (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All rights reserved.
+   Copyright (c) 1985, 1987, 1988, 1989, 1997 Adobe Systems Incorporated. All Rights Reserved.ITC Zapf Dingbats is a registered trademark of International Typeface Corporation.
+   (c) 1985, 1987, 1988, 1989, 1997 Adobe Systems Incorporated. All Rights Reserved.
+
+The terms of the Core 14 AFM files:
+
+   This file and the 14 PostScript(R) AFM files it accompanies may be used, copied, and distributed for any purpose
+   and without charge, with or without modification, provided that all copyright notices are retained; that the AFM
+   files are not distributed without this file; that all modifications to this file or any of the AFM files are
+   prominently noted in the modified file(s); and that this paragraph is not modified. Adobe Systems has no
+   responsibility or obligation to support the use of the AFM files.

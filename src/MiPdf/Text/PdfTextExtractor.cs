@@ -25,6 +25,13 @@ public sealed record TextLetter
     /// <summary>Axis-aligned bounds of the glyph cell: the advance along the baseline, 0.8 em above and 0.2 em below it.</summary>
     public PdfRectangle Bounds { get; init; }
 
+    /// <summary>
+    /// The bounds of the glyph's shape – the area it actually covers ("ink"), from the outline in the embedded font
+    /// program, the metrics of a standard font that is not embedded, or the bounds a Type 3 glyph declares (d1). Null if
+    /// the glyph draws nothing (a space) or its shape is not known (a font that is neither embedded nor a standard font).
+    /// </summary>
+    public PdfRectangle? InkBounds { get; init; }
+
     /// <summary>Where the glyph starts on the baseline.</summary>
     public (double X, double Y) BaselineStart { get; init; }
 
@@ -152,7 +159,7 @@ public static class PdfTextExtractor
         options ??= new TextExtractionOptions();
         try
         {
-            var glyphs = new GlyphCollector(options).Collect(page);
+            var glyphs = new GlyphCollector(options, inkBounds: true).Collect(page);
             return LineBuilder.BuildGlyphLines(glyphs, options.SortByPosition, options.DetectColumns).SelectMany(line => line.Select(e => e.Glyph.ToLetter())).ToList();
         }
         catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex))
@@ -239,6 +246,7 @@ internal sealed class TextGlyph
     public double SpaceWidth;       // in user space
     public required string FontName;
     public PdfRectangle Bounds;
+    public PdfRectangle? Ink;       // the bounds of the glyph's shape (only for letters)
     public int Order;
     public bool Bold, Italic;
     public PdfColor? Fill, Stroke;
@@ -251,6 +259,7 @@ internal sealed class TextGlyph
     {
         Text = Text,
         Bounds = Bounds,
+        InkBounds = Ink,
         BaselineStart = (X0, Y0),
         BaselineEnd = (X1, Y1),
         Angle = Math.Round(Math.Atan2(DirY, DirX) * 180 / Math.PI, 2),
@@ -325,7 +334,49 @@ internal sealed class GlyphCollector
         return _styles[font] = (bold, italic);
     }
 
-    public GlyphCollector(TextExtractionOptions options) => _options = options;
+    // the glyph boxes of the fonts (only when collecting letters: it reads the font programs), kept with the font
+    // dictionaries for the other pages of the document
+    private readonly bool _inkBounds;
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<PdfDictionary, System.Runtime.CompilerServices.StrongBox<MiPdf.Fonts.Programs.FontOutlines?>> SharedOutlines = new();
+
+    public GlyphCollector(TextExtractionOptions options, bool inkBounds = false)
+    {
+        _options = options;
+        _inkBounds = inkBounds;
+    }
+
+    private MiPdf.Fonts.Programs.FontOutlines? Outlines(PdfDictionary? font)
+    {
+        if (font == null) return null;
+        return SharedOutlines.GetValue(font, f =>
+        {
+            try
+            {
+                return new(MiPdf.Fonts.Programs.FontOutlines.Load(f));
+            }
+            catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex) || ex is PdfException)
+            {
+                return new(null);   // a damaged font costs the ink boxes, not the text
+            }
+        }).Value;
+    }
+
+    private PdfRectangle? GlyphBox(PdfDictionary? font, DecodedGlyph glyph)
+    {
+        if (Outlines(font) is not { } outlines) return null;
+        lock (outlines) return outlines.GetGlyphBox(glyph);   // the boxes are cached in the outlines, shared between threads
+    }
+
+    /// <summary>A glyph box in text space mapped to user space (the bounds of its transformed corners).</summary>
+    private static PdfRectangle MapBox(PdfRectangle box, Matrix trm)
+    {
+        var a = trm.Transform(box.Left, box.Bottom);
+        var b = trm.Transform(box.Right, box.Bottom);
+        var c = trm.Transform(box.Right, box.Top);
+        var d = trm.Transform(box.Left, box.Top);
+        return new PdfRectangle(Math.Min(Math.Min(a.X, b.X), Math.Min(c.X, d.X)), Math.Min(Math.Min(a.Y, b.Y), Math.Min(c.Y, d.Y)),
+            Math.Max(Math.Max(a.X, b.X), Math.Max(c.X, d.X)), Math.Max(Math.Max(a.Y, b.Y), Math.Max(c.Y, d.Y)));
+    }
 
     public List<TextGlyph> Collect(PdfPage page)
     {
@@ -551,6 +602,7 @@ internal sealed class GlyphCollector
             SpaceWidth = first.SpaceWidth,
             FontName = first.FontName,
             Bounds = new PdfRectangle(parts.Min(g => g.Bounds.Left), parts.Min(g => g.Bounds.Bottom), parts.Max(g => g.Bounds.Right), parts.Max(g => g.Bounds.Top)),
+            Ink = parts.Any(g => g.Ink != null) ? PdfTextExtractor.Union(parts.Where(g => g.Ink != null).Select(g => g.Ink!.Value)) : null,
             Order = start,
             Mcid = first.Mcid,
             Bold = first.Bold,
@@ -613,9 +665,11 @@ internal sealed class GlyphCollector
                 double ax = -dirY * size, ay = dirX * size;
                 double x0 = start.X - ax * 0.2, x1 = end.X - ax * 0.2, x2 = start.X + ax * 0.8, x3 = end.X + ax * 0.8;
                 double y0 = start.Y - ay * 0.2, y1 = end.Y - ay * 0.2, y2 = start.Y + ay * 0.8, y3 = end.Y + ay * 0.8;
+                PdfRectangle? ink = _inkBounds && _hidden == 0 && GlyphBox(gs.Font, glyph) is { } box ? MapBox(box, trm) : null;
                 if (_hidden == 0)
                     _glyphs.Add(new TextGlyph
                     {
+                        Ink = ink,
                         Text = glyph.Text,
                         X0 = start.X, Y0 = start.Y, X1 = end.X, Y1 = end.Y,
                         DirX = dirX, DirY = dirY,

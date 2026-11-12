@@ -1,6 +1,4 @@
-using MiPdf.Graphics;
-
-namespace MiPdf.Rendering.Raster;
+namespace MiPdf.Graphics;
 
 /// <summary>A path as built by the path construction operators, in user space.</summary>
 internal sealed class PathGeometry
@@ -95,6 +93,62 @@ internal sealed class PathGeometry
         }
         AddOpen();
         return result;
+    }
+
+    /// <summary>The bounds of the path, curves by their extent (not their control points); null for an empty path.</summary>
+    public PdfRectangle? Bounds()
+    {
+        double left = double.MaxValue, bottom = double.MaxValue, right = double.MinValue, top = double.MinValue;
+        void Add(double x, double y)
+        {
+            left = Math.Min(left, x); right = Math.Max(right, x);
+            bottom = Math.Min(bottom, y); top = Math.Max(top, y);
+        }
+        (double X, double Y) current = (0, 0);
+        foreach (var s in Segments)
+        {
+            if (s.Kind == Kind.Curve)
+            {
+                foreach (var t in CurveExtrema(current.X, s.X1, s.X2, s.X3).Concat(CurveExtrema(current.Y, s.Y1, s.Y2, s.Y3)))
+                {
+                    var p = CurvePoint(current, (s.X1, s.Y1), (s.X2, s.Y2), (s.X3, s.Y3), t);
+                    Add(p.X, p.Y);
+                }
+                Add(s.X3, s.Y3);
+                current = (s.X3, s.Y3);
+            }
+            else
+            {
+                Add(s.X1, s.Y1);
+                current = (s.X1, s.Y1);
+            }
+        }
+        return left <= right ? new PdfRectangle(left, bottom, right, top) : null;
+    }
+
+    /// <summary>The parameters in (0, 1) where a coordinate of a cubic Bézier curve has a zero derivative.</summary>
+    public static IEnumerable<double> CurveExtrema(double p0, double p1, double p2, double p3)
+    {
+        // derivative: 3(a t² + b t + c)
+        double a = -p0 + 3 * p1 - 3 * p2 + p3, b = 2 * (p0 - 2 * p1 + p2), c = p1 - p0;
+        if (Math.Abs(a) < 1e-12)
+        {
+            if (Math.Abs(b) > 1e-12 && -c / b is > 0 and < 1) yield return -c / b;
+            yield break;
+        }
+        double disc = b * b - 4 * a * c;
+        if (disc < 0) yield break;
+        double root = Math.Sqrt(disc);
+        foreach (var t in new[] { (-b + root) / (2 * a), (-b - root) / (2 * a) })
+            if (t is > 0 and < 1) yield return t;
+    }
+
+    /// <summary>The point of a cubic Bézier curve at parameter <paramref name="t"/>.</summary>
+    public static (double X, double Y) CurvePoint((double X, double Y) p0, (double X, double Y) p1, (double X, double Y) p2, (double X, double Y) p3, double t)
+    {
+        double u = 1 - t;
+        double b0 = u * u * u, b1 = 3 * u * u * t, b2 = 3 * u * t * t, b3 = t * t * t;
+        return (b0 * p0.X + b1 * p1.X + b2 * p2.X + b3 * p3.X, b0 * p0.Y + b1 * p1.Y + b2 * p2.Y + b3 * p3.Y);
     }
 
     private static void FlattenCurve(List<(double X, double Y)> points, (double X, double Y) p0, (double X, double Y) p1,

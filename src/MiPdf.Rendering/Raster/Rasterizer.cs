@@ -1,3 +1,4 @@
+using MiPdf.Graphics;
 namespace MiPdf.Rendering.Raster;
 
 /// <summary>

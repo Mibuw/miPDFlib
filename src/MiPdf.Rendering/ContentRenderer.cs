@@ -2,6 +2,7 @@ using MiPdf.Content;
 using MiPdf.Graphics;
 using MiPdf.Images;
 using MiPdf.Objects;
+using MiPdf.Fonts.Programs;
 using MiPdf.Rendering.Fonts;
 using MiPdf.Rendering.Raster;
 
@@ -22,7 +23,7 @@ internal sealed class ContentRenderer
     private readonly PdfDocument _document;
     private readonly HashSet<PdfStream> _activeForms = new(ReferenceEqualityComparer.Instance);
     private Rasterizer _rasterizer = new(); // replaced while a pattern cell is rendered during a fill
-    private readonly Dictionary<PdfDictionary, RenderFont> _fonts = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<PdfDictionary, FontOutlines> _fonts = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<PdfDictionary, Shading?> _shadings = new(ReferenceEqualityComparer.Instance);
     private readonly List<((PdfStream Pattern, Matrix Matrix, Rgb? Color) Key, Tile Tile)> _tiles = new();
     private readonly List<((PdfDictionary Mask, Matrix Ctm, int Width) Key, byte[] Mask)> _softMasks = new();
@@ -363,10 +364,10 @@ internal sealed class ContentRenderer
 
     // ------------------------------------------------------------------ text
 
-    private RenderFont? GetFont(PdfDictionary? font)
+    private FontOutlines? GetFont(PdfDictionary? font)
     {
         if (font == null) return null;
-        if (!_fonts.TryGetValue(font, out var renderFont)) _fonts[font] = renderFont = RenderFont.Load(font);
+        if (!_fonts.TryGetValue(font, out var renderFont)) _fonts[font] = renderFont = FontOutlines.Load(font, SystemFonts.Find);
         return renderFont;
     }
 
@@ -444,7 +445,7 @@ internal sealed class ContentRenderer
     }
 
     /// <summary>A glyph of a Type 3 font: its glyph procedure drawn with the font matrix and the text rendering matrix.</summary>
-    private void DrawType3Glyph(RenderFont font, Text.DecodedGlyph glyph, Matrix trm, GraphicsState gs, PdfDictionary? resources, int depth)
+    private void DrawType3Glyph(FontOutlines font, Text.DecodedGlyph glyph, Matrix trm, GraphicsState gs, PdfDictionary? resources, int depth)
     {
         var type3 = font.Type3!;
         string? name = glyph.Code is >= 0 and < 256 ? font.CodeNames[glyph.Code] : null;

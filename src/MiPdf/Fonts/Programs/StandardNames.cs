@@ -1,4 +1,4 @@
-namespace MiPdf.Rendering.Fonts;
+namespace MiPdf.Fonts.Programs;
 
 /// <summary>The 258 standard Macintosh glyph names (TrueType post table format 2).</summary>
 internal static class MacGlyphNames

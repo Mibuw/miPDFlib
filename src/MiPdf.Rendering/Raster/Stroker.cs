@@ -1,3 +1,4 @@
+using MiPdf.Graphics;
 namespace MiPdf.Rendering.Raster;
 
 /// <summary>Line style of a stroke (ISO 32000-2, 8.4.3).</summary>

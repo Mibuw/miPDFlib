@@ -1,3 +1,4 @@
+using MiPdf.Graphics;
 namespace MiPdf.Rendering.Raster;
 
 /// <summary>Blend modes (ISO 32000-2, 11.3.5).</summary>

@@ -170,17 +170,7 @@ internal sealed class FontDecoder
         catch (PdfException) { return CMap.Identity2Byte(); }
     }
 
-    private static string StandardName(string name) => name switch
-    {
-        "Arial" or "ArialMT" => "Helvetica",
-        "Arial,Bold" or "Arial-BoldMT" => "Helvetica-Bold",
-        "Arial,Italic" or "Arial-ItalicMT" => "Helvetica-Oblique",
-        "Arial,BoldItalic" or "Arial-BoldItalicMT" => "Helvetica-BoldOblique",
-        "TimesNewRoman" or "TimesNewRomanPSMT" => "Times-Roman",
-        "TimesNewRoman,Bold" or "TimesNewRomanPS-BoldMT" => "Times-Bold",
-        "CourierNew" or "CourierNewPSMT" => "Courier",
-        _ => name,
-    };
+    private static string StandardName(string name) => StandardFontMetrics.CanonicalName(name);
 
     private void ReadCidWidths(PdfArray w)
     {

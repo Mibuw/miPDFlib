@@ -164,7 +164,7 @@ scanned page from visible text:
 ```csharp
 foreach (var letter in PdfTextExtractor.ExtractLetters(page))
 {
-    // position: Bounds, BaselineStart, BaselineEnd, Angle (degrees; 90 = text running upwards)
+    // position: Bounds, InkBounds, BaselineStart, BaselineEnd, Angle (degrees; 90 = text running upwards)
     // font: FontName, FontSize (as it appears, in points), IsBold, IsItalic
     // drawing: FillColor, StrokeColor, RenderingMode, IsVisible
     if (letter.IsBold && letter.FontSize >= 14) Console.Write(letter.Text);
@@ -177,7 +177,13 @@ Colors in gray, RGB and CMYK are returned as they are in the file (ICC-based col
 spot colors (Separation, DeviceN), Indexed and Lab colors are converted to RGB, and text painted with a pattern has
 no single color (`null`). Bold and italic come from the font descriptor (weight, flags, italic angle) or the font name.
 `Bounds` is the glyph cell (the advance along the baseline, 0.8 em above and 0.2 em below it), the same box the words
-and the text search use.
+and the text search use. `InkBounds` is the area the glyph actually covers: the extent of its outline in the embedded
+font program (TrueType, CFF, Type 1, curves by their extent), the glyph box of the font metrics for the standard 14
+fonts (also under the names of their Windows and URW equivalents) when they are not embedded, or the bounds a Type 3
+glyph declares or paints. It is null for a glyph that draws nothing (a space) and for fonts that are neither embedded
+nor standard fonts. Compared with PdfPig on 7 million letters of papers, forms and invoices, 99.5 % of the boxes agree
+within 2 % of the font size. Reading the font programs makes `ExtractLetters` about 4 ms per page slower than
+`ExtractLines`.
 
 ## Searching text
 

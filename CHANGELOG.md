@@ -12,6 +12,13 @@
   writes a document per page with text regions by block kind, lines with baselines, words, tables with a region per
   cell (row, column, spans) and the reading order, in pixels of page images at a chosen resolution; valid against the
   PAGE schema on 2,800 test pages.
+- `TextLetter.InkBounds`: the area a glyph actually covers – from its outline in the embedded font program (TrueType,
+  CFF, Type 1), the glyph boxes of the Adobe font metrics for standard 14 fonts that are not embedded (also under the
+  names of their Windows and URW equivalents), or the bounds a Type 3 glyph declares or paints. Compared with PdfPig on
+  7 million letters: 99.5 % within 2 % of the font size. The font program readers moved from miPDFlib.Rendering into
+  the core library (internal).
+- Rendering and text: composite TrueType fonts whose program has CFF outlines (an OpenType font as FontFile2) now map
+  their glyphs through the CIDToGIDMap (before, such glyphs were drawn wrong or not at all).
 - Tables without rules: pieces of a row no longer share a column – a cell's span ends where the next cell begins,
   and a piece within the columns of the cell before it is part of that cell.
 

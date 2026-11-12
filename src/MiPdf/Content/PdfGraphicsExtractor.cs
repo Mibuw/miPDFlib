@@ -192,7 +192,7 @@ public static class PdfGraphicsExtractor
 internal sealed class PathCollector
 {
     private readonly PathExtractionOptions _options;
-    private readonly PdfDocument _document;
+    private readonly PdfDocument? _document;
     private readonly List<PdfPath> _paths = new();
     private int _hidden;
 
@@ -207,10 +207,18 @@ internal sealed class PathCollector
         public State Clone() => (State)MemberwiseClone();
     }
 
-    private PathCollector(PdfDocument document, PathExtractionOptions options)
+    private PathCollector(PdfDocument? document, PathExtractionOptions options)
     {
         _document = document;
         _options = options;
+    }
+
+    /// <summary>The bounds of the paths a content stream paints (e.g. a Type 3 glyph procedure), in its own space; null if none.</summary>
+    public static PdfRectangle? PaintedBounds(byte[] content, PdfDictionary? resources)
+    {
+        var collector = new PathCollector(null, new PathExtractionOptions());
+        collector.Process(content, resources, new State(), 1);
+        return collector._paths.Count == 0 ? null : Text.PdfTextExtractor.Union(collector._paths.Select(p => p.Bounds));
     }
 
     public static List<PdfPath> Collect(PdfPage page, PathExtractionOptions options)
@@ -248,7 +256,7 @@ internal sealed class PathCollector
         return new PdfRectangle(corners.Min(c => c.X), corners.Min(c => c.Y), corners.Max(c => c.X), corners.Max(c => c.Y));
     }
 
-    private bool IsHidden(PdfDictionary dict) => !_options.IncludeHiddenLayers && _document.IsHiddenContent(dict[PdfName.Get("OC")]);
+    private bool IsHidden(PdfDictionary dict) => !_options.IncludeHiddenLayers && _document != null && _document.IsHiddenContent(dict[PdfName.Get("OC")]);
 
     private void Process(byte[] content, PdfDictionary? resources, State initial, int depth)
     {
@@ -355,7 +363,7 @@ internal sealed class PathCollector
                 case "BDC":
                 {
                     bool hides = !_options.IncludeHiddenLayers && o.Count >= 2 && o[0] is PdfName { Value: "OC" } && o[1] is PdfName property
-                        && _document.IsHiddenContent(resources?.GetDictionary(PdfName.Get("Properties"))?[property]);
+                        && _document != null && _document.IsHiddenContent(resources?.GetDictionary(PdfName.Get("Properties"))?[property]);
                     marked.Push(hides);
                     if (hides) _hidden++;
                     break;
@@ -440,36 +448,12 @@ internal sealed class PathCollector
             {
                 Add(s.Point);
                 if (s.Kind == PdfPathSegmentKind.CurveTo)
-                    foreach (var t in Extrema(previous.X, s.Control1.X, s.Control2.X, s.Point.X).Concat(Extrema(previous.Y, s.Control1.Y, s.Control2.Y, s.Point.Y)))
-                        Add(Bezier(previous, s.Control1, s.Control2, s.Point, t));
+                    foreach (var t in PathGeometry.CurveExtrema(previous.X, s.Control1.X, s.Control2.X, s.Point.X).Concat(PathGeometry.CurveExtrema(previous.Y, s.Control1.Y, s.Control2.Y, s.Point.Y)))
+                        Add(PathGeometry.CurvePoint(previous, s.Control1, s.Control2, s.Point, t));
                 previous = s.Point;
             }
         }
         return new PdfRectangle(left, bottom, right, top);
-    }
-
-    /// <summary>The parameters in (0, 1) where a cubic Bézier coordinate has a zero derivative.</summary>
-    private static IEnumerable<double> Extrema(double p0, double p1, double p2, double p3)
-    {
-        // derivative: 3(a t² + b t + c)
-        double a = -p0 + 3 * p1 - 3 * p2 + p3, b = 2 * (p0 - 2 * p1 + p2), c = p1 - p0;
-        if (Math.Abs(a) < 1e-12)
-        {
-            if (Math.Abs(b) > 1e-12 && -c / b is > 0 and < 1) yield return -c / b;
-            yield break;
-        }
-        double disc = b * b - 4 * a * c;
-        if (disc < 0) yield break;
-        double root = Math.Sqrt(disc);
-        foreach (var t in new[] { (-b + root) / (2 * a), (-b - root) / (2 * a) })
-            if (t is > 0 and < 1) yield return t;
-    }
-
-    private static (double X, double Y) Bezier((double X, double Y) p0, (double X, double Y) p1, (double X, double Y) p2, (double X, double Y) p3, double t)
-    {
-        double u = 1 - t;
-        double b0 = u * u * u, b1 = 3 * u * u * t, b2 = 3 * u * t * t, b3 = t * t * t;
-        return (b0 * p0.X + b1 * p1.X + b2 * p2.X + b3 * p3.X, b0 * p0.Y + b1 * p1.Y + b2 * p2.Y + b3 * p3.Y);
     }
 }
 
