@@ -198,6 +198,22 @@ MiPdf.Content.ContentOperation.Operands.get -> System.Collections.Generic.IReadO
 MiPdf.Content.ContentOperation.Operator.get -> string!
 MiPdf.Content.ContentParser
 MiPdf.Content.FreeSpaceFinder
+MiPdf.Content.PdfGraphicsExtractor
+MiPdf.Content.PdfRule
+MiPdf.Content.PdfRule.<Clone>$() -> MiPdf.Content.PdfRule!
+MiPdf.Content.PdfRule.End.get -> (double X, double Y)
+MiPdf.Content.PdfRule.End.init -> void
+MiPdf.Content.PdfRule.Equals(MiPdf.Content.PdfRule? other) -> bool
+MiPdf.Content.PdfRule.IsEdgeOfFill.get -> bool
+MiPdf.Content.PdfRule.IsEdgeOfFill.init -> void
+MiPdf.Content.PdfRule.IsHorizontal.get -> bool
+MiPdf.Content.PdfRule.IsHorizontal.init -> void
+MiPdf.Content.PdfRule.Length.get -> double
+MiPdf.Content.PdfRule.PdfRule() -> void
+MiPdf.Content.PdfRule.Start.get -> (double X, double Y)
+MiPdf.Content.PdfRule.Start.init -> void
+MiPdf.Content.PdfRule.Thickness.get -> double
+MiPdf.Content.PdfRule.Thickness.init -> void
 MiPdf.Fonts.PdfFont
 MiPdf.Fonts.PdfFont.GetAscent(double fontSize) -> double
 MiPdf.Fonts.PdfFont.GetDescent(double fontSize) -> double
@@ -1654,9 +1670,59 @@ MiPdf.Tagging.PdfStructureTree.MapRole(string! customType, string! standardType)
 MiPdf.Tagging.PdfStructureTree.Root.get -> MiPdf.Tagging.PdfStructureElement!
 MiPdf.Tagging.PdfUAChecker
 MiPdf.Tagging.StructureType
+MiPdf.Text.LayoutBlock
+MiPdf.Text.LayoutBlock.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Text.LayoutBlock.FontSize.get -> double
+MiPdf.Text.LayoutBlock.IsBold.get -> bool
+MiPdf.Text.LayoutBlock.Kind.get -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlock.Level.get -> int
+MiPdf.Text.LayoutBlock.Lines.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextLineInfo!>!
+MiPdf.Text.LayoutBlock.Table.get -> MiPdf.Text.LayoutTable?
+MiPdf.Text.LayoutBlock.Text.get -> string!
+MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Caption = 4 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Footer = 6 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Header = 5 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Heading = 1 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.ListItem = 2 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Other = 7 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Paragraph = 0 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutBlockKind.Table = 3 -> MiPdf.Text.LayoutBlockKind
+MiPdf.Text.LayoutTable
+MiPdf.Text.LayoutTable.Cells.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.LayoutTableCell!>!
+MiPdf.Text.LayoutTable.ColumnCount.get -> int
+MiPdf.Text.LayoutTable.HasRules.get -> bool
+MiPdf.Text.LayoutTable.RowCount.get -> int
+MiPdf.Text.LayoutTable.this[int row, int column].get -> MiPdf.Text.LayoutTableCell?
+MiPdf.Text.LayoutTableCell
+MiPdf.Text.LayoutTableCell.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Text.LayoutTableCell.Column.get -> int
+MiPdf.Text.LayoutTableCell.ColumnSpan.get -> int
+MiPdf.Text.LayoutTableCell.Row.get -> int
+MiPdf.Text.LayoutTableCell.RowSpan.get -> int
+MiPdf.Text.LayoutTableCell.Text.get -> string!
+MiPdf.Text.MarkdownExportOptions
+MiPdf.Text.MarkdownExportOptions.IncludeHeadersAndFooters.get -> bool
+MiPdf.Text.MarkdownExportOptions.IncludeHeadersAndFooters.set -> void
+MiPdf.Text.MarkdownExportOptions.JoinBrokenParagraphs.get -> bool
+MiPdf.Text.MarkdownExportOptions.JoinBrokenParagraphs.set -> void
+MiPdf.Text.MarkdownExportOptions.JoinHyphenatedWords.get -> bool
+MiPdf.Text.MarkdownExportOptions.JoinHyphenatedWords.set -> void
+MiPdf.Text.MarkdownExportOptions.MarkdownExportOptions() -> void
+MiPdf.Text.MarkdownExportOptions.PageSeparator.get -> string?
+MiPdf.Text.MarkdownExportOptions.PageSeparator.set -> void
+MiPdf.Text.PageLayout
+MiPdf.Text.PageLayout.Blocks.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.LayoutBlock!>!
+MiPdf.Text.PageLayout.BodyFontSize.get -> double
+MiPdf.Text.PageLayout.PageBox.get -> MiPdf.PdfRectangle
+MiPdf.Text.PageLayout.PageNumber.get -> int
 MiPdf.Text.PdfDocEncoding
+MiPdf.Text.PdfLayoutAnalyzer
+MiPdf.Text.PdfLayoutExport
 MiPdf.Text.PdfTextExtractor
 MiPdf.Text.TextExtractionOptions
+MiPdf.Text.TextExtractionOptions.DetectColumns.get -> bool
+MiPdf.Text.TextExtractionOptions.DetectColumns.set -> void
 MiPdf.Text.TextExtractionOptions.DetectParagraphs.get -> bool
 MiPdf.Text.TextExtractionOptions.DetectParagraphs.set -> void
 MiPdf.Text.TextExtractionOptions.IncludeAnnotations.get -> bool
@@ -1668,6 +1734,35 @@ MiPdf.Text.TextExtractionOptions.IncludeXObjects.set -> void
 MiPdf.Text.TextExtractionOptions.SortByPosition.get -> bool
 MiPdf.Text.TextExtractionOptions.SortByPosition.set -> void
 MiPdf.Text.TextExtractionOptions.TextExtractionOptions() -> void
+MiPdf.Text.TextLetter
+MiPdf.Text.TextLetter.<Clone>$() -> MiPdf.Text.TextLetter!
+MiPdf.Text.TextLetter.Angle.get -> double
+MiPdf.Text.TextLetter.Angle.init -> void
+MiPdf.Text.TextLetter.BaselineEnd.get -> (double X, double Y)
+MiPdf.Text.TextLetter.BaselineEnd.init -> void
+MiPdf.Text.TextLetter.BaselineStart.get -> (double X, double Y)
+MiPdf.Text.TextLetter.BaselineStart.init -> void
+MiPdf.Text.TextLetter.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Text.TextLetter.Bounds.init -> void
+MiPdf.Text.TextLetter.Equals(MiPdf.Text.TextLetter? other) -> bool
+MiPdf.Text.TextLetter.FillColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Text.TextLetter.FillColor.init -> void
+MiPdf.Text.TextLetter.FontName.get -> string!
+MiPdf.Text.TextLetter.FontName.init -> void
+MiPdf.Text.TextLetter.FontSize.get -> double
+MiPdf.Text.TextLetter.FontSize.init -> void
+MiPdf.Text.TextLetter.IsBold.get -> bool
+MiPdf.Text.TextLetter.IsBold.init -> void
+MiPdf.Text.TextLetter.IsItalic.get -> bool
+MiPdf.Text.TextLetter.IsItalic.init -> void
+MiPdf.Text.TextLetter.IsVisible.get -> bool
+MiPdf.Text.TextLetter.RenderingMode.get -> int
+MiPdf.Text.TextLetter.RenderingMode.init -> void
+MiPdf.Text.TextLetter.StrokeColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Text.TextLetter.StrokeColor.init -> void
+MiPdf.Text.TextLetter.Text.get -> string!
+MiPdf.Text.TextLetter.Text.init -> void
+MiPdf.Text.TextLetter.TextLetter() -> void
 MiPdf.Text.TextLineInfo
 MiPdf.Text.TextLineInfo.<Clone>$() -> MiPdf.Text.TextLineInfo!
 MiPdf.Text.TextLineInfo.Bounds.get -> MiPdf.PdfRectangle
@@ -1704,6 +1799,9 @@ override MiPdf.Barcodes.MatrixBarcode.Draw(MiPdf.Graphics.PdfCanvas! canvas, dou
 override MiPdf.Barcodes.MatrixBarcode.ToString() -> string!
 override MiPdf.Barcodes.MatrixBarcode.TotalWidthModules.get -> int
 override MiPdf.Content.ContentOperation.ToString() -> string!
+override MiPdf.Content.PdfRule.Equals(object? obj) -> bool
+override MiPdf.Content.PdfRule.GetHashCode() -> int
+override MiPdf.Content.PdfRule.ToString() -> string!
 override MiPdf.Fonts.PdfStandardFont.Ascent.get -> double
 override MiPdf.Fonts.PdfStandardFont.CanDisplay(int codePoint) -> bool
 override MiPdf.Fonts.PdfStandardFont.CapHeight.get -> double
@@ -1800,6 +1898,11 @@ override MiPdf.Signatures.DocumentChange.ToString() -> string!
 override MiPdf.Signatures.InkPoint.GetHashCode() -> int
 override MiPdf.Signatures.PdfFieldLock.ToString() -> string!
 override MiPdf.Signatures.SignatureValidationResult.ToString() -> string!
+override MiPdf.Text.LayoutBlock.ToString() -> string!
+override MiPdf.Text.LayoutTableCell.ToString() -> string!
+override MiPdf.Text.TextLetter.Equals(object? obj) -> bool
+override MiPdf.Text.TextLetter.GetHashCode() -> int
+override MiPdf.Text.TextLetter.ToString() -> string!
 override MiPdf.Text.TextLineInfo.Equals(object? obj) -> bool
 override MiPdf.Text.TextLineInfo.GetHashCode() -> int
 override MiPdf.Text.TextLineInfo.ToString() -> string!
@@ -1827,6 +1930,9 @@ static MiPdf.Barcodes.QrCode.Create(string! text, MiPdf.Barcodes.QrErrorCorrecti
 static MiPdf.Content.ContentParser.Parse(byte[]! content, bool strict = false) -> System.Collections.Generic.IEnumerable<MiPdf.Content.ContentOperation!>!
 static MiPdf.Content.FreeSpaceFinder.Find(MiPdf.PdfPage! page, double minWidth, double minHeight, bool includeAnnotations = true) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
 static MiPdf.Content.FreeSpaceFinder.Find(MiPdf.PdfRectangle area, System.Collections.Generic.IEnumerable<MiPdf.PdfRectangle>! occupied, double minWidth, double minHeight) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+static MiPdf.Content.PdfGraphicsExtractor.ExtractRules(MiPdf.PdfPage! page) -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfRule!>!
+static MiPdf.Content.PdfRule.operator !=(MiPdf.Content.PdfRule? left, MiPdf.Content.PdfRule? right) -> bool
+static MiPdf.Content.PdfRule.operator ==(MiPdf.Content.PdfRule? left, MiPdf.Content.PdfRule? right) -> bool
 static MiPdf.Fonts.PdfStandardFont.FromName(string! name) -> MiPdf.Fonts.PdfStandardFont!
 static MiPdf.Fonts.PdfTrueTypeFont.FromBytes(byte[]! data, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
 static MiPdf.Fonts.PdfTrueTypeFont.FromFile(string! path, int collectionIndex = 0, bool ignoreLicenseRestrictions = false) -> MiPdf.Fonts.PdfTrueTypeFont!
@@ -1966,12 +2072,23 @@ static MiPdf.Tagging.StructureType.Heading(int level) -> string!
 static MiPdf.Text.PdfDocEncoding.CanEncode(string! text) -> bool
 static MiPdf.Text.PdfDocEncoding.GetBytes(string! text) -> byte[]!
 static MiPdf.Text.PdfDocEncoding.GetString(System.ReadOnlySpan<byte> bytes) -> string!
+static MiPdf.Text.PdfLayoutAnalyzer.Analyze(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.PageLayout!>!
+static MiPdf.Text.PdfLayoutAnalyzer.Analyze(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> MiPdf.Text.PageLayout!
+static MiPdf.Text.PdfLayoutExport.ToAlto(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? textOptions = null) -> string!
+static MiPdf.Text.PdfLayoutExport.ToAlto(System.Collections.Generic.IEnumerable<MiPdf.Text.PageLayout!>! pages) -> string!
+static MiPdf.Text.PdfLayoutExport.ToHocr(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? textOptions = null) -> string!
+static MiPdf.Text.PdfLayoutExport.ToHocr(System.Collections.Generic.IEnumerable<MiPdf.Text.PageLayout!>! pages) -> string!
+static MiPdf.Text.PdfLayoutExport.ToMarkdown(MiPdf.PdfDocument! document, MiPdf.Text.MarkdownExportOptions? options = null, MiPdf.Text.TextExtractionOptions? textOptions = null) -> string!
+static MiPdf.Text.PdfLayoutExport.ToMarkdown(System.Collections.Generic.IEnumerable<MiPdf.Text.PageLayout!>! pages, MiPdf.Text.MarkdownExportOptions? options = null) -> string!
+static MiPdf.Text.PdfTextExtractor.ExtractLetters(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextLetter!>!
 static MiPdf.Text.PdfTextExtractor.ExtractLines(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextLineInfo!>!
 static MiPdf.Text.PdfTextExtractor.ExtractText(MiPdf.PdfDocument! document, MiPdf.Text.TextExtractionOptions? options = null) -> string!
 static MiPdf.Text.PdfTextExtractor.ExtractText(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> string!
 static MiPdf.Text.PdfTextExtractor.ExtractWords(MiPdf.PdfPage! page, MiPdf.Text.TextExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Text.TextWord!>!
 static MiPdf.Text.PdfTextExtractor.FindText(MiPdf.PdfPage! page, string! search, System.StringComparison comparison = System.StringComparison.Ordinal) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
 static MiPdf.Text.PdfTextExtractor.FindText(MiPdf.PdfPage! page, System.Text.RegularExpressions.Regex! pattern) -> System.Collections.Generic.IReadOnlyList<MiPdf.PdfRectangle>!
+static MiPdf.Text.TextLetter.operator !=(MiPdf.Text.TextLetter? left, MiPdf.Text.TextLetter? right) -> bool
+static MiPdf.Text.TextLetter.operator ==(MiPdf.Text.TextLetter? left, MiPdf.Text.TextLetter? right) -> bool
 static MiPdf.Text.TextLineInfo.operator !=(MiPdf.Text.TextLineInfo? left, MiPdf.Text.TextLineInfo? right) -> bool
 static MiPdf.Text.TextLineInfo.operator ==(MiPdf.Text.TextLineInfo? left, MiPdf.Text.TextLineInfo? right) -> bool
 static MiPdf.Text.TextWord.operator !=(MiPdf.Text.TextWord? left, MiPdf.Text.TextWord? right) -> bool

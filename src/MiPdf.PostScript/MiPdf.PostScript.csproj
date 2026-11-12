@@ -5,7 +5,7 @@
     <RootNamespace>MiPdf.PostScript</RootNamespace>
     <AssemblyName>MiPdf.PostScript</AssemblyName>
     <PackageId>miPDFlib.PostScript</PackageId>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Description>Converts PostScript and EPS to PDF and places EPS graphics in PDF documents. Pure managed code for .NET 8/10 without native dependencies, based on miPDFlib (Apache-2.0).</Description>
     <PackageTags>pdf;postscript;eps;ps2pdf;eps-to-pdf;ps-to-pdf</PackageTags>
     <PackageReadmeFile>NUGET-README.md</PackageReadmeFile>

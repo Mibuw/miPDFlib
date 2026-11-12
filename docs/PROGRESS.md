@@ -88,7 +88,8 @@ structure, documents can be encrypted for certificates, layers are supported and
 decoded (1.1.0, released). 1.2.0 (released) adds the rendering package miPDFlib.Rendering, diagnostics and text
 shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below). 1.3.0 (released) adds the
 PostScript package miPDFlib.PostScript (item 4), shaping of the Indic scripts, JBIG2 and JPEG 2000 decoding and
-PDF417 barcodes. Next steps:
+PDF417 barcodes. 1.4.0 adds the reading order across columns, letters with fonts and colors, the layout analysis with
+tables and its export to Markdown, hOCR and ALTO (item 5), and incremental updates of repaired files. Next steps:
 
 1. **Rendering** (pages to images, e.g. for previews and printing) as a separate package `miPDFlib.Rendering` in
    this repository: managed code only, no native dependencies and no System.Drawing; output as bitmaps/PNG at any
@@ -115,7 +116,7 @@ PDF417 barcodes. Next steps:
    documents) and the converter for whole PostScript files. Stages: 1 language core ✅, 2 graphics ✅ (paths,
    graphics state, clipping, colors), 3 text and fonts ✅ (Type 1, Type 3, Type 42, CID), 4 images and filters ✅, 5 Level
    2/3 ✅ (shadings, patterns, forms, `setpagedevice`), 6 `pdfmark` ✅, 7 EPS import API ✅, 8 converter ✅.
-5. **Layout analysis** (next): text blocks, columns and reading order of whole pages, for document processing and
+5. **Layout analysis** (done, 1.4.0): text blocks, columns and reading order of whole pages, for document processing and
    AI pipelines. A measurement with pages of known reading order (November 2026) showed: words are extracted
    completely (100 % in all cases, PdfPig 89–100 % depending on its extractor), tables are read row by row, but pages
    with two or three columns are read line by line across the columns (order 56 % and 38 %); PdfPig's layout

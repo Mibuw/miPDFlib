@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.4.0
+
+New features for reading and analysing text, no breaking API changes. One change in behaviour: text extraction now
+reads pages set in columns column by column (`TextExtractionOptions.DetectColumns`, on by default; set it to false
+for the previous line-by-line order). All three packages (miPDFlib, miPDFlib.Rendering, miPDFlib.PostScript) have
+the version 1.4.0.
 
 - Incremental saving of damaged files: when the cross-reference data had to be repaired on opening, the update now
   lists every object of the file and has no `/Prev`, so the result opens without repair in any reader (before, the

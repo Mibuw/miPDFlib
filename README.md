@@ -31,20 +31,21 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 - **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) (also with
   PDFBox, PdfPig, PDFsharp/MigraDoc and QuestPDF) and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
 
-> Status: **1.3.0** (stable) – all planned feature areas are implemented and tested (695 unit tests, real-world
+> Status: **1.4.0** (stable) – all planned feature areas are implemented and tested (730 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
-### New in 1.3.0
+### New in 1.4.0
 
-- **PostScript and EPS** – new package `miPDFlib.PostScript`: convert PostScript files to PDF
-  (`PostScriptConverter.ToPdf`) and place EPS logos and drawings as vectors (`document.ImportEps`), with a sandboxed
-  LanguageLevel 3 interpreter in managed code – no Ghostscript needed. See the
-  [guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/postscript.md).
-- **JBIG2 and JPEG 2000** images are decoded – in rendering, image export and redaction – checked against Ghostscript
-  and the ISO/IEC 15444-4 conformance suite.
-- **Indic scripts** (Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam) are shaped
-  like HarfBuzz shapes them.
-- **PDF417** barcodes.
+- **Reading order across columns** – text extraction reads multi-column pages column by column, while tables,
+  invoices, lists and forms keep their rows (on by default; `DetectColumns = false` for the previous order).
+- **Layout analysis** – `PdfLayoutAnalyzer` splits pages into headings (with levels), paragraphs, list items, tables,
+  captions, headers and footers; tables come with their cells, found from ruling lines and text alignment.
+- **Export to Markdown, hOCR and ALTO** – e.g. `PdfLayoutExport.ToMarkdown(document)` for language-model pipelines.
+- **Letters** with position, font, bold/italic, colors and rendering mode (`ExtractLetters`), and the ruling lines of
+  a page (`PdfGraphicsExtractor.ExtractRules`).
+- **Incremental updates of repaired files** open in every reader; damaged encrypted files with object streams open.
+
+See the [text extraction guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/text-extraction.md).
 
 All changes: [CHANGELOG](https://github.com/Mibuw/miPDFlib/blob/main/CHANGELOG.md).
 

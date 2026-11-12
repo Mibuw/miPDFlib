@@ -37,7 +37,7 @@ which is deprecated; switch the package reference to `miPDFlib`, no code changes
 | **Layout** | paragraphs with mixed formatting, justification, kerning and hyphenation; Arabic, Hebrew and other right-to-left text (shaping, bidi), Indic scripts (Devanagari, Bengali, Tamil, ...), optional ligatures; lists; tables with repeated headers, column and row spans and rows split across pages; images, barcodes, automatic page breaks, header/footer with "page x of y" |
 | **Manipulation** | merge, split, import/reorder/rotate/delete pages, page templates (letterheads), watermarks, bookmarks, links, **layers** (optional content), **annotations** (highlight/underline/strike-out, free text, stamps, ink, shapes, file attachments, flattening) |
 | **Redaction** | true removal of text, image pixels, vector graphics, annotations and form fields in areas, by text or regular expression |
-| **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words, lines and letters with positions, fonts and colors, **layout analysis** (headings, paragraphs, lists, tables, headers/footers) with export to **Markdown**, hOCR and ALTO, columns, text search (string/regex), **image extraction** (JPEG, JPEG 2000, JBIG2 and CCITT fax images decoded), **free-space detection** |
+| **Text extraction** | reading order, rotated text, ToUnicode/encodings/glyph names, words, lines and letters with positions, fonts and colors, **layout analysis** (headings, paragraphs, lists, tables with their cells, headers/footers) with export to **Markdown**, hOCR and ALTO, columns, text search (string/regex), **image extraction** (JPEG, JPEG 2000, JBIG2 and CCITT fax images decoded), **free-space detection** |
 | **Rendering** | separate package **miPDFlib.Rendering**: pages to PNG or RGBA pixels at any resolution – vector graphics, text (embedded fonts or substitutes), images, shadings, patterns, blend modes, soft masks, transparency groups, spot colors; managed code only |
 | **PostScript / EPS** | separate package **miPDFlib.PostScript**: PostScript to PDF (LanguageLevel 3 with fonts, images, patterns, shadings, pdfmark) and EPS graphics placed as vectors; sandboxed interpreter, managed code only |
 | **Forms** | read/fill/create AcroForm fields (text, check box, radio, combo, list, push button, signature) with appearance generation, flattening, merging; FDF/XFDF import and export; XFA data |
@@ -95,7 +95,7 @@ Sample ASP.NET Core web API with Dockerfile: [samples/MiPdf.WebApi](https://gith
 
 - [Creating documents](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/creating-documents.md): fonts, canvas, images, flow layout, tables
 - [Opening and manipulating](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/manipulating-documents.md): save options, pages, merge/split, stamps, bookmarks, links
-- [Text extraction](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/text-extraction.md): text, words, positions, search
+- [Text extraction](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/text-extraction.md): text, words, letters, columns, layout analysis, tables, Markdown/hOCR/ALTO export, search
 - [Redaction](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/redaction.md): removing confidential content
 - [Forms](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/forms.md): read, fill, create and flatten form fields
 - [Security](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/security.md): passwords, permissions, AES/RC4 encryption
