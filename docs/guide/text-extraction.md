@@ -108,14 +108,15 @@ Checked on the line items of the ZUGFeRD and Factur-X sample invoices, the tax, 
 instructions and the tables of arXiv papers; forms such as 1040, 1099 and W-9 are not taken as tables. Data rows in
 cells that span several rows of the grid, and tables nested in a cell, are not divided further.
 
-### Export: Markdown, hOCR, ALTO
+### Export: Markdown, hOCR, ALTO, PAGE
 
-`PdfLayoutExport` writes the analysed layout in three formats:
+`PdfLayoutExport` writes the analysed layout in four formats:
 
 ```csharp
 string markdown = PdfLayoutExport.ToMarkdown(document);   // for language models, search indexes, readers
 string hocr = PdfLayoutExport.ToHocr(document);           // hOCR 1.2 (XHTML), as OCR engines write it
 string alto = PdfLayoutExport.ToAlto(document);           // ALTO 4.4 XML, as digitisation projects use it
+IReadOnlyList<string> page = PdfLayoutExport.ToPageXml(document); // PAGE XML, one document per page
 ```
 
 **Markdown** writes headings as `#` to `######`, paragraphs with their lines joined, list items as `-` or with their
@@ -132,6 +133,14 @@ attribute. **ALTO** has per page a `PrintSpace` with `TextBlock`, `TextLine`, `S
 footers in `TopMargin` and `BottomMargin`, block kinds as layout tags (`TAGREFS`) and fonts as text styles; its output
 validates against the ALTO 4.4 schema. Both measure from the top left corner of the page: hOCR in points
 (`scan_res 72 72`), ALTO in 1/1200 inch (`inch1200`).
+
+**PAGE** (2019-07-15, the format of Transkribus, OCR-D and eScriptorium) has one document per page: a `TextRegion` per
+block with its kind as region type (`heading`, `paragraph`, `caption`, `header`, `footer`; list items and heading levels
+in the `custom` attribute), `TextLine`s with their baselines, `Word`s and the text as `TextEquiv`, tables as
+`TableRegion`s with a `TextRegion` per cell and its row, column and spans (`TableCellRole`), and the reading order of
+the regions. PAGE measures in pixels of a page image: `PageXmlExportOptions.Resolution` (default 300 dpi) and
+`ImageFileName` (default `page-1.png`, ...) name the images, which miPDFlib.Rendering can produce at the same
+resolution. The output of 2,800 pages of papers, forms and invoices validates against the PAGE schema.
 
 ## Words, lines and positions
 

@@ -8,6 +8,12 @@
   (curves by their extent). Paths in form XObjects are included; clipping paths, annotation appearances and hidden
   layers by option. Compared with PdfPig on 2,800 pages (700,000 paths): the same paths with the same bounds, painting
   operators and fill colors. `ExtractRules` and the table detection now build on it (results unchanged).
+- Layout export to PAGE XML (2019-07-15, as Transkribus, OCR-D and eScriptorium use it): `PdfLayoutExport.ToPageXml`
+  writes a document per page with text regions by block kind, lines with baselines, words, tables with a region per
+  cell (row, column, spans) and the reading order, in pixels of page images at a chosen resolution; valid against the
+  PAGE schema on 2,800 test pages.
+- Tables without rules: pieces of a row no longer share a column – a cell's span ends where the next cell begins,
+  and a piece within the columns of the cell before it is part of that cell.
 
 ## 1.4.0
 

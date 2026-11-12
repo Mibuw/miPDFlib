@@ -411,4 +411,210 @@ public static class PdfLayoutExport
         LayoutBlockKind.ListItem => "listitem",
         _ => b.Kind.ToString().ToLowerInvariant(),
     };
+
+    // ------------------------------------------------------------------ PAGE
+
+    /// <summary>Analyses the document and writes each page as PAGE XML (one document per page).</summary>
+    public static IReadOnlyList<string> ToPageXml(PdfDocument document, PageXmlExportOptions? options = null, TextExtractionOptions? textOptions = null) =>
+        PdfLayoutAnalyzer.Analyze(document, textOptions).Select(p => ToPageXml(p, options)).ToList();
+
+    /// <summary>
+    /// Writes an analysed page as PAGE XML (2019-07-15, the format of Transkribus, OCR-D and eScriptorium): a
+    /// <c>TextRegion</c> per block with its kind as region type, <c>TextLine</c>s with baselines, <c>Word</c>s and the
+    /// text as <c>TextEquiv</c>; tables as <c>TableRegion</c>s with a <c>TextRegion</c> per cell and its row, column and
+    /// spans; the reading order of the regions. Coordinates are pixels of a page image at
+    /// <see cref="PageXmlExportOptions.Resolution"/> from its top left corner.
+    /// </summary>
+    public static string ToPageXml(PageLayout page, PageXmlExportOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        options ??= new PageXmlExportOptions();
+        const string ns = "http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15";
+        var box = page.PageBox;
+        double scale = options.Resolution / 72;
+        var settings = new XmlWriterSettings { Indent = true, Encoding = new UTF8Encoding(false) };
+        using var output = new MemoryStream();
+        using (var x = XmlWriter.Create(output, settings))
+        {
+            x.WriteStartDocument();
+            x.WriteStartElement("PcGts", ns);
+            x.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance");
+            x.WriteAttributeString("xsi", "schemaLocation", "http://www.w3.org/2001/XMLSchema-instance",
+                ns + " http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd");
+            x.WriteStartElement("Metadata", ns);
+            x.WriteElementString("Creator", ns, "miPDFlib");
+            string now = (options.Created ?? DateTime.UtcNow).ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+            x.WriteElementString("Created", ns, now);
+            x.WriteElementString("LastChange", ns, now);
+            x.WriteEndElement();
+
+            x.WriteStartElement("Page", ns);
+            x.WriteAttributeString("imageFilename", options.ImageFileName(page.PageNumber));
+            x.WriteAttributeString("imageWidth", I(Math.Ceiling(box.Width * scale)));
+            x.WriteAttributeString("imageHeight", I(Math.Ceiling(box.Height * scale)));
+            x.WriteAttributeString("imageXResolution", N(options.Resolution));
+            x.WriteAttributeString("imageYResolution", N(options.Resolution));
+            x.WriteAttributeString("imageResolutionUnit", "PPI");
+            var blocks = page.Blocks.ToList();
+            if (blocks.Count > 0)
+            {
+                x.WriteStartElement("ReadingOrder", ns);
+                x.WriteStartElement("OrderedGroup", ns);
+                x.WriteAttributeString("id", $"p{page.PageNumber}_ro");
+                for (int i = 0; i < blocks.Count; i++)
+                {
+                    x.WriteStartElement("RegionRefIndexed", ns);
+                    x.WriteAttributeString("index", I(i));
+                    x.WriteAttributeString("regionRef", RegionId(i));
+                    x.WriteEndElement();
+                }
+                x.WriteEndElement();
+                x.WriteEndElement();
+            }
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                var b = blocks[i];
+                if (b.Kind == LayoutBlockKind.Table && b.Table is { } table) WriteTable(RegionId(i), b, table);
+                else WriteText(RegionId(i), b);
+            }
+            x.WriteEndElement();
+            x.WriteEndElement();
+            x.WriteEndDocument();
+
+            string RegionId(int i) => $"p{page.PageNumber}_r{i + 1}";
+
+            void WriteText(string id, LayoutBlock b)
+            {
+                x.WriteStartElement("TextRegion", ns);
+                x.WriteAttributeString("id", id);
+                var (type, custom) = b.Kind switch
+                {
+                    LayoutBlockKind.Heading => ("heading", $"structure {{type:heading; level:{b.Level};}}"),
+                    LayoutBlockKind.ListItem => ("paragraph", "structure {type:list_item;}"),
+                    LayoutBlockKind.Caption => ("caption", null),
+                    LayoutBlockKind.Header => ("header", null),
+                    LayoutBlockKind.Footer => ("footer", null),
+                    LayoutBlockKind.Paragraph => ("paragraph", null),
+                    _ => ("other", null),
+                };
+                if (custom != null) x.WriteAttributeString("custom", custom);
+                x.WriteAttributeString("type", type);
+                Coords(b.Bounds);
+                Lines(id, b.Lines.Select(l => (l, l.Words)));
+                Equiv(b.Text);
+                x.WriteStartElement("TextStyle", ns);
+                x.WriteAttributeString("fontSize", N(b.FontSize));
+                if (b.IsBold) x.WriteAttributeString("bold", "true");
+                x.WriteEndElement();
+                x.WriteEndElement();
+            }
+
+            void WriteTable(string id, LayoutBlock b, LayoutTable table)
+            {
+                x.WriteStartElement("TableRegion", ns);
+                x.WriteAttributeString("id", id);
+                x.WriteAttributeString("rows", I(table.RowCount));
+                x.WriteAttributeString("columns", I(table.ColumnCount));
+                x.WriteAttributeString("lineSeparators", table.HasRules ? "true" : "false");
+                // the region holds its cells (those of a table with rules reach to the rules)
+                Coords(PdfTextExtractor.Union(table.Cells.Select(c => c.Bounds).Append(b.Bounds)));
+                foreach (var cell in table.Cells)
+                {
+                    x.WriteStartElement("TextRegion", ns);
+                    x.WriteAttributeString("id", $"{id}_c{cell.Row + 1}_{cell.Column + 1}");
+                    x.WriteAttributeString("type", "paragraph");
+                    Coords(cell.Bounds);
+                    x.WriteStartElement("Roles", ns);
+                    x.WriteStartElement("TableCellRole", ns);
+                    x.WriteAttributeString("rowIndex", I(cell.Row));
+                    x.WriteAttributeString("columnIndex", I(cell.Column));
+                    if (cell.RowSpan > 1) x.WriteAttributeString("rowSpan", I(cell.RowSpan));
+                    if (cell.ColumnSpan > 1) x.WriteAttributeString("colSpan", I(cell.ColumnSpan));
+                    x.WriteEndElement();
+                    x.WriteEndElement();
+                    // the words of the cell (by their middle), line by line
+                    var parts = b.Lines
+                        .Select(l => (l, (IReadOnlyList<TextWord>)l.Words.Where(w => Inside(w.Bounds, cell.Bounds)).ToList()))
+                        .Where(p => p.Item2.Count > 0);
+                    Lines($"{id}_c{cell.Row + 1}_{cell.Column + 1}", parts);
+                    Equiv(cell.Text);
+                    x.WriteEndElement();
+                }
+                x.WriteEndElement();
+            }
+
+            void Lines(string id, IEnumerable<(TextLineInfo Line, IReadOnlyList<TextWord> Words)> lines)
+            {
+                int n = 0;
+                foreach (var (line, words) in lines)
+                {
+                    string lineId = $"{id}_l{++n}";
+                    var bounds = PdfTextExtractor.Union(words.Select(w => w.Bounds));
+                    x.WriteStartElement("TextLine", ns);
+                    x.WriteAttributeString("id", lineId);
+                    Coords(bounds);
+                    // the baseline: word boxes reach 0.2 em below it
+                    double size = words.Max(w => w.FontSize);
+                    double baseline = bounds.Bottom + 0.2 * size;
+                    x.WriteStartElement("Baseline", ns);
+                    x.WriteAttributeString("points", $"{Px(bounds.Left)},{Py(baseline)} {Px(bounds.Right)},{Py(baseline)}");
+                    x.WriteEndElement();
+                    int k = 0;
+                    foreach (var w in words)
+                    {
+                        x.WriteStartElement("Word", ns);
+                        x.WriteAttributeString("id", $"{lineId}_w{++k}");
+                        Coords(w.Bounds);
+                        Equiv(w.Text);
+                        x.WriteEndElement();
+                    }
+                    Equiv(string.Join(" ", words.Select(w => w.Text)));
+                    x.WriteEndElement();
+                }
+            }
+
+            void Coords(PdfRectangle r)
+            {
+                string l = Px(r.Left), t = Py(r.Top), right = Px(r.Right), bottom = Py(r.Bottom);
+                x.WriteStartElement("Coords", ns);
+                x.WriteAttributeString("points", $"{l},{t} {right},{t} {right},{bottom} {l},{bottom}");
+                x.WriteEndElement();
+            }
+
+            void Equiv(string text)
+            {
+                x.WriteStartElement("TextEquiv", ns);
+                x.WriteElementString("Unicode", ns, text);
+                x.WriteEndElement();
+            }
+
+            // whole pixels from the top left corner, within the image
+            string Px(double v) => I(Math.Clamp(Math.Round((v - box.Left) * scale), 0, Math.Ceiling(box.Width * scale)));
+            string Py(double v) => I(Math.Clamp(Math.Round((box.Top - v) * scale), 0, Math.Ceiling(box.Height * scale)));
+        }
+        return Encoding.UTF8.GetString(output.ToArray());
+
+        static string I(double v) => ((long)v).ToString(CultureInfo.InvariantCulture);
+        static bool Inside(PdfRectangle word, PdfRectangle cell)
+        {
+            double cx = (word.Left + word.Right) / 2, cy = (word.Bottom + word.Top) / 2;
+            return cx >= cell.Left && cx <= cell.Right && cy >= cell.Bottom && cy <= cell.Top;
+        }
+    }
+}
+
+/// <summary>Options for <see cref="PdfLayoutExport.ToPageXml(PageLayout, PageXmlExportOptions?)"/>.</summary>
+public sealed class PageXmlExportOptions
+{
+    /// <summary>
+    /// The resolution in pixels per inch of the page images the coordinates refer to (PAGE measures in pixels).
+    /// Default: 300, e.g. for images rendered with miPDFlib.Rendering at <c>Dpi = 300</c>.
+    /// </summary>
+    public double Resolution { get; set; } = 300;
+
+    /// <summary>The file name of a page's image (by page number). Default: <c>page-1.png</c>, <c>page-2.png</c>, ...</summary>
+    public Func<int, string> ImageFileName { get; set; } = n => $"page-{n}.png";
+
+    /// <summary>The creation time written to the metadata (UTC). Default: null, the time of the export.</summary>
+    public DateTime? Created { get; set; }
 }

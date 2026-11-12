@@ -62,9 +62,19 @@ MiPdf.Content.PdfSubpath
 MiPdf.Content.PdfSubpath.IsClosed.get -> bool
 MiPdf.Content.PdfSubpath.IsCurved.get -> bool
 MiPdf.Content.PdfSubpath.Segments.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfPathSegment>!
+MiPdf.Text.PageXmlExportOptions
+MiPdf.Text.PageXmlExportOptions.Created.get -> System.DateTime?
+MiPdf.Text.PageXmlExportOptions.Created.set -> void
+MiPdf.Text.PageXmlExportOptions.ImageFileName.get -> System.Func<int, string!>!
+MiPdf.Text.PageXmlExportOptions.ImageFileName.set -> void
+MiPdf.Text.PageXmlExportOptions.PageXmlExportOptions() -> void
+MiPdf.Text.PageXmlExportOptions.Resolution.get -> double
+MiPdf.Text.PageXmlExportOptions.Resolution.set -> void
 override MiPdf.Content.PdfPathSegment.GetHashCode() -> int
 static MiPdf.Content.PdfGraphicsExtractor.ExtractPaths(MiPdf.PdfPage! page, MiPdf.Content.PathExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfPath!>!
 static MiPdf.Content.PdfPathSegment.operator !=(MiPdf.Content.PdfPathSegment left, MiPdf.Content.PdfPathSegment right) -> bool
 static MiPdf.Content.PdfPathSegment.operator ==(MiPdf.Content.PdfPathSegment left, MiPdf.Content.PdfPathSegment right) -> bool
+static MiPdf.Text.PdfLayoutExport.ToPageXml(MiPdf.PdfDocument! document, MiPdf.Text.PageXmlExportOptions? options = null, MiPdf.Text.TextExtractionOptions? textOptions = null) -> System.Collections.Generic.IReadOnlyList<string!>!
+static MiPdf.Text.PdfLayoutExport.ToPageXml(MiPdf.Text.PageLayout! page, MiPdf.Text.PageXmlExportOptions? options = null) -> string!
 ~override MiPdf.Content.PdfPathSegment.Equals(object obj) -> bool
 ~override MiPdf.Content.PdfPathSegment.ToString() -> string

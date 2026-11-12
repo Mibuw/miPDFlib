@@ -129,4 +129,43 @@ public class LayoutExportTests
         Assert.Equal("bold", style.GetAttribute("FONTSTYLE"));
         Assert.Equal("16", style.GetAttribute("FONTSIZE"));
     }
+
+    [Fact]
+    public void PageXml()
+    {
+        using var doc = Sample();
+        var pages = PdfLayoutExport.ToPageXml(doc, new PageXmlExportOptions { Resolution = 144, ImageFileName = n => $"scan{n}.tif", Created = new DateTime(2026, 11, 12, 8, 0, 0) });
+        var xml = new XmlDocument();
+        xml.LoadXml(Assert.Single(pages));
+        var ns = new XmlNamespaceManager(xml.NameTable);
+        ns.AddNamespace("p", "http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15");
+        Assert.Equal("2026-11-12T08:00:00", xml.SelectSingleNode("//p:Metadata/p:Created", ns)!.InnerText);
+        var page = (XmlElement)xml.SelectSingleNode("//p:Page", ns)!;
+        // A4 at 144 pixels per inch
+        Assert.Equal(("scan1.tif", "1190", "1684"), (page.GetAttribute("imageFilename"), page.GetAttribute("imageWidth"), page.GetAttribute("imageHeight")));
+
+        // the regions in reading order, with their kinds
+        var regions = page.ChildNodes.OfType<XmlElement>().Where(e => e.LocalName.EndsWith("Region")).ToList();
+        var order = xml.SelectNodes("//p:RegionRefIndexed/@regionRef", ns)!.OfType<XmlAttribute>().Select(a => a.Value);
+        Assert.Equal(regions.Select(r => r.GetAttribute("id")), order);
+        Assert.Equal(new[] { "header", "heading", "paragraph", "heading" }, regions.Take(4).Select(r => r.GetAttribute("type")));
+        Assert.Equal("structure {type:heading; level:1;}", regions[1].GetAttribute("custom"));
+        Assert.Equal("structure {type:list_item;}", regions[4].GetAttribute("custom"));
+        Assert.Equal("1 Overview", regions[1].SelectSingleNode("p:TextEquiv/p:Unicode", ns)!.InnerText);
+        Assert.Equal("footer", regions[^1].GetAttribute("type"));
+
+        // the table: a region per cell with its position in the table
+        var table = (XmlElement)xml.SelectSingleNode("//p:TableRegion", ns)!;
+        Assert.Equal(("3", "3", "true"), (table.GetAttribute("rows"), table.GetAttribute("columns"), table.GetAttribute("lineSeparators")));
+        var cell = (XmlElement)table.SelectSingleNode("p:TextRegion[p:Roles/p:TableCellRole[@rowIndex='2' and @columnIndex='0']]", ns)!;
+        Assert.Equal("Paper | A4", cell.SelectSingleNode("p:TextEquiv/p:Unicode", ns)!.InnerText);
+        Assert.Equal(new[] { "Paper", "|", "A4" }, cell.SelectNodes("p:TextLine/p:Word/p:TextEquiv/p:Unicode", ns)!.OfType<XmlElement>().Select(e => e.InnerText));
+
+        // a line with its baseline: the heading's first word starts at the left margin (60 pt = 120 px)
+        var line = (XmlElement)regions[1].SelectSingleNode("p:TextLine", ns)!;
+        var baseline = line.SelectSingleNode("p:Baseline/@points", ns)!.Value.Split(' ')[0].Split(',').Select(int.Parse).ToArray();
+        Assert.InRange(baseline[0], 118, 122);
+        Assert.InRange(baseline[1], 140 + 2 * 12, 140 + 2 * 18);   // below the top margin, about one line down
+        Assert.Matches(@"^\d+,\d+ \d+,\d+ \d+,\d+ \d+,\d+$", line.SelectSingleNode("p:Coords/@points", ns)!.Value);
+    }
 }

@@ -349,14 +349,32 @@ internal static class TableDetector
         }
         var cells = new List<LayoutTableCell>();
         for (int r = 0; r < rowCells.Count; r++)
+        {
+            // pieces of a row do not share columns: a piece starting within the columns of the one before it ends that
+            // one's span; one starting at the same column starts after it, or, with no column left, is part of it
+            var placed = new List<(string Text, PdfRectangle Bounds, int First, int Last)>();
             foreach (var (text, bounds) in rowCells[r])
             {
                 int first = columns.FindIndex(c => c.Right >= bounds.Left - Tolerance);
                 int last = columns.FindLastIndex(c => c.Left <= bounds.Right + Tolerance);
                 if (first < 0) first = 0;
                 if (last < first) last = first;
-                cells.Add(new LayoutTableCell(text, bounds, r, first, 1, last - first + 1));
+                if (placed.Count > 0 && first <= placed[^1].Last)
+                {
+                    var previous = placed[^1];
+                    if (first > previous.First) placed[^1] = previous with { Last = first - 1 };
+                    else if (last > previous.Last) first = previous.Last + 1;
+                }
+                if (placed.Count > 0 && first <= placed[^1].Last)
+                {
+                    var (t, b, f, l) = placed[^1];
+                    placed[^1] = (t + " " + text, PdfTextExtractor.Union(new[] { b, bounds }), f, Math.Max(l, last));
+                }
+                else placed.Add((text, bounds, first, last));
             }
+            foreach (var (text, bounds, first, last) in placed)
+                cells.Add(new LayoutTableCell(text, bounds, r, first, 1, last - first + 1));
+        }
         return new LayoutTable(rowCells.Count, Math.Max(1, columns.Count), cells, hasRules: false);
     }
 
