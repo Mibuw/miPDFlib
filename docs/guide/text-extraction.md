@@ -64,7 +64,7 @@ foreach (var page in PdfLayoutAnalyzer.Analyze(document))
 | `Heading` (with `Level`) | short blocks set larger than the running text, or bold where the text is not, or numbered titles ("2.1 Method") set a little larger; levels rank the sizes across the document |
 | `Paragraph` | running text, split at wider line gaps, indented first lines and changes of font size; a bold beginning that runs on stays in its paragraph |
 | `ListItem` | a bullet or a number ("1.", "a)", "(iv)") at the start, with its indented further lines |
-| `Table` | consecutive rows of cells separated by wide gaps, with a bold head row; each line of the block is a row |
+| `Table` (with `Table`) | a grid of rules with text in its cells (see below), or consecutive rows of cells separated by wide gaps, with a bold head row |
 | `Caption` | "Figure 3.", "Table 1:", "Abbildung 2", "Tabelle 1" … at the start |
 | `Header`, `Footer` | blocks in the top or bottom tenth of the page that repeat on the pages of the document (with their numbers left out), page numbers, and a smaller outermost line |
 
@@ -74,7 +74,39 @@ ranks the headings of the whole document. Each block has its `Lines` (with words
 
 Compared with the structure tree of tagged instructions (IRS), 89 % of the headings, 88 % of the list items and
 83 % of the paragraphs are recognised; on forms, whose labels are hard to tell apart, less. The analysis takes about
-3 ms per page.
+5 ms per page (arXiv papers, IRS forms and invoices, including reading the file).
+
+### Tables
+
+A block of the kind `Table` has its cells in `Table`: rows and columns, the text of each cell (its lines separated by
+`'\n'`), its bounds and how many rows and columns it spans:
+
+```csharp
+foreach (var block in PdfLayoutAnalyzer.Analyze(page).Blocks.Where(b => b.Kind == LayoutBlockKind.Table))
+{
+    var table = block.Table!;
+    for (int row = 0; row < table.RowCount; row++)
+        Console.WriteLine(string.Join(" | ", table.Cells.Where(c => c.Row == row).Select(c => c.Text)));
+}
+```
+
+Tables drawn with rules (`HasRules`) are found from the page's graphics: stroked lines, thin filled rectangles and the
+edges of cell backgrounds that cross each other form a grid, and grid cells are joined where a rule between them is
+missing – a cell spanning rows or columns. Where the text shows that rules were simply left out, cells are divided
+again: data rows without rules between them are split at their lines (a wrapped description stays in its cell), and
+columns whose rules divide only the head are split where a clear gap runs along the column boundary. Not every grid is
+a table: the fields of a form and the frames of a page layout (an address frame over several rows and columns) are left
+to the other blocks. A line running through several tables side by side is split between them.
+
+Tables without rules are read from their rows: each row's cells are separated by gaps of 1.5 em or more, and the
+columns are the stretches the cells of the fullest rows cover.
+
+The rules themselves are available through `PdfGraphicsExtractor.ExtractRules(page)` – horizontal and vertical
+`PdfRule`s with their ends, thickness and whether they are the edge of a filled area.
+
+Checked on the line items of the ZUGFeRD and Factur-X sample invoices, the tax, credit and worksheet tables of the IRS
+instructions and the tables of arXiv papers; forms such as 1040, 1099 and W-9 are not taken as tables. Data rows in
+cells that span several rows of the grid, and tables nested in a cell, are not divided further.
 
 ### Export: Markdown, hOCR, ALTO
 
@@ -87,7 +119,7 @@ string alto = PdfLayoutExport.ToAlto(document);           // ALTO 4.4 XML, as di
 ```
 
 **Markdown** writes headings as `#` to `######`, paragraphs with their lines joined, list items as `-` or with their
-numbers, tables as pipe tables and captions in italics, and escapes characters Markdown would read as markup. Words
+numbers, tables as pipe tables (a spanning cell in the first of its columns and rows) and captions in italics, and escapes characters Markdown would read as markup. Words
 hyphenated at the end of a line are joined; a hyphen that belongs to the word ("self-employed") is kept – the
 document's own words decide, and otherwise a hyphen after a lower-case letter is taken as a break. A paragraph broken
 by the end of a page or column is joined again. Headers, footers and text outside the flow (a stamp running up the

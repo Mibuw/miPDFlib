@@ -158,50 +158,27 @@ public static class PdfLayoutExport
         return "- " + Escape(text, inline: true);
     }
 
-    /// <summary>A pipe table: the cells of each row (separated by gaps of 1.5 em or more) put into the columns of the widest row.</summary>
+    /// <summary>A pipe table from the block's cells; a cell spanning several rows or columns fills the first of them, the others stay empty.</summary>
     private static string Table(LayoutBlock block)
     {
-        var rows = block.Lines.Select(Cells).ToList();
-        var widest = rows.MaxBy(r => r.Count)!;
-        // column i spans from the left of cell i of the widest row to the left of cell i + 1
-        var starts = widest.Select(c => c.Left).ToList();
-        int Column(double middle)
+        var table = block.Table ?? TableDetector.FromRows(block.Lines);
+        var grid = new string[table.RowCount, table.ColumnCount];
+        foreach (var cell in table.Cells)
         {
-            int column = 0;
-            for (int i = 1; i < starts.Count; i++)
-                if (middle >= starts[i] - 2) column = i;
-            return column;
+            ref var slot = ref grid[cell.Row, Math.Min(cell.Column, table.ColumnCount - 1)];
+            var text = cell.Text.Replace('\n', ' ');
+            slot = slot == null ? text : slot + " " + text;
         }
         var sb = new StringBuilder();
-        for (int r = 0; r < rows.Count; r++)
+        for (int r = 0; r < table.RowCount; r++)
         {
-            var cells = new string[starts.Count];
-            foreach (var (text, left, right) in rows[r])
-            {
-                int c = Column((left + right) / 2);
-                cells[c] = cells[c] == null ? text : cells[c] + " " + text;
-            }
-            sb.Append("| ").Append(string.Join(" | ", cells.Select(c => Escape(c ?? "", inline: true).Replace("|", "\\|")))).Append(" |\n");
-            if (r == 0) sb.Append('|').Append(string.Concat(Enumerable.Repeat(" --- |", starts.Count))).Append('\n');
+            sb.Append('|');
+            for (int c = 0; c < table.ColumnCount; c++)
+                sb.Append(' ').Append(Escape(grid[r, c] ?? "", inline: true).Replace("|", "\\|")).Append(" |");
+            sb.Append('\n');
+            if (r == 0) sb.Append('|').Append(string.Concat(Enumerable.Repeat(" --- |", table.ColumnCount))).Append('\n');
         }
         return sb.ToString().TrimEnd('\n');
-    }
-
-    private static List<(string Text, double Left, double Right)> Cells(TextLineInfo line)
-    {
-        var cells = new List<(string, double, double)>();
-        TextWord? previous = null;
-        foreach (var word in line.Words)
-        {
-            if (previous != null && word.Bounds.Left - previous.Bounds.Right < 1.5 * Math.Max(word.FontSize, previous.FontSize))
-            {
-                var (text, left, _) = cells[^1];
-                cells[^1] = (text + " " + word.Text, left, word.Bounds.Right);
-            }
-            else cells.Add((word.Text, word.Bounds.Left, word.Bounds.Right));
-            previous = word;
-        }
-        return cells;
     }
 
     /// <summary>Escapes what Markdown would read as markup; at the start of a block also what would begin a list, heading or quote.</summary>

@@ -26,6 +26,13 @@
   at line ends and paragraphs broken by a page or column end joined again), `ToHocr` (hOCR 1.2) and `ToAlto` (ALTO 4.4,
   valid against its schema), with the positions of blocks, lines and words. Text running in another direction than
   the page's text, such as a stamp in the margin, is a block of the kind `Other`.
+- Tables of the layout analysis come with their cells (`LayoutBlock.Table`: rows, columns, text, bounds, row and
+  column spans). Tables drawn with rules are found from the grid their lines, thin filled rectangles and cell
+  backgrounds form; data rows without rules between them and columns whose rules divide only the head are divided
+  again by the text, while form fields and the frames of a page layout are not taken as tables. Tables without rules
+  get their columns from the gaps of their rows. Markdown export writes the cells into pipe tables.
+- `PdfGraphicsExtractor.ExtractRules` returns the horizontal and vertical rules of a page (stroked lines, thin filled
+  rectangles, edges of filled areas, also in form XObjects), with touching pieces joined.
 - Text extraction: bold and italic are also recognised for TeX fonts (CMBX, SFTI, ...) and Times fonts named "Medi"
   and "Ital".
 

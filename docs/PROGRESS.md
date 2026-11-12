@@ -67,8 +67,9 @@ Last update: 2026-11-10
 | 58 Column reading on business documents, now the default | ✅ done (715 tests; checked on 151 ZUGFeRD / Factur-X invoices (289 pages: same order as line by line, every line item still on one line with its amount), IRS forms and instructions (median 98.7 % instead of 50.8 %) and business letters (unchanged); tables of text-like cells, numbered lists, side notes and joined bands made stricter, tables set side by side read one after the other; `DetectColumns` is on by default) |
 | 59 Layout analysis, stage 2 (blocks and their kinds) | ✅ done (719 tests; `PdfLayoutAnalyzer.Analyze` for a page or a document: blocks in reading order within the columns, split at wider gaps, size changes, list markers, indented first lines and rows of cells; kinds heading (with levels ranked across the document), paragraph, list item, table, caption, header and footer (by position, page numbers and repetition on the pages); compared with the structure tree of tagged IRS instructions: headings 89 %, list items 88 %, paragraphs 83 %; generated documents of the layout engine 97-100 % per kind; 579 corpus files without errors, about 3 ms per page) |
 | 60 Layout analysis, stage 3 (export) | ✅ done (723 tests; `PdfLayoutExport.ToMarkdown` (headings, paragraphs, lists, pipe tables, captions; hyphenated words joined with the document's own words deciding, paragraphs broken by page or column ends joined), `ToHocr` (hOCR 1.2) and `ToAlto` (ALTO 4.4); ALTO of arXiv papers, IRS forms, invoices and generated documents validated against the ALTO 4.4 schema, hOCR word boxes drawn over the rendered pages; new block kind `Other` for text outside the flow) |
+| 61 Layout analysis, stage 4 (tables) | ✅ done (730 tests; `LayoutBlock.Table` with rows, columns, cell text, bounds and spans; `PdfGraphicsExtractor.ExtractRules` (stroked lines, thin filled rectangles, edges of fills, form XObjects); grids of crossing rules, cells joined where rules are missing and divided again where the text shows data rows or column gaps; form fields and page frames rejected; lines through tables side by side split; tables without rules from the gaps of their rows; Markdown pipe tables from the cells; checked on ZUGFeRD/Factur-X invoices, IRS instructions and forms and arXiv papers; about 1 ms per page more for reading the rules) |
 
-Current state: 723 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
+Current state: 730 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
@@ -125,7 +126,7 @@ PDF417 barcodes. Next steps:
    2. API `PdfLayoutAnalyzer.Analyze(page)` ✅: blocks with lines, bounds and kind (heading, paragraph, list item,
       table, caption, header, footer), using font size and weight; headers and footers recognised across pages.
    3. Export ✅: Markdown (for language models), hOCR and ALTO.
-   4. Tables: cells from text alignment and ruling lines (needs the paths of the page).
+   4. Tables ✅: cells from text alignment and ruling lines (needs the paths of the page).
 
    Checked with the synthetic pages of the measurement (extended) and a corpus of real multi-column documents.
 

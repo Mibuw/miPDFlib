@@ -1,3 +1,6 @@
+using MiPdf.Content;
+using MiPdf.Graphics;
+using MiPdf.Objects;
 using System.Text.RegularExpressions;
 
 namespace MiPdf.Text;
@@ -62,6 +65,9 @@ public sealed class LayoutBlock
     /// <summary>True if most of the block's characters are bold.</summary>
     public bool IsBold { get; }
 
+    /// <summary>The cells of a <see cref="LayoutBlockKind.Table"/>; null for other blocks.</summary>
+    public LayoutTable? Table { get; internal set; }
+
     /// <inheritdoc/>
     public override string ToString() => $"{Kind}{(Level > 0 ? " " + Level : "")}: {(Text.Length > 60 ? Text[..60] + "…" : Text)}";
 }
@@ -103,9 +109,9 @@ public static class PdfLayoutAnalyzer
     public static PageLayout Analyze(PdfPage page, TextExtractionOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(page);
-        var lines = Collect(page, options);
+        var (lines, grids) = Collect(page, options);
         double body = BodySize(lines);
-        var blocks = Blocks(lines, body);
+        var blocks = Blocks(lines, grids, body);
         var layout = new PageLayout(page.Document.Pages.ToList().IndexOf(page) + 1, page.CropBox, blocks.Select(b => b.Block).ToList(), body);
         ClassifyMargins(new[] { (layout, page, blocks) }, singlePage: true);
         RankHeadings(new[] { layout });
@@ -120,12 +126,12 @@ public static class PdfLayoutAnalyzer
     {
         ArgumentNullException.ThrowIfNull(document);
         var pages = document.Pages.ToList();
-        var lines = pages.Select(p => Collect(p, options)).ToList();
-        double body = BodySize(lines.SelectMany(l => l).ToList());
+        var collected = pages.Select(p => Collect(p, options)).ToList();
+        double body = BodySize(collected.SelectMany(c => c.Lines).ToList());
         var analysed = new List<(PageLayout Layout, PdfPage Page, List<(LayoutBlock Block, List<Line> Lines)> Blocks)>();
         for (int i = 0; i < pages.Count; i++)
         {
-            var blocks = Blocks(lines[i], body);
+            var blocks = Blocks(collected[i].Lines, collected[i].Grids, body);
             analysed.Add((new PageLayout(i + 1, pages[i].CropBox, blocks.Select(b => b.Block).ToList(), body), pages[i], blocks));
         }
         ClassifyMargins(analysed, singlePage: pages.Count == 1);
@@ -154,7 +160,7 @@ public static class PdfLayoutAnalyzer
         public string Text => Info.Text;
     }
 
-    private static List<Line> Collect(PdfPage page, TextExtractionOptions? options)
+    private static (List<Line> Lines, List<TableDetector.Grid> Grids) Collect(PdfPage page, TextExtractionOptions? options)
     {
         options ??= new TextExtractionOptions();
         using var diagnostics = DiagnosticContext.Enter(page);
@@ -163,6 +169,17 @@ public static class PdfLayoutAnalyzer
             var glyphs = new GlyphCollector(options).Collect(page);
             var raw = LineBuilder.BuildGlyphLines(glyphs, sortByPosition: true);
             var ordered = options.DetectColumns ? ColumnLayout.OrderWithRegions(raw) : raw.Select(l => (Line: l, Region: 0)).ToList();
+            // the grids of rules; a line running through several grids, or into one and out, is split at their edges
+            var rules = new RuleCollector(page.CropBox);
+            rules.Process(page.GetContentBytes(), page.GetInheritable(PdfName.Resources) as PdfDictionary, Matrix.Identity, 0);
+            var grids = TableDetector.FindGrids(RuleCollector.Join(rules.Rules));
+            if (grids.Count > 0)
+            {
+                // only grids holding a table (not the fields of a form or the frames of a page layout)
+                var infos = ordered.Select(l => LineBuilder.ToLineInfo(l.Line)).OfType<TextLineInfo>().ToList();
+                grids = grids.Where(g => TableDetector.IsTable(TableDetector.FromGrid(g, infos))).ToList();
+            }
+            if (grids.Count > 0) ordered = ordered.SelectMany(l => SplitAtGrids(l.Line, grids).Select(piece => (piece, l.Region))).ToList();
             var result = new List<Line>();
             foreach (var (glyphLine, region) in ordered)
             {
@@ -194,12 +211,37 @@ public static class PdfLayoutAnalyzer
                 int main = result.GroupBy(l => l.Orientation).MaxBy(g => g.Sum(l => l.Characters))!.Key;
                 foreach (var line in result) line.Rotated = line.Orientation != main;
             }
-            return result;
+            return (result, grids);
         }
         catch (Exception ex) when (PdfException.IsUnexpectedInputError(ex))
         {
             throw new PdfException("Layout analysis failed (damaged content): " + ex.Message, ex);
         }
+    }
+
+    /// <summary>A line cut where its glyphs pass from one grid into another or out of a grid (by the middle of each glyph).</summary>
+    private static IEnumerable<List<(TextGlyph Glyph, bool SpaceBefore)>> SplitAtGrids(List<(TextGlyph Glyph, bool SpaceBefore)> line, List<TableDetector.Grid> grids)
+    {
+        int GridOf(TextGlyph g)
+        {
+            double x = (g.Bounds.Left + g.Bounds.Right) / 2, y = (g.Bounds.Bottom + g.Bounds.Top) / 2;
+            return grids.FindIndex(grid => grid.Contains(x, y));
+        }
+        var piece = new List<(TextGlyph Glyph, bool SpaceBefore)>();
+        int current = int.MinValue;
+        foreach (var item in line)
+        {
+            // spaces go with the piece they follow
+            int grid = string.IsNullOrWhiteSpace(item.Glyph.Text) && current != int.MinValue ? current : GridOf(item.Glyph);
+            if (piece.Count > 0 && grid != current)
+            {
+                yield return piece;
+                piece = new List<(TextGlyph Glyph, bool SpaceBefore)>();
+            }
+            piece.Add(piece.Count == 0 ? (item.Glyph, false) : item);
+            current = grid;
+        }
+        if (piece.Count > 0) yield return piece;
     }
 
     /// <summary>The size of the running text: the size most characters have.</summary>
@@ -225,9 +267,15 @@ public static class PdfLayoutAnalyzer
     /// follow). A block does not go from one column to another; within a column it may span the sections the column
     /// detection split it into (e.g. the rows of a table).
     /// </summary>
-    private static List<(LayoutBlock Block, List<Line> Lines)> Blocks(List<Line> lines, double body)
+    private static List<(LayoutBlock Block, List<Line> Lines)> Blocks(List<Line> lines, List<TableDetector.Grid> grids, double body)
     {
         var result = new List<(LayoutBlock, List<Line>)>();
+        // the lines in each grid of rules that holds a table
+        var inGrid = new Dictionary<Line, TableDetector.Grid>();
+        foreach (var grid in grids)
+            foreach (var line in lines.Where(l => !l.Rotated && grid.Contains((l.X0 + l.X1) / 2, (l.Top + l.Bottom) / 2)))
+                inGrid.TryAdd(line, grid);
+        var tablesDone = new HashSet<TableDetector.Grid>();
         // the usual distance between the baselines of consecutive lines of one size, one under the other
         var leading = lines.Zip(lines.Skip(1))
             .Where(p => Math.Abs(p.First.Size - p.Second.Size) < 0.5 && Below(p.First, p.Second))
@@ -240,6 +288,18 @@ public static class PdfLayoutAnalyzer
         var current = new List<Line>();
         foreach (var line in lines)
         {
+            if (inGrid.TryGetValue(line, out var grid))
+            {
+                // the table of a grid: one block where its first line comes in the reading order
+                if (!tablesDone.Add(grid)) continue;
+                Flush();
+                var rows = lines.Where(l => inGrid.TryGetValue(l, out var g) && ReferenceEquals(g, grid)).OrderByDescending(l => l.Top).ThenBy(l => l.X0).ToList();
+                var block = MakeBlock(rows, body);
+                block.Kind = LayoutBlockKind.Table;
+                block.Table = TableDetector.FromGrid(grid, rows.Select(l => l.Info));
+                result.Add((block, rows));
+                continue;
+            }
             if (current.Count > 0 && (line.Region != current[^1].Region && !Below(current[^1], line)
                                       || StartsBlock(current, line, left[line.Region], right[current[^1].Region], leading.GetValueOrDefault(line.Size))))
                 Flush();
@@ -305,7 +365,11 @@ public static class PdfLayoutAnalyzer
         string first = lines[0].Text;
         int chars = lines.Sum(l => l.Characters);
         if (lines.All(l => l.Rotated)) block.Kind = LayoutBlockKind.Other;
-        else if (lines.Count >= 2 && lines.All(l => l.Cells >= 3)) block.Kind = LayoutBlockKind.Table;
+        else if (lines.Count >= 2 && lines.All(l => l.Cells >= 3))
+        {
+            block.Kind = LayoutBlockKind.Table;
+            block.Table = TableDetector.FromRows(lines.Select(l => l.Info).ToList());
+        }
         else if (CaptionStart.IsMatch(first)) block.Kind = LayoutBlockKind.Caption;
         // a bullet makes a list item even in bold; a numbered heading ("2.1 Method") is told from a numbered item by its size or weight
         else if (Bullet.IsMatch(first)) block.Kind = LayoutBlockKind.ListItem;
