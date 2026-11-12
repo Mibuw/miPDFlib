@@ -1,1 +1,70 @@
 #nullable enable
+MiPdf.Content.PathExtractionOptions
+MiPdf.Content.PathExtractionOptions.IncludeAnnotations.get -> bool
+MiPdf.Content.PathExtractionOptions.IncludeAnnotations.set -> void
+MiPdf.Content.PathExtractionOptions.IncludeClippingPaths.get -> bool
+MiPdf.Content.PathExtractionOptions.IncludeClippingPaths.set -> void
+MiPdf.Content.PathExtractionOptions.IncludeHiddenLayers.get -> bool
+MiPdf.Content.PathExtractionOptions.IncludeHiddenLayers.set -> void
+MiPdf.Content.PathExtractionOptions.PathExtractionOptions() -> void
+MiPdf.Content.PdfFillRule
+MiPdf.Content.PdfFillRule.EvenOdd = 1 -> MiPdf.Content.PdfFillRule
+MiPdf.Content.PdfFillRule.NonZeroWinding = 0 -> MiPdf.Content.PdfFillRule
+MiPdf.Content.PdfPath
+MiPdf.Content.PdfPath.Bounds.get -> MiPdf.PdfRectangle
+MiPdf.Content.PdfPath.Bounds.init -> void
+MiPdf.Content.PdfPath.DashArray.get -> System.Collections.Generic.IReadOnlyList<double>!
+MiPdf.Content.PdfPath.DashArray.init -> void
+MiPdf.Content.PdfPath.DashPhase.get -> double
+MiPdf.Content.PdfPath.DashPhase.init -> void
+MiPdf.Content.PdfPath.FillColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Content.PdfPath.FillColor.init -> void
+MiPdf.Content.PdfPath.FillOpacity.get -> double
+MiPdf.Content.PdfPath.FillOpacity.init -> void
+MiPdf.Content.PdfPath.FillRule.get -> MiPdf.Content.PdfFillRule
+MiPdf.Content.PdfPath.FillRule.init -> void
+MiPdf.Content.PdfPath.IsClipping.get -> bool
+MiPdf.Content.PdfPath.IsClipping.init -> void
+MiPdf.Content.PdfPath.IsFilled.get -> bool
+MiPdf.Content.PdfPath.IsFilled.init -> void
+MiPdf.Content.PdfPath.IsStroked.get -> bool
+MiPdf.Content.PdfPath.IsStroked.init -> void
+MiPdf.Content.PdfPath.LineCap.get -> MiPdf.Graphics.LineCap
+MiPdf.Content.PdfPath.LineCap.init -> void
+MiPdf.Content.PdfPath.LineJoin.get -> MiPdf.Graphics.LineJoin
+MiPdf.Content.PdfPath.LineJoin.init -> void
+MiPdf.Content.PdfPath.LineWidth.get -> double
+MiPdf.Content.PdfPath.LineWidth.init -> void
+MiPdf.Content.PdfPath.StrokeColor.get -> MiPdf.Graphics.PdfColor?
+MiPdf.Content.PdfPath.StrokeColor.init -> void
+MiPdf.Content.PdfPath.StrokeOpacity.get -> double
+MiPdf.Content.PdfPath.StrokeOpacity.init -> void
+MiPdf.Content.PdfPath.Subpaths.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfSubpath!>!
+MiPdf.Content.PdfPathSegment
+MiPdf.Content.PdfPathSegment.Control1.get -> (double X, double Y)
+MiPdf.Content.PdfPathSegment.Control1.init -> void
+MiPdf.Content.PdfPathSegment.Control2.get -> (double X, double Y)
+MiPdf.Content.PdfPathSegment.Control2.init -> void
+MiPdf.Content.PdfPathSegment.Deconstruct(out MiPdf.Content.PdfPathSegmentKind Kind, out (double X, double Y) Point, out (double X, double Y) Control1, out (double X, double Y) Control2) -> void
+MiPdf.Content.PdfPathSegment.Equals(MiPdf.Content.PdfPathSegment other) -> bool
+MiPdf.Content.PdfPathSegment.Kind.get -> MiPdf.Content.PdfPathSegmentKind
+MiPdf.Content.PdfPathSegment.Kind.init -> void
+MiPdf.Content.PdfPathSegment.PdfPathSegment() -> void
+MiPdf.Content.PdfPathSegment.PdfPathSegment(MiPdf.Content.PdfPathSegmentKind Kind, (double X, double Y) Point, (double X, double Y) Control1, (double X, double Y) Control2) -> void
+MiPdf.Content.PdfPathSegment.Point.get -> (double X, double Y)
+MiPdf.Content.PdfPathSegment.Point.init -> void
+MiPdf.Content.PdfPathSegmentKind
+MiPdf.Content.PdfPathSegmentKind.ClosePath = 3 -> MiPdf.Content.PdfPathSegmentKind
+MiPdf.Content.PdfPathSegmentKind.CurveTo = 2 -> MiPdf.Content.PdfPathSegmentKind
+MiPdf.Content.PdfPathSegmentKind.LineTo = 1 -> MiPdf.Content.PdfPathSegmentKind
+MiPdf.Content.PdfPathSegmentKind.MoveTo = 0 -> MiPdf.Content.PdfPathSegmentKind
+MiPdf.Content.PdfSubpath
+MiPdf.Content.PdfSubpath.IsClosed.get -> bool
+MiPdf.Content.PdfSubpath.IsCurved.get -> bool
+MiPdf.Content.PdfSubpath.Segments.get -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfPathSegment>!
+override MiPdf.Content.PdfPathSegment.GetHashCode() -> int
+static MiPdf.Content.PdfGraphicsExtractor.ExtractPaths(MiPdf.PdfPage! page, MiPdf.Content.PathExtractionOptions? options = null) -> System.Collections.Generic.IReadOnlyList<MiPdf.Content.PdfPath!>!
+static MiPdf.Content.PdfPathSegment.operator !=(MiPdf.Content.PdfPathSegment left, MiPdf.Content.PdfPathSegment right) -> bool
+static MiPdf.Content.PdfPathSegment.operator ==(MiPdf.Content.PdfPathSegment left, MiPdf.Content.PdfPathSegment right) -> bool
+~override MiPdf.Content.PdfPathSegment.Equals(object obj) -> bool
+~override MiPdf.Content.PdfPathSegment.ToString() -> string

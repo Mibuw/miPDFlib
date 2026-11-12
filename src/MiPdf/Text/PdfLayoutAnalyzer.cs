@@ -170,9 +170,7 @@ public static class PdfLayoutAnalyzer
             var raw = LineBuilder.BuildGlyphLines(glyphs, sortByPosition: true);
             var ordered = options.DetectColumns ? ColumnLayout.OrderWithRegions(raw) : raw.Select(l => (Line: l, Region: 0)).ToList();
             // the grids of rules; a line running through several grids, or into one and out, is split at their edges
-            var rules = new RuleCollector(page.CropBox);
-            rules.Process(page.GetContentBytes(), page.GetInheritable(PdfName.Resources) as PdfDictionary, Matrix.Identity, 0);
-            var grids = TableDetector.FindGrids(RuleCollector.Join(rules.Rules));
+            var grids = TableDetector.FindGrids(RuleCollector.FromPage(page, options.IncludeHiddenLayers));
             if (grids.Count > 0)
             {
                 // only grids holding a table (not the fields of a form or the frames of a page layout)

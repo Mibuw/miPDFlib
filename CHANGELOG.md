@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- `PdfGraphicsExtractor.ExtractPaths` returns the vector graphics of a page: every path painted, in painting order,
+  with its subpaths (move, line, Bézier curve, close) in user space of the page, whether it is filled and stroked, the
+  fill rule, fill and stroke color, opacity, line width, cap, join and dash pattern (scaled to the page) and its bounds
+  (curves by their extent). Paths in form XObjects are included; clipping paths, annotation appearances and hidden
+  layers by option. Compared with PdfPig on 2,800 pages (700,000 paths): the same paths with the same bounds, painting
+  operators and fill colors. `ExtractRules` and the table detection now build on it (results unchanged).
+
 ## 1.4.0
 
 New features for reading and analysing text, no breaking API changes. One change in behaviour: text extraction now
