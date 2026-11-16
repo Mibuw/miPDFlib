@@ -68,9 +68,25 @@
         ],
         "src": "../assets",
         "dest": "images"
+      },
+      {
+        "files": [
+          "*.html",
+          "*.xml"
+        ],
+        "src": "verification"
       }
     ],
     "output": "_site",
+    "sitemap": {
+      "baseUrl": "https://mibuw.github.io/miPDFlib/",
+      "changefreq": "weekly",
+      "priority": 0.5,
+      "fileOptions": {
+        "index.md": { "priority": 1.0 },
+        "../docs/**.md": { "priority": 0.8 }
+      }
+    },
     "template": [
       "default",
       "modern",
@@ -79,6 +95,7 @@
     "globalMetadata": {
       "_appName": "miPDFlib",
       "_appTitle": "miPDFlib",
+      "_description": "miPDFlib: open-source PDF library for .NET 8/10 (Apache-2.0) – create, edit, fill forms, sign (PAdES), PDF/A, PDF/UA, ZUGFeRD, text extraction with layout analysis and export to Markdown, rendering. No native dependencies.",
       "_appLogoPath": "images/logo.png",
       "_appFaviconPath": "images/favicon.png",
       "_appFooter": "miPDFlib – Apache-2.0 – <a href=\"https://github.com/Mibuw/miPDFlib\">GitHub</a> · <a href=\"https://www.nuget.org/packages/miPDFlib\">NuGet</a>",
