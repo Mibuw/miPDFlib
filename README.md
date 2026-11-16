@@ -31,19 +31,18 @@ Create, read, modify, merge, fill forms, extract text, encrypt and digitally sig
 - **Coming from iText or Syncfusion?** See the [comparison](https://github.com/Mibuw/miPDFlib/blob/main/docs/COMPARISON.md) (also with
   PDFBox, PdfPig, PDFsharp/MigraDoc and QuestPDF) and the [migration guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/MIGRATION.md).
 
-> Status: **1.4.0** (stable) – all planned feature areas are implemented and tested (730 unit tests, real-world
+> Status: **1.5.0** (stable) – all planned feature areas are implemented and tested (739 unit tests, real-world
 > corpus checks with Ghostscript/OpenSSL, PDF/A and PDF/UA output validated with veraPDF). See [docs/PROGRESS.md](https://github.com/Mibuw/miPDFlib/blob/main/docs/PROGRESS.md).
 
-### New in 1.4.0
+### New in 1.5.0
 
-- **Reading order across columns** – text extraction reads multi-column pages column by column, while tables,
-  invoices, lists and forms keep their rows (on by default; `DetectColumns = false` for the previous order).
-- **Layout analysis** – `PdfLayoutAnalyzer` splits pages into headings (with levels), paragraphs, list items, tables,
-  captions, headers and footers; tables come with their cells, found from ruling lines and text alignment.
-- **Export to Markdown, hOCR and ALTO** – e.g. `PdfLayoutExport.ToMarkdown(document)` for language-model pipelines.
-- **Letters** with position, font, bold/italic, colors and rendering mode (`ExtractLetters`), and the ruling lines of
-  a page (`PdfGraphicsExtractor.ExtractRules`).
-- **Incremental updates of repaired files** open in every reader; damaged encrypted files with object streams open.
+- **Vector graphics** – `PdfGraphicsExtractor.ExtractPaths` returns every path of a page with its lines and curves,
+  colors, opacity and line style, e.g. for charts, underlines or form boxes.
+- **PAGE XML** – the layout analysis also exports to PAGE (`PdfLayoutExport.ToPageXml`), the format of Transkribus,
+  OCR-D and eScriptorium, besides Markdown, hOCR and ALTO.
+- **Ink boxes** – `TextLetter.InkBounds` is the area a glyph actually covers, from the outlines of the embedded fonts
+  or the metrics of the standard fonts.
+- Since 1.4.0: reading order across columns, layout analysis with headings, lists and tables down to their cells.
 
 See the [text extraction guide](https://github.com/Mibuw/miPDFlib/blob/main/docs/guide/text-extraction.md).
 

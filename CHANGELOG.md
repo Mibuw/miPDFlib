@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.5.0
+
+New features for reading the graphics and text of pages, no breaking API changes. All three packages (miPDFlib,
+miPDFlib.Rendering, miPDFlib.PostScript) have the version 1.5.0.
 
 - `PdfGraphicsExtractor.ExtractPaths` returns the vector graphics of a page: every path painted, in painting order,
   with its subpaths (move, line, Bézier curve, close) in user space of the page, whether it is filled and stroked, the

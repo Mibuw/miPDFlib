@@ -92,7 +92,8 @@ decoded (1.1.0, released). 1.2.0 (released) adds the rendering package miPDFlib.
 shaping for Arabic, Hebrew and other right-to-left scripts (items 1–3 below). 1.3.0 (released) adds the
 PostScript package miPDFlib.PostScript (item 4), shaping of the Indic scripts, JBIG2 and JPEG 2000 decoding and
 PDF417 barcodes. 1.4.0 adds the reading order across columns, letters with fonts and colors, the layout analysis with
-tables and its export to Markdown, hOCR and ALTO (item 5), and incremental updates of repaired files. Next steps:
+tables and its export to Markdown, hOCR and ALTO (item 5), and incremental updates of repaired files. 1.5.0 adds
+the vector paths of a page, the export to PAGE XML and the ink boxes of letters. Next steps:
 
 1. **Rendering** (pages to images, e.g. for previews and printing) as a separate package `miPDFlib.Rendering` in
    this repository: managed code only, no native dependencies and no System.Drawing; output as bitmaps/PNG at any
