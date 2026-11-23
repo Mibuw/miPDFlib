@@ -158,6 +158,35 @@ internal sealed class PsPdfFonts
         d[PdfName.Get("Widths")] = new PdfArray(Enumerable.Range(first, last - first + 1).Select(_ => (PdfObject)new PdfNumber(500)));
     }
 
+    /// <summary>
+    /// The name of a font in the PDF. The Windows PostScript driver names the TrueType fonts it downloads TT…t00 and
+    /// keeps the original name and style in OrigFontName and OrigFontStyle of the FontInfo dictionary ("Arial",
+    /// "Bold"); the PDF then gets "Arial,Bold", the way PDF names styles of TrueType fonts. Otherwise the PostScript
+    /// font name.
+    /// </summary>
+    private string PdfFontName(PsFont font)
+    {
+        if (font.Dict == null) return font.Name;
+        PsDict? info = font.Dict.Map.TryGetValue(_ip.Key("FontInfo"), out var fontInfo) && fontInfo.Type == PsType.Dictionary
+            ? fontInfo.AsDict : null;
+        string Text(string key)
+        {
+            foreach (var dict in new[] { info, font.Dict })
+                if (dict != null && dict.Map.TryGetValue(_ip.Key(key), out var value))
+                    return value.Type switch
+                    {
+                        PsType.String => Encoding.Latin1.GetString(value.AsString.Span),
+                        PsType.Name => value.AsName.Text,
+                        _ => "",
+                    };
+            return "";
+        }
+        string original = Text("OrigFontName").Replace(" ", "");
+        if (original.Length == 0 || original.Any(c => c is <= ' ' or >= (char)127)) return font.Name;
+        string style = Text("OrigFontStyle").Replace(" ", "");
+        return style.Length == 0 || style.Any(c => c is <= ' ' or >= (char)127) ? original : original + "," + style;
+    }
+
     private string SubsetName(string name)
     {
         int n = _subsetCounter++;
@@ -256,7 +285,7 @@ internal sealed class PsPdfFonts
     private void WriteType1(PdfFontEntry entry)
     {
         var font = entry.Font;
-        string baseName = SubsetName(font.Name);
+        string baseName = SubsetName(PdfFontName(font));
         entry.Dictionary[PdfName.Subtype] = PdfName.Get("Type1");
         entry.Dictionary[PdfName.Get("BaseFont")] = PdfName.Get(baseName);
         double scale = font.BaseMatrix.A * 1000; // glyph space to the 1/1000 text space units of Widths
@@ -309,7 +338,7 @@ internal sealed class PsPdfFonts
     {
         var font = entry.Font;
         var sfnt = font.Sfnt!;
-        string baseName = SubsetName(font.Name);
+        string baseName = SubsetName(PdfFontName(font));
         var program = TrueTypeSubsetter.Subset(sfnt, entry.Used, font.GlyphDescription);
         var file = new PdfStream(program);
         file[PdfName.Get("Length1")] = new PdfNumber(program.Length);

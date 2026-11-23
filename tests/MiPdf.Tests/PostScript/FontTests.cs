@@ -301,6 +301,33 @@ public class FontTests
         }
     }
 
+    [Theory]
+    [InlineData("/FontInfo 3 dict dup begin /OrigFontName <417269616C> def /OrigFontStyle (Bold) def end def ", "Arial,Bold")]
+    [InlineData("/FontInfo 3 dict dup begin /OrigFontName (Courier New) def /OrigFontStyle () def end def ", "CourierNew")]
+    [InlineData("", "TT2E76t00")]
+    public void Type42FontsAreNamedAfterTheirOriginalTrueTypeFont(string fontInfo, string expected)
+    {
+        // the Windows PostScript driver names downloaded TrueType fonts TT…t00 and keeps the original name in FontInfo
+        string? path = TestHelpers.FindSystemFont();
+        if (path == null) return;
+        var data = File.ReadAllBytes(path);
+        var font = new MiPdf.Fonts.TrueType.TrueTypeFont(data);
+        var strings = Enumerable.Range(0, (data.Length + 59999) / 60000)
+            .Select(i => "<" + System.Convert.ToHexString(data, i * 60000, Math.Min(60000, data.Length - i * 60000)) + ">");
+        string program = Page + "/TT2E76t00 12 dict begin /FontType 42 def /FontMatrix [1 0 0 1 0 0] def /FontBBox [0 0 1 1] def " +
+                         "/Encoding StandardEncoding def /sfnts [" + string.Join("\n", strings) + "] def " + fontInfo +
+                         $"/CharStrings 4 dict dup begin /.notdef 0 def /T {font.GetGlyphId('T')} def end def " +
+                         "currentdict end /TT2E76t00 exch definefont pop " +
+                         "/TT2E76t00 findfont 40 scalefont setfont 10 50 moveto (T) show showpage";
+        var (doc, _) = RenderDoc(program);
+        using (doc)
+        {
+            var fontDict = doc.GetPage(1).Resources.GetDictionary(PdfName.Font)!.Select(kv => kv.Value.Resolve()).OfType<PdfDictionary>().Single();
+            string baseFont = fontDict.GetName(PdfName.Get("BaseFont"))!.Value;
+            Assert.Equal(expected, baseFont[(baseFont.IndexOf('+') + 1)..]);
+        }
+    }
+
     [Fact]
     public void IncrementallyDownloadedType42FontsKeepTheirGlyphs()
     {
