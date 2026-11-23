@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.2
+
+Bug fix, no API changes. All three packages (miPDFlib, miPDFlib.Rendering, miPDFlib.PostScript) have the version
+1.5.2.
+
+- PostScript: TrueType fonts from the Windows PostScript driver keep their original names. The driver names the fonts
+  it downloads TT…t00 and keeps the original name and style in OrigFontName and OrigFontStyle of FontInfo; the PDF
+  fonts are now named after them ("Arial", "Arial,Bold"), so PDF viewers show the actual fonts.
+
 ## 1.5.1
 
 Bug fix, no API changes. All three packages (miPDFlib, miPDFlib.Rendering, miPDFlib.PostScript) have the version
