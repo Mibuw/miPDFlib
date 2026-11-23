@@ -300,4 +300,38 @@ public class FontTests
             Assert.True(ink);
         }
     }
+
+    [Fact]
+    public void IncrementallyDownloadedType42FontsKeepTheirGlyphs()
+    {
+        // As the Windows PostScript driver downloads TrueType fonts: sfnts with an empty glyf table, the glyph
+        // descriptions added afterwards to GlyphDirectory (keyed by glyph index).
+        string? path = TestHelpers.FindSystemFont();
+        if (path == null) return;
+        var font = new MiPdf.Fonts.TrueType.TrueTypeFont(File.ReadAllBytes(path));
+        var empty = MiPdf.Fonts.TrueType.TrueTypeSubsetter.Subset(font, Array.Empty<int>());
+        var full = new PsFont { Kind = PsFontKind.Type42, Name = "Full", Sfnt = font };
+        var glyphs = new StringBuilder();
+        var charStrings = new StringBuilder();
+        foreach (char c in "TH")
+        {
+            int gid = font.GetGlyphId(c);
+            glyphs.Append(CultureInfo.InvariantCulture, $"{gid} <{System.Convert.ToHexString(full.GlyphDescription(gid)!)}> put ");
+            charStrings.Append(CultureInfo.InvariantCulture, $"/{c} {gid} def ");
+        }
+        string program = Page + "/TT 12 dict begin /FontType 42 def /FontMatrix [1 0 0 1 0 0] def /FontBBox [0 0 1 1] def " +
+                         "/Encoding StandardEncoding def /sfnts [<" + System.Convert.ToHexString(empty) + ">] def " +
+                         $"/GlyphDirectory 4 dict def /CharStrings 4 dict dup begin /.notdef 0 def {charStrings}end def " +
+                         "currentdict end /TT exch definefont pop " +
+                         $"/TT findfont /GlyphDirectory get {glyphs.ToString().Replace(" put ", " 2 index 3 1 roll put ")}pop " +
+                         "/TT findfont 40 scalefont setfont 10 50 moveto (TH) show showpage";
+        var (doc, page) = RenderDoc(program);
+        using (doc)
+        {
+            Assert.Equal("TH", doc.GetPage(1).ExtractText().Trim());
+            // both glyphs are drawn from the embedded font program
+            Assert.Contains(Enumerable.Range(10, 20), x => At(page, x, 70) != (255, 255, 255));
+            Assert.Contains(Enumerable.Range(40, 25), x => At(page, x, 60) != (255, 255, 255));
+        }
+    }
 }

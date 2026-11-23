@@ -280,26 +280,44 @@ internal sealed class PsFont
         return outline;
     }
 
-    private void AddGlyph(GlyphOutline outline, int gid, Matrix m, int depth)
+    /// <summary>
+    /// The glyph description (glyf table entry) of a glyph of a Type 42 or CIDFontType 2 font; null if the glyph is empty.
+    /// A font downloaded incrementally (as the Windows PostScript driver does) has an empty glyf table and receives its
+    /// glyphs later in GlyphDirectory, keyed by glyph index; an entry there takes precedence.
+    /// </summary>
+    public byte[]? GlyphDescription(int gid)
     {
-        if (depth > 8 || gid < 0 || gid >= Sfnt!.NumGlyphs) return;
+        if (GlyphDirectory.Type == PsType.Dictionary || GlyphDirectory.IsArray)
+        {
+            PsObject entry = PsObject.Null;
+            if (GlyphDirectory.Type == PsType.Dictionary) GlyphDirectory.AsDict.Map.TryGetValue(PsObject.Integer(gid), out entry);
+            else if (gid >= 0 && gid < GlyphDirectory.AsArray.Length) entry = GlyphDirectory.AsArray[gid];
+            if (entry.Type == PsType.String && entry.AsString.Length > 0) return entry.AsString.ToArray();
+        }
+        if (Sfnt == null || gid < 0 || gid >= Sfnt.NumGlyphs) return null;
         var loca = Sfnt.GetTable("loca");
         var glyf = Sfnt.GetTable("glyf");
         int start, end;
         if (Sfnt.IndexToLocFormat == 0)
         {
-            if ((gid + 1) * 2 + 2 > loca.Length) return;
+            if ((gid + 1) * 2 + 2 > loca.Length) return null;
             start = BinaryPrimitives.ReadUInt16BigEndian(loca[(gid * 2)..]) * 2;
             end = BinaryPrimitives.ReadUInt16BigEndian(loca[(gid * 2 + 2)..]) * 2;
         }
         else
         {
-            if ((gid + 1) * 4 + 4 > loca.Length) return;
+            if ((gid + 1) * 4 + 4 > loca.Length) return null;
             start = (int)BinaryPrimitives.ReadUInt32BigEndian(loca[(gid * 4)..]);
             end = (int)BinaryPrimitives.ReadUInt32BigEndian(loca[(gid * 4 + 4)..]);
         }
-        if (end <= start || end > glyf.Length) return;
-        var g = glyf[start..end];
+        return end > start && end <= glyf.Length ? glyf[start..end].ToArray() : null;
+    }
+
+    private void AddGlyph(GlyphOutline outline, int gid, Matrix m, int depth)
+    {
+        if (depth > 8 || gid < 0 || gid >= Sfnt!.NumGlyphs) return;
+        if (GlyphDescription(gid) is not { } description) return;
+        ReadOnlySpan<byte> g = description;
         short contours = BinaryPrimitives.ReadInt16BigEndian(g);
         if (contours >= 0) SimpleGlyph(outline, g, contours, m);
         else CompositeGlyph(outline, g, m, depth);

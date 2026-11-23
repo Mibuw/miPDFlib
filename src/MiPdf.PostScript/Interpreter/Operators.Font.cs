@@ -225,7 +225,8 @@ internal sealed partial class PsInterpreter
                 return new PsFont
                 {
                     Kind = PsFontKind.Type42, Name = name, Dict = dict, BaseMatrix = fontMatrix, FontBBox = bbox,
-                    CharStrings = charStrings.AsDict, Sfnt = Sfnt(Get("sfnts")), PaintType = paintType, StrokeWidth = strokeWidth,
+                    CharStrings = charStrings.AsDict, Sfnt = Sfnt(Get("sfnts")), GlyphDirectory = Get("GlyphDirectory"),
+                    PaintType = paintType, StrokeWidth = strokeWidth,
                 };
             }
             default:
@@ -355,7 +356,7 @@ internal sealed partial class PsInterpreter
                 return new PsFont
                 {
                     Kind = PsFontKind.Cid2, Name = name, Dict = dict, BaseMatrix = fontMatrix, FontBBox = bbox, CidCount = cidCount,
-                    Sfnt = sfnt, CidToGid = toGid,
+                    Sfnt = sfnt, CidToGid = toGid, GlyphDirectory = get("GlyphDirectory"),
                 };
             }
             default:

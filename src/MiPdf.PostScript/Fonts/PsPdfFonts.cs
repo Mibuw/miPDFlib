@@ -310,7 +310,7 @@ internal sealed class PsPdfFonts
         var font = entry.Font;
         var sfnt = font.Sfnt!;
         string baseName = SubsetName(font.Name);
-        var program = TrueTypeSubsetter.Subset(sfnt, entry.Used);
+        var program = TrueTypeSubsetter.Subset(sfnt, entry.Used, font.GlyphDescription);
         var file = new PdfStream(program);
         file[PdfName.Get("Length1")] = new PdfNumber(program.Length);
         double scale = 1000.0 / sfnt.UnitsPerEm;

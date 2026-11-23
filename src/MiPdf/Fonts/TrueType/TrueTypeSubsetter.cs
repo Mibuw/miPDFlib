@@ -11,7 +11,9 @@ internal static class TrueTypeSubsetter
 {
     private static readonly string[] TablesToKeep = { "head", "hhea", "maxp", "hmtx", "loca", "glyf", "cvt ", "fpgm", "prep", "OS/2", "name", "post" };
 
-    public static byte[] Subset(TrueTypeFont font, IEnumerable<int> glyphIds)
+    // glyphDescriptions: optional source of the glyph descriptions that takes the place of the glyf table, e.g. for a
+    // font whose glyphs were downloaded separately; it returns null for an empty glyph.
+    public static byte[] Subset(TrueTypeFont font, IEnumerable<int> glyphIds, Func<int, byte[]?>? glyphDescriptions = null)
     {
         if (font.IsCff) throw new InvalidOperationException("CFF fonts cannot be subset by this subsetter.");
         int numGlyphs = font.NumGlyphs;
@@ -24,7 +26,7 @@ internal static class TrueTypeSubsetter
         {
             int gid = pending.Pop();
             if (!used.Add(gid) && gid != 0) continue;
-            foreach (int component in GetComponents(glyf, loca, gid))
+            foreach (int component in GetComponents(Glyph(glyf, loca, gid, glyphDescriptions)))
                 if (component < numGlyphs && !used.Contains(component)) pending.Push(component);
         }
 
@@ -35,10 +37,10 @@ internal static class TrueTypeSubsetter
         {
             BinaryPrimitives.WriteUInt32BigEndian(newLoca.AsSpan(gid * 4), (uint)newGlyf.Length);
             if (!used.Contains(gid)) continue;
-            int start = (int)loca[gid], end = (int)loca[gid + 1];
-            if (end > start && end <= glyf.Length)
+            var glyph = Glyph(glyf, loca, gid, glyphDescriptions);
+            if (!glyph.IsEmpty)
             {
-                newGlyf.Write(glyf[start..end]);
+                newGlyf.Write(glyph);
                 while (newGlyf.Length % 4 != 0) newGlyf.WriteByte(0);
             }
         }
@@ -91,19 +93,26 @@ internal static class TrueTypeSubsetter
         return result;
     }
 
-    private static List<int> GetComponents(ReadOnlySpan<byte> glyf, long[] loca, int gid)
+    /// <summary>The description of a glyph: from <paramref name="glyphDescriptions"/> if given, otherwise from the glyf table.</summary>
+    private static ReadOnlySpan<byte> Glyph(ReadOnlySpan<byte> glyf, long[] loca, int gid, Func<int, byte[]?>? glyphDescriptions)
+    {
+        if (glyphDescriptions != null) return glyphDescriptions(gid);
+        if (gid + 1 >= loca.Length) return default;
+        int start = (int)loca[gid], end = (int)loca[gid + 1];
+        return end > start && end <= glyf.Length ? glyf[start..end] : default;
+    }
+
+    private static List<int> GetComponents(ReadOnlySpan<byte> glyph)
     {
         var result = new List<int>();
-        if (gid + 1 >= loca.Length) return result;
-        int start = (int)loca[gid], end = (int)loca[gid + 1];
-        if (end - start < 10 || end > glyf.Length) return result;
-        short contours = BinaryPrimitives.ReadInt16BigEndian(glyf[start..]);
+        if (glyph.Length < 10) return result;
+        short contours = BinaryPrimitives.ReadInt16BigEndian(glyph);
         if (contours >= 0) return result;
-        int p = start + 10;
+        int p = 10, end = glyph.Length;
         while (p + 4 <= end)
         {
-            int flags = BinaryPrimitives.ReadUInt16BigEndian(glyf[p..]);
-            int component = BinaryPrimitives.ReadUInt16BigEndian(glyf[(p + 2)..]);
+            int flags = BinaryPrimitives.ReadUInt16BigEndian(glyph[p..]);
+            int component = BinaryPrimitives.ReadUInt16BigEndian(glyph[(p + 2)..]);
             result.Add(component);
             p += 4;
             p += (flags & 0x0001) != 0 ? 4 : 2;        // ARG_1_AND_2_ARE_WORDS
