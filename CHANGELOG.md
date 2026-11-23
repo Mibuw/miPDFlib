@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.1
+
+Bug fix, no API changes. All three packages (miPDFlib, miPDFlib.Rendering, miPDFlib.PostScript) have the version
+1.5.1.
+
+- PostScript: TrueType fonts that are downloaded incrementally – as Type 42 or CIDFontType 2 fonts with an empty glyf
+  table whose glyphs follow in GlyphDirectory, as the Windows PostScript driver (pscript5) writes them – keep their
+  glyphs. Before, the embedded font programs were empty and the text of such print files was invisible.
+
 ## 1.5.0
 
 New features for reading the graphics and text of pages, no breaking API changes. All three packages (miPDFlib,
