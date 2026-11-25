@@ -38,7 +38,7 @@ public sealed class MarkdownExportOptions
     /// </summary>
     public bool InlineFormatting { get; set; } = true;
 
-    /// <summary>Write words covered by a link annotation as <c>[text](uri)</c> (web and mail links only). Default: true.</summary>
+    /// <summary>Write words covered by a link annotation as Markdown links to its URI (web and mail links only). Default: true.</summary>
     public bool Links { get; set; } = true;
 }
 
