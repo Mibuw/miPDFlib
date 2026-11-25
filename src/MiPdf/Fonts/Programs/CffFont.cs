@@ -34,6 +34,8 @@ internal sealed class CffFont
         var top = ReadDict(topDicts[0].Start, topDicts[0].End);
 
         if (top.TryGetValue(1207, out var fm) && fm.Length == 6) FontMatrix = new Matrix(fm[0], fm[1], fm[2], fm[3], fm[4], fm[5]);
+        if (top.TryGetValue(4, out var weight) && weight.Length == 1) Weight = StringFor((int)weight[0]);
+        if (top.TryGetValue(1202, out var angle) && angle.Length == 1) ItalicAngle = angle[0];
         int charStringsOffset = top.TryGetValue(17, out var cs) ? (int)cs[0] : throw new PdfException("CFF font without CharStrings.");
         int p = charStringsOffset;
         _charStrings = ReadIndex(ref p);
@@ -64,6 +66,12 @@ internal sealed class CffFont
     public Matrix FontMatrix { get; } = new(0.001, 0, 0, 0.001, 0, 0);
 
     public bool IsCidKeyed { get; }
+
+    /// <summary>The weight from the top dictionary ("Bold", "Regular", ...), or null.</summary>
+    public string? Weight { get; }
+
+    /// <summary>The italic angle from the top dictionary (0 for upright fonts).</summary>
+    public double ItalicAngle { get; }
 
     public int GlyphCount => _charStrings.Count;
 

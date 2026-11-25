@@ -127,6 +127,12 @@ by the end of a page or column is joined again. Headers, footers and text outsid
 margin) are left out unless `MarkdownExportOptions.IncludeHeadersAndFooters` is set; `PageSeparator` writes a line
 such as `---` between pages.
 
+Within the text, bold words are written as `**bold**`, italic ones as `*italic*` and struck-out ones as
+`~~struck out~~`; words covered by a link annotation become `[text](https://…)` (web and mail links only; punctuation
+at the end goes after the link). A style the whole block has – a bold label, an italic note, a heading – is its look and
+not marked, nor is a single symbol such as a variable in a formula. Underlines and highlights have no Markdown syntax.
+`InlineFormatting = false` and `Links = false` write plain text.
+
 **hOCR** has an `ocr_page` per page, an `ocr_carea` with an `ocr_par` (or `ocr_header`, `ocr_footer`, `ocr_caption`)
 per block, `ocr_line`s and `ocrx_word`s with their bounding boxes; headings, list items and tables carry a `data-kind`
 attribute. **ALTO** has per page a `PrintSpace` with `TextBlock`, `TextLine`, `String` and `SP` elements, headers and
@@ -153,7 +159,13 @@ foreach (var line in PdfTextExtractor.ExtractLines(page))
 }
 ```
 
-Coordinates are in PDF user space (points, origin bottom-left).
+Coordinates are in PDF user space (points, origin bottom-left). A word is `IsBold` or `IsItalic` when most of its
+characters are – from the font descriptor, the font name, or, for fonts with generic names ("F1", "CIDFont+F2"), what
+the embedded font program records. The layout analysis also fills in each word's `Decorations` – a line under it
+(`Underline`), through it (`StrikeOut`) or a highlight, from rules drawn on the page and from text markup annotations –
+and its `Link`, the URI of a link annotation over it. A rule counts as a decoration only when the words it runs along
+cover it almost entirely and, for a strike-out, no other text sits right above or below it, so table rules, the edges
+of form boxes, lines of charts and fraction bars are left out.
 
 ## Letters: font, color and rendering mode
 

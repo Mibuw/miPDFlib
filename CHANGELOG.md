@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- Markdown export with inline formatting: bold words as `**bold**`, italic ones as `*italic*`, struck-out ones as
+  `~~struck out~~`, and words under a link annotation as `[text](uri)` (web and mail links). A style of a whole block
+  and single symbols (variables in formulas) are not marked; `MarkdownExportOptions.InlineFormatting` and `Links` turn
+  it off.
+- `TextWord.IsBold` and `IsItalic` (by most of the word's characters); the layout analysis also fills in
+  `TextWord.Decorations` (underline, strike-out, highlight – from rules drawn under or through the words and from text
+  markup annotations) and `TextWord.Link`. Checked on arXiv papers, IRS forms and ZUGFeRD invoices: table rules, form
+  boxes, chart lines and fraction bars are not taken for decorations.
+- Bold and italic of fonts with generic names and no weight in their descriptor ("F1", "CIDFont+F2") are read from the
+  embedded font program (OS/2 or head table, Type 1 and CFF weight and italic angle).
+- Layout analysis: a bold line in the size of the running text that is a row of three cells or more (a table head) or
+  ends with an amount ("Total 18,08") is no heading.
+
 ## 1.5.2
 
 Bug fix, no API changes. All three packages (miPDFlib, miPDFlib.Rendering, miPDFlib.PostScript) have the version

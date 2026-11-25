@@ -170,7 +170,8 @@ public static class PdfLayoutAnalyzer
             var raw = LineBuilder.BuildGlyphLines(glyphs, sortByPosition: true);
             var ordered = options.DetectColumns ? ColumnLayout.OrderWithRegions(raw) : raw.Select(l => (Line: l, Region: 0)).ToList();
             // the grids of rules; a line running through several grids, or into one and out, is split at their edges
-            var grids = TableDetector.FindGrids(RuleCollector.FromPage(page, options.IncludeHiddenLayers));
+            var rules = RuleCollector.FromPage(page, options.IncludeHiddenLayers);
+            var grids = TableDetector.FindGrids(rules);
             if (grids.Count > 0)
             {
                 // only grids holding a table (not the fields of a form or the frames of a page layout)
@@ -208,6 +209,13 @@ public static class PdfLayoutAnalyzer
             {
                 int main = result.GroupBy(l => l.Orientation).MaxBy(g => g.Sum(l => l.Characters))!.Key;
                 foreach (var line in result) line.Rotated = line.Orientation != main;
+            }
+            // lines under and through words, text markup and links
+            var decorations = new TextDecorationFinder(page, rules);
+            if (!decorations.IsEmpty)
+            {
+                var infos = decorations.Decorate(result.Select(l => (l.Info, l.Orientation == 0)).ToList());
+                for (int i = 0; i < result.Count; i++) result[i].Info = infos[i];
             }
             return (result, grids);
         }
@@ -379,15 +387,20 @@ public static class PdfLayoutAnalyzer
 
     /// <summary>
     /// A heading: at most three lines and 200 characters, not ending like a sentence, and set larger than the running
-    /// text, or in bold where the running text is not.
+    /// text, or in bold where the running text is not – a bold line in the size of the running text that is a row of
+    /// three cells or more (a table head) or ends with an amount ("Total 18,08") is no heading.
     /// </summary>
+    private static readonly Regex Amount = new(@"\d[.,]\d{2}(?:\s?(?:€|EUR|%|\$|CHF|USD))?$", RegexOptions.CultureInvariant);
+
     private static bool IsHeading(List<Line> lines, double size, bool bold, double body, int chars)
     {
         if (lines.Count > 3 || chars > 200 || body <= 0 || lines.Any(l => l.Rotated)) return false;
         string last = lines[^1].Text.TrimEnd();
         if (last.EndsWith('.') && !Regex.IsMatch(last, @"^\d+(\.\d+)*\.$") || last.EndsWith(',') || last.EndsWith(';')) return false;
         if (!lines[0].Text.Any(char.IsLetter)) return false;
-        if (size >= 1.15 * body || (bold && size >= 0.95 * body && lines.Count <= 2)) return true;
+        if (size >= 1.15 * body) return true;
+        if (bold && size >= 0.95 * body && lines.Count <= 2)
+            return !lines.Any(l => l.Cells >= 3) && !Amount.IsMatch(last);
         // a numbered section title set only a little larger ("1 Introduction", "2.3 Results")
         return lines.Count == 1 && size >= 1.05 * body && NumberedTitle.IsMatch(lines[0].Text);
     }

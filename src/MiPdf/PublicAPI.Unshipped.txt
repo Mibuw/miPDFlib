@@ -1,1 +1,18 @@
 #nullable enable
+MiPdf.Text.MarkdownExportOptions.InlineFormatting.get -> bool
+MiPdf.Text.MarkdownExportOptions.InlineFormatting.set -> void
+MiPdf.Text.MarkdownExportOptions.Links.get -> bool
+MiPdf.Text.MarkdownExportOptions.Links.set -> void
+MiPdf.Text.TextDecorations
+MiPdf.Text.TextDecorations.Highlight = 4 -> MiPdf.Text.TextDecorations
+MiPdf.Text.TextDecorations.None = 0 -> MiPdf.Text.TextDecorations
+MiPdf.Text.TextDecorations.StrikeOut = 2 -> MiPdf.Text.TextDecorations
+MiPdf.Text.TextDecorations.Underline = 1 -> MiPdf.Text.TextDecorations
+MiPdf.Text.TextWord.Decorations.get -> MiPdf.Text.TextDecorations
+MiPdf.Text.TextWord.Decorations.init -> void
+MiPdf.Text.TextWord.IsBold.get -> bool
+MiPdf.Text.TextWord.IsBold.init -> void
+MiPdf.Text.TextWord.IsItalic.get -> bool
+MiPdf.Text.TextWord.IsItalic.init -> void
+MiPdf.Text.TextWord.Link.get -> string?
+MiPdf.Text.TextWord.Link.init -> void

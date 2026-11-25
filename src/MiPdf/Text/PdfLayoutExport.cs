@@ -30,6 +30,16 @@ public sealed class MarkdownExportOptions
 
     /// <summary>A line written between pages (e.g. "---"), or null for none (default).</summary>
     public string? PageSeparator { get; set; }
+
+    /// <summary>
+    /// Mark bold words as <c>**bold**</c>, italic ones as <c>*italic*</c> and struck-out ones as <c>~~struck out~~</c>.
+    /// A style that the whole block has (a bold label, an italic note) is its look and not marked. Underlines and
+    /// highlights have no Markdown syntax; they are available through <see cref="TextWord.Decorations"/>. Default: true.
+    /// </summary>
+    public bool InlineFormatting { get; set; } = true;
+
+    /// <summary>Write words covered by a link annotation as <c>[text](uri)</c> (web and mail links only). Default: true.</summary>
+    public bool Links { get; set; } = true;
 }
 
 /// <summary>
@@ -56,6 +66,7 @@ public static class PdfLayoutExport
         var pageList = pages.ToList();
         var vocabulary = Vocabulary(pageList);
         string Join(IReadOnlyList<TextLineInfo> lines, MarkdownExportOptions _) => JoinLines(lines, options, vocabulary);
+        string Format(IReadOnlyList<TextLineInfo> lines, bool emphasis, int skip = 0) => Inline(lines, options, vocabulary, emphasis, skip);
         var parts = new List<(LayoutBlockKind Kind, string Text)>();
         bool firstPage = true;
         foreach (var page in pageList)
@@ -67,31 +78,34 @@ public static class PdfLayoutExport
                 switch (block.Kind)
                 {
                     case LayoutBlockKind.Header or LayoutBlockKind.Footer or LayoutBlockKind.Other:
-                        if (options.IncludeHeadersAndFooters) parts.Add((block.Kind, Escape(Join(block.Lines, options))));
+                        if (options.IncludeHeadersAndFooters) parts.Add((block.Kind, EscapeStart(Format(block.Lines, emphasis: false))));
                         break;
                     case LayoutBlockKind.Heading:
-                        parts.Add((block.Kind, new string('#', Math.Clamp(block.Level, 1, 6)) + " " + Escape(Join(block.Lines, options), inline: true)));
+                        parts.Add((block.Kind, new string('#', Math.Clamp(block.Level, 1, 6)) + " " + Format(block.Lines, emphasis: false)));
                         break;
                     case LayoutBlockKind.ListItem:
-                        parts.Add((block.Kind, ListItem(Join(block.Lines, options))));
+                    {
+                        var (prefix, markerLength) = ListMarker(Join(block.Lines, options));
+                        parts.Add((block.Kind, prefix + Format(block.Lines, emphasis: true, skip: markerLength)));
                         break;
+                    }
                     case LayoutBlockKind.Table:
                         parts.Add((block.Kind, Table(block)));
                         break;
                     case LayoutBlockKind.Caption:
-                        parts.Add((block.Kind, "*" + Escape(Join(block.Lines, options), inline: true) + "*"));
+                        parts.Add((block.Kind, "*" + Format(block.Lines, emphasis: false) + "*"));
                         break;
                     default:
                     {
-                        string text = Join(block.Lines, options);
+                        string text = Format(block.Lines, emphasis: true);
                         // a paragraph broken by the end of a page or column goes on in the next one
                         if (options.JoinBrokenParagraphs && parts.Count > 0 && parts[^1].Kind == LayoutBlockKind.Paragraph
                             && !Regex.IsMatch(parts[^1].Text, @"[.!?:;)""”»]$") && text.Length > 0 && char.IsLower(text[0]))
                         {
-                            parts[^1] = (LayoutBlockKind.Paragraph, JoinLine(parts[^1].Text, Escape(text), options, vocabulary));
+                            parts[^1] = (LayoutBlockKind.Paragraph, JoinLine(parts[^1].Text, text, options, vocabulary));
                             continue;
                         }
-                        parts.Add((LayoutBlockKind.Paragraph, Escape(text)));
+                        parts.Add((LayoutBlockKind.Paragraph, EscapeStart(text)));
                         break;
                     }
                 }
@@ -148,15 +162,130 @@ public static class PdfLayoutExport
     private static readonly Regex Bullet = new(@"^[•·▪◦‣∙●○■□–—\-\*]\s*", RegexOptions.CultureInvariant);
     private static readonly Regex Number = new(@"^(\(?(?:\d{1,3}|[a-z]|[ivxlc]{1,5})[.)])\s*", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-    private static string ListItem(string text)
+    /// <summary>
+    /// The Markdown marker of a list item and the length of the item's own marker: "- " for bullets and other markers
+    /// ("a)", "(iv)" stay as text), "1. " for numbers.
+    /// </summary>
+    private static (string Prefix, int MarkerLength) ListMarker(string text)
     {
         var bullet = Bullet.Match(text);
-        if (bullet.Success) return "- " + Escape(text[bullet.Length..], inline: true);
+        if (bullet.Success) return ("- ", bullet.Value.TrimEnd().Length);
         var number = Number.Match(text);
-        if (number.Success && Regex.IsMatch(number.Groups[1].Value, @"^\d+\.$")) return number.Groups[1].Value + " " + Escape(text[number.Length..], inline: true);
-        // other markers ("a)", "(iv)") are kept as text of a bulleted item
-        return "- " + Escape(text, inline: true);
+        if (number.Success && Regex.IsMatch(number.Groups[1].Value, @"^\d+\.$")) return (number.Groups[1].Value + " ", number.Groups[1].Value.Length);
+        return ("- ", 0);
     }
+
+    private sealed record Token(string Text, bool Bold, bool Italic, bool Strike, string? Link);
+
+    /// <summary>
+    /// The words of a block as one line of Markdown: hyphenated words joined as in <see cref="JoinLines"/>, the text
+    /// escaped, bold, italic and struck-out runs marked (bold and italic only with <paramref name="emphasis"/>; a style
+    /// of all words is the block's look) and links written as <c>[text](uri)</c>. <paramref name="skip"/> characters at
+    /// the start (a list marker) are left out.
+    /// </summary>
+    private static string Inline(IReadOnlyList<TextLineInfo> lines, MarkdownExportOptions options, HashSet<string> vocabulary, bool emphasis, int skip)
+    {
+        bool format = options.InlineFormatting && emphasis;
+        var tokens = new List<Token>();
+        foreach (var line in lines)
+        {
+            bool first = true;
+            foreach (var word in line.Words)
+            {
+                var token = new Token(word.Text, format && word.IsBold, format && word.IsItalic,
+                    options.InlineFormatting && (word.Decorations & TextDecorations.StrikeOut) != 0,
+                    options.Links && IsWebLink(word.Link) ? word.Link : null);
+                // the second part of a word hyphenated at the end of the line before
+                string joined = first && tokens.Count > 0 ? JoinLine(tokens[^1].Text, token.Text, options, vocabulary) : " ";
+                if (!joined.Contains(' ')) tokens[^1] = tokens[^1] with { Text = joined };
+                else tokens.Add(token);
+                first = false;
+            }
+        }
+        // the list marker
+        while (skip > 0 && tokens.Count > 0)
+        {
+            if (tokens[0].Text.Length <= skip)
+            {
+                skip -= tokens[0].Text.Length;
+                tokens.RemoveAt(0);
+            }
+            else
+            {
+                tokens[0] = tokens[0] with { Text = tokens[0].Text[skip..] };
+                skip = 0;
+            }
+        }
+        if (tokens.Count == 0) return "";
+        // a style of the whole block is its look
+        bool allBold = tokens.All(t => t.Bold), allItalic = tokens.All(t => t.Italic);
+        if (allBold || allItalic) tokens = tokens.Select(t => t with { Bold = t.Bold && !allBold, Italic = t.Italic && !allItalic }).ToList();
+
+        var sb = new StringBuilder();
+        int i = 0;
+        while (i < tokens.Count)
+        {
+            // a link, or a stretch without one
+            int end = i;
+            while (end < tokens.Count && tokens[end].Link == tokens[i].Link) end++;
+            var segment = tokens.GetRange(i, end - i);
+            string? link = tokens[i].Link;
+            // a link over an icon or a mark has no text to show; punctuation at its end goes after it
+            if (link != null && !segment.Any(t => t.Text.Any(char.IsLetterOrDigit))) link = null;
+            string trail = "";
+            if (link != null)
+            {
+                string lastText = segment[^1].Text;
+                int cut = lastText.Length;
+                while (cut > 1 && ".,;:!?".Contains(lastText[cut - 1])) cut--;
+                trail = lastText[cut..];
+                segment[^1] = segment[^1] with { Text = lastText[..cut] };
+            }
+            var inner = new StringBuilder();
+            int j = 0;
+            while (j < segment.Count)
+            {
+                int k = j;
+                while (k < segment.Count && (segment[k].Bold, segment[k].Italic, segment[k].Strike) == (segment[j].Bold, segment[j].Italic, segment[j].Strike)) k++;
+                var part = segment.GetRange(j, k - j);
+                // a single symbol (a variable in a formula) is not emphasised, nor is a mark struck out
+                int letters = part.Sum(t => t.Text.Count(char.IsLetter));
+                bool strike = segment[j].Strike && part.Any(t => t.Text.Any(char.IsLetterOrDigit));
+                string marks = letters < 2 ? "" : segment[j].Bold && segment[j].Italic ? "***" : segment[j].Bold ? "**" : segment[j].Italic ? "*" : "";
+                // punctuation at the end of a marked run goes after the marks ("*emphasised*,")
+                string after = "";
+                if (strike || marks.Length > 0)
+                {
+                    string lastText = part[^1].Text;
+                    int cut = lastText.Length;
+                    while (cut > 1 && ".,;:!?".Contains(lastText[cut - 1])) cut--;
+                    after = lastText[cut..];
+                    part[^1] = part[^1] with { Text = lastText[..cut] };
+                }
+                string run = string.Join(" ", part.Select(t => Escape(t.Text, inline: true)));
+                if (strike) run = "~~" + run + "~~";
+                if (inner.Length > 0) inner.Append(' ');
+                inner.Append(marks).Append(run).Append(marks).Append(after);
+                j = k;
+            }
+            if (sb.Length > 0) sb.Append(' ');
+            if (link != null) sb.Append('[').Append(inner).Append("](").Append(LinkDestination(link)).Append(')').Append(Escape(trail, inline: true));
+            else sb.Append(inner);
+            i = end;
+        }
+        return sb.ToString();
+    }
+
+    private static bool IsWebLink(string? uri) =>
+        uri != null && (uri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || uri.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || uri.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase) || uri.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>A link destination without the characters Markdown would end it at.</summary>
+    private static string LinkDestination(string uri) =>
+        uri.Trim().Replace(" ", "%20").Replace("(", "%28").Replace(")", "%29").Replace("<", "%3C").Replace(">", "%3E");
+
+    /// <summary>Escapes what would begin a list, heading or quote at the start of a block.</summary>
+    private static string EscapeStart(string text) => Regex.Replace(text, @"^(\s*)([#>+\-]|\d+[.)])(\s)", @"$1\$2$3");
 
     /// <summary>A pipe table from the block's cells; a cell spanning several rows or columns fills the first of them, the others stay empty.</summary>
     private static string Table(LayoutBlock block)

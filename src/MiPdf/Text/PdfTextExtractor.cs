@@ -7,7 +7,44 @@ using static MiPdf.Graphics.ContentColor;
 namespace MiPdf.Text;
 
 /// <summary>A word with its position on the page (user space, axis-aligned bounds).</summary>
-public sealed record TextWord(string Text, PdfRectangle Bounds, double FontSize, string FontName);
+public sealed record TextWord(string Text, PdfRectangle Bounds, double FontSize, string FontName)
+{
+    /// <summary>True if most of the word's characters are bold (see <see cref="TextLetter.IsBold"/>).</summary>
+    public bool IsBold { get; init; }
+
+    /// <summary>True if most of the word's characters are italic (see <see cref="TextLetter.IsItalic"/>).</summary>
+    public bool IsItalic { get; init; }
+
+    /// <summary>
+    /// Lines under or through the word and highlights: from rules drawn on the page and from text markup annotations.
+    /// Found by the layout analysis (<see cref="PdfLayoutAnalyzer"/>); <see cref="TextDecorations.None"/> in plain text
+    /// extraction.
+    /// </summary>
+    public TextDecorations Decorations { get; init; }
+
+    /// <summary>
+    /// The URI of a link annotation covering the word. Found by the layout analysis (<see cref="PdfLayoutAnalyzer"/>);
+    /// null in plain text extraction.
+    /// </summary>
+    public string? Link { get; init; }
+}
+
+/// <summary>Lines under or through text, and highlights (see <see cref="TextWord.Decorations"/>).</summary>
+[Flags]
+public enum TextDecorations
+{
+    /// <summary>No decoration.</summary>
+    None = 0,
+
+    /// <summary>A line under the text (a rule below the baseline, or an Underline or Squiggly annotation).</summary>
+    Underline = 1,
+
+    /// <summary>A line through the text (a rule at the middle of the lower-case letters, or a StrikeOut annotation).</summary>
+    StrikeOut = 2,
+
+    /// <summary>A highlight (a Highlight annotation).</summary>
+    Highlight = 4,
+}
 
 /// <summary>A line of text.</summary>
 public sealed record TextLineInfo(string Text, PdfRectangle Bounds, IReadOnlyList<TextWord> Words);
@@ -331,6 +368,12 @@ internal sealed class GlyphCollector
             || name.Contains("Italic", StringComparison.OrdinalIgnoreCase) || name.Contains("Oblique", StringComparison.OrdinalIgnoreCase)
             || name.Contains("Ital", StringComparison.Ordinal)
             || System.Text.RegularExpressions.Regex.IsMatch(bare, @"^(CM|SF|EC|TC|LM)(TI|SL|BXTI|BXSL|SSI)\d");
+        // fonts with generic names ("F1", "CIDFont+F2") and without a weight: what the embedded program records
+        if ((!bold || !italic) && MiPdf.Fonts.Programs.FontProgramStyle.Read(descriptor) is { } program)
+        {
+            bold |= program.Bold;
+            italic |= program.Italic;
+        }
         return _styles[font] = (bold, italic);
     }
 
@@ -790,7 +833,13 @@ internal static class LineBuilder
         {
             if (wordText.Length == 0) return;
             var first = wordGlyphs[0];
-            words.Add(new TextWord(wordText.ToString(), PdfTextExtractor.Union(wordGlyphs.Select(g => g.Bounds)), Math.Round(first.FontSize, 2), first.FontName));
+            // the style most of the word's characters have
+            int chars = wordGlyphs.Sum(g => g.Text.Length);
+            words.Add(new TextWord(wordText.ToString(), PdfTextExtractor.Union(wordGlyphs.Select(g => g.Bounds)), Math.Round(first.FontSize, 2), first.FontName)
+            {
+                IsBold = 2 * wordGlyphs.Where(g => g.Bold).Sum(g => g.Text.Length) > chars,
+                IsItalic = 2 * wordGlyphs.Where(g => g.Italic).Sum(g => g.Text.Length) > chars,
+            });
             wordText.Clear();
             wordGlyphs.Clear();
         }
