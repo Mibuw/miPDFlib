@@ -11,6 +11,8 @@
 <p align="center">
   <a href="https://www.nuget.org/packages/miPDFlib/"><img src="https://img.shields.io/nuget/v/miPDFlib.svg" alt="NuGet"></a>
   <a href="https://www.nuget.org/packages/miPDFlib/"><img src="https://img.shields.io/nuget/dt/miPDFlib.svg" alt="NuGet downloads"></a>
+  <a href="https://www.nuget.org/packages/miPDFlib.Rendering/"><img src="https://img.shields.io/nuget/dt/miPDFlib.Rendering.svg?label=Rendering%20downloads" alt="miPDFlib.Rendering downloads"></a>
+  <a href="https://www.nuget.org/packages/miPDFlib.PostScript/"><img src="https://img.shields.io/nuget/dt/miPDFlib.PostScript.svg?label=PostScript%20downloads" alt="miPDFlib.PostScript downloads"></a>
   <a href="https://github.com/Mibuw/miPDFlib/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
   <a href="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml"><img src="https://github.com/Mibuw/miPDFlib/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/.NET-8.0_%7C_10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8 | 10">
