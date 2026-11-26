@@ -78,7 +78,16 @@ Current state: 748 unit tests on .NET 8 and .NET 10, CI on Linux and Windows.
 
 ## Decisions
 
-- **Target frameworks:** net8.0 and net10.0 only, no netstandard2.0 (maintainability).
+- **Target frameworks:** net8.0 and net10.0 only, no netstandard2.0 (maintainability). Re-assessed in November 2026 by
+  building the core library for the older targets: a single additional `netstandard2.0` target would cover .NET
+  Framework 4.6.2–4.8 and .NET 6/7 (netstandard2.1 adds nothing, .NET Framework cannot use it). Most of the ~1,000
+  compiler errors are mechanical (index/range syntax, newer BCL helpers) and can be covered by internal polyfills;
+  no new direct package dependency would be needed (the existing System.Security.Cryptography.Pkcs package brings
+  System.Memory and related Microsoft packages on that target). Real work: RFC 3161 timestamps (B-T to B-LTA) are not
+  available in that package for .NET Framework and would have to be implemented on System.Formats.Asn1; custom trust
+  anchors for validation, a few certificate extensions and the default interface method of `IExternalSigner` need
+  replacements. Estimated at about two weeks including tests on .NET Framework; postponed until there is concrete
+  demand.
 - **Documentation language:** English.
 - **Names:** NuGet package ID `miPDFlib` (the project name; up to 0.2.3-alpha `MiPdf`, now deprecated), namespace
   and assembly `MiPdf` following the .NET naming guidelines.
